@@ -1,5 +1,5 @@
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler , ConversationHandler
 import sqlite3
 import random
@@ -339,7 +339,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "register_online_course":
         await course.get_name(update,context)
     elif data == "back":
-        await course.courses_menu(update,context)
+    keyboard = [
+        [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
+        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+    ]
+    await update.message.e_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
+
 
 
 
