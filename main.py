@@ -334,10 +334,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await course.register_online_course(update,context)
 
     elif data == "register_video_package":
-        await course.get_name(update,context)
+        await course.get_user_info(update,context)
 
     elif data == "register_online_course":
-        await course.get_name(update,context)
+        await course.get_user_info(update,context)
     elif data == "back":
         keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
@@ -385,21 +385,6 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.Text("دریافت کد تخفیف"), generate_discount_code))
 
     app.add_handler(CallbackQueryHandler(callback_handler))
-
-    conv_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(course.courses_menu, pattern="^آموزش و دوره‌ها$")],
-        states={
-            course.GET_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, course.get_email)],
-            course.GET_EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, course.get_phone)],
-            course.GET_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, course.send_payment_link)],
-            course.CONFIRM_PAYMENT: [MessageHandler(filters.Regex("پرداخت شد"), course.finalize_payment)],
-            course.CHECK_THRESHOLD: [MessageHandler(filters.Regex("بررسی حد نصاب"), course.check_threshold)],
-        },
-        fallbacks=[CommandHandler("start", start)],
-        per_message=True
-    )
-    app.add_handler(conv_handler)
-
 
   
     app.run_polling()
