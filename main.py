@@ -339,7 +339,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "register_online_course":
         await course.get_name(update,context)
     elif data == "back":
-        await course.back_to_menu(update,context)
+        await course.courses_menu(update,context)
 
 
 
