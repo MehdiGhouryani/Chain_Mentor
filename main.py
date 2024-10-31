@@ -343,7 +343,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
         [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
     ]
-    await update.message.e_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 
