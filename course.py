@@ -68,7 +68,7 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
 
 # دریافت نام کاربر
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message("لطفاً نام خود را وارد کنید:")
+    await context.bot.send_message(text="لطفاً نام خود را وارد کنید:")
     return GET_NAME
 
 
