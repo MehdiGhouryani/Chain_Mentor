@@ -76,6 +76,7 @@ async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ذخیره نام و دریافت ایمیل
 async def get_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("-- get Email --")
     context.user_data['name'] = update.message.text
     await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
     return GET_EMAIL
