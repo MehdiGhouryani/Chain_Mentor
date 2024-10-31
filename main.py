@@ -25,6 +25,7 @@ BOT_USERNAME = "ChainMentor_bot"
 # اتصال به پایگاه داده
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
+
 def setup_database():
     c.execute('''CREATE TABLE IF NOT EXISTS users (
                     user_id INTEGER PRIMARY KEY,
@@ -130,7 +131,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def save_user(user_id,username,chat_id):
-    connection = sqlite3.connect('class_registrations.db')
+    connection = sqlite3.connect('Database.db')
     cursor = connection.cursor()
     
     cursor.execute('INSERT OR REPLACE INTO save_user (user_id, username,chat_id) VALUES (?, ?,?)', (user_id, username,chat_id))
