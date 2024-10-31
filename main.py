@@ -331,7 +331,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if text == "معرفی خدمات":
         await show_welcome(update, context)
     elif text == "🎓 آموزش و کلاس‌های آنلاین":
-        await course.course_menu(update, context)
+        await course.courses_menu(update, context)
     elif text == "🌟 خدمات VIP":
         await show_vip_services(update, context)
     elif text == "🛠ابزارها":
