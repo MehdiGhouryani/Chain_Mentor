@@ -328,18 +328,18 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
     if data == "buy_video_package":
-        await course.buy_video_package()
+        await course.buy_video_package(update,context)
 
     elif data == "online_course":
-        await course.register_online_course()
+        await course.register_online_course(update,context)
 
     elif data == "register_video_package":
-        await course.get_name()
+        await course.get_name(update,context)
 
     elif data == "register_online_course":
-        await course.get_name()
+        await course.get_name(update,context)
     elif data == "back":
-        await course.back_to_menu()
+        await course.back_to_menu(update,context)
 
 
 
