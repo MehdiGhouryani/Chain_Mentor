@@ -66,25 +66,22 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
-GET_NAME, GET_EMAIL, GET_PHONE = range(3)
-
-# تابع اصلی برای دریافت اطلاعات کاربر
 async def get_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
     # بررسی وضعیت فعلی
     if 'step' not in context.user_data:
-        context.user_data['step'] = GET_NAME
+        context.user_data['step'] = "GET_NAME"
         await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
-    elif context.user_data['step'] == GET_NAME:
+    elif context.user_data['step'] == "GET_NAME":
         context.user_data['name'] = update.message.text
-        context.user_data['step'] = GET_EMAIL
+        context.user_data['step'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
-    elif context.user_data['step'] == GET_EMAIL:
+    elif context.user_data['step'] == "GET_EMAIL":
         context.user_data['email'] = update.message.text
-        context.user_data['step'] = GET_PHONE
+        context.user_data['step'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
-    elif context.user_data['step'] == GET_PHONE:
+    elif context.user_data['step'] == "GET_PHONE":
         context.user_data['phone'] = update.message.text
         
         # ذخیره اطلاعات در دیتابیس (به فرض تابع save_user_info وجود دارد)
