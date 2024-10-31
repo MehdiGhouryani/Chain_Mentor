@@ -68,7 +68,7 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
 
 # دریافت نام کاربر
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("لطفاً نام خود را وارد کنید:")
+    await update.message.sender_chat("لطفاً نام خود را وارد کنید:")
     return GET_NAME
 
 
@@ -139,7 +139,3 @@ async def ask_users_for_feedback(update: Update, context: ContextTypes.DEFAULT_T
     await context.bot.send_message(chat_id="your_admin_id", text="از کاربران نظرسنجی کنید.")
     # با این پیام، ادمین می‌تواند تصمیم بگیرد که به کاربرها پیام ارسال کند.
 
-    # بازگشت به منوی دوره‌ها
-async def back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await courses_menu(update, context)
-    return CHOOSE_ACTION
