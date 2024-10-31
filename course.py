@@ -24,7 +24,7 @@ def increase_registrants_count():
 async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="register_online_course")],
+        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
     ]
     await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
     return CHOOSE_ACTION

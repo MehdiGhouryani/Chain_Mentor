@@ -322,6 +322,27 @@ async def show_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    data = query.data
+    chat_id = update.effective_chat.id
+
+    if data == "buy_video_package":
+        await course.buy_video_package()
+
+    elif data == "online_course":
+        await course.register_online_course()
+
+    elif data == "register_video_package":
+        await course.get_name()
+
+    elif data == "register_online_course":
+        await course.get_name()
+    elif data == "back":
+        await course.back_to_menu()
+
+
+
 
 
 
@@ -358,20 +379,11 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.Text("بله، قبول دارم"), handle_vip_acceptance))
     app.add_handler(MessageHandler(filters.Text("دریافت کد تخفیف"), generate_discount_code))
 
-
+    app.add_handler(CallbackQueryHandler(callback_handler))
 
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(course.courses_menu, pattern="^آموزش و دوره‌ها$")],
         states={
-            course.CHOOSE_ACTION: [
-                CallbackQueryHandler(course.buy_video_package, pattern="^buy_video_package$"),
-                CallbackQueryHandler(course.register_online_course, pattern="^register_online_course$"),
-                CallbackQueryHandler(course.back_to_menu, pattern="^back$")
-            ],
-            course.REGISTER_ONLINE_COURSE: [
-                CallbackQueryHandler(course.get_name, pattern="^register_online_course$"),
-                CallbackQueryHandler(course.back_to_menu, pattern="^back$")
-            ],
             course.GET_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, course.get_email)],
             course.GET_EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, course.get_phone)],
             course.GET_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, course.send_payment_link)],
