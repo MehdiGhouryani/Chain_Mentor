@@ -1,4 +1,6 @@
-
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, ConversationHandler
+import sqlite3
 
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
