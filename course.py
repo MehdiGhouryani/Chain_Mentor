@@ -25,7 +25,6 @@ async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
         [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="register_online_course")],
-        [InlineKeyboardButton("بازگشت", callback_data="back")]
     ]
     await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
     return CHOOSE_ACTION
@@ -42,6 +41,7 @@ def add_score(user_id):
 
 # پردازش خرید پکیج ویدئویی
 async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("-- buy_video_package --")
     query = update.callback_query
     await query.answer()
     keyboard = [
@@ -54,6 +54,7 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # تابع ثبت‌نام دوره آنلاین
 async def register_online_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("-- register_online_course --")
     query = update.callback_query
     await query.answer()
     keyboard = [

@@ -378,7 +378,8 @@ def main() -> None:
             course.CONFIRM_PAYMENT: [MessageHandler(filters.Regex("پرداخت شد"), course.finalize_payment)],
             course.CHECK_THRESHOLD: [MessageHandler(filters.Regex("بررسی حد نصاب"), course.check_threshold)],
         },
-        fallbacks=[CommandHandler("start", start)]
+        fallbacks=[CommandHandler("start", start)],
+        per_message=True
     )
     app.add_handler(conv_handler)
 
