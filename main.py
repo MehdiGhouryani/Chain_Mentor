@@ -380,7 +380,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif text == "💼 مشاهده امتیاز":
         await show_user_score(update,context)
     else :
-        await get_user_info()
+        await get_user_info(update,context)
 
 
 
