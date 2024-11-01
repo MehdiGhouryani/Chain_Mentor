@@ -410,6 +410,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['package'] = None
     course_data.pop(user_id, None)
     current_step.pop(user_id, None)
+    
 
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
