@@ -332,10 +332,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await course.register_online_course(update,context)
 
     elif data == "register_video_package":
-        await course.get_user_info(update,context)
+        await get_user_info(update,context)
 
     elif data == "register_online_course":
-        await course.get_user_info(update,context)
+        await get_user_info(update,context)
     elif data == "back":
         keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
