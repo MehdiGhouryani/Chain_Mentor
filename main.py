@@ -401,16 +401,15 @@ async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 
-
 async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-
+    # دریافت user_id با توجه به نوع پیام (message یا callback_query)
+    user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
 
     context.user_data['online'] = None
     context.user_data['package'] = None
     course_data.pop(user_id, None)
     current_step.pop(user_id, None)
-    
+
 
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
