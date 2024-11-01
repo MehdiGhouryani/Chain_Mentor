@@ -66,36 +66,8 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
-async def get_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-
-    # بررسی وضعیت فعلی
-    if 'step' not in context.user_data:
-        context.user_data['step'] = "GET_NAME"
-        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
-    elif context.user_data['step'] == "GET_NAME":
-        context.user_data['name'] = update.message.text
-        context.user_data['step'] = "GET_EMAIL"
-        await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
-    elif context.user_data['step'] == "GET_EMAIL":
-        context.user_data['email'] = update.message.text
-        context.user_data['step'] = "GET_PHONE"
-        await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
-    elif context.user_data['step'] == "GET_PHONE":
-        context.user_data['phone'] = update.message.text
-        
-        # ذخیره اطلاعات در دیتابیس (به فرض تابع save_user_info وجود دارد)
-        user_id = update.effective_user.id
-        await save_user_info(user_id, chat_id, context.user_data['name'], context.user_data['email'], context.user_data['phone'])
-        
-        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
-        
-        # ریست کردن وضعیت
-        context.user_data['step'] = None
-
-# تابع فرضی برای ذخیره اطلاعات در دیتابیس
 async def save_user_info(user_id, chat_id, name, email, phone):
-    # اینجا کد ذخیره‌سازی اطلاعات در دیتابیس را بنویسید
+    
     pass
 
 

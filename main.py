@@ -33,7 +33,6 @@ def setup_database():
                     name TEXT,
                     phone TEXT,
                     email TEXT,
-                    vip_status TEXT DEFAULT 'inactive'
                 )''')
 
     c.execute("""
@@ -276,8 +275,6 @@ async def show_network_tools(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 
-
-
 async def show_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = "در این بخش می‌توانید ولت‌های معتبر با Win Rate بالا را مشاهده کنید."
     await update.message.reply_text(text)
@@ -352,11 +349,77 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+# مدیریت پیام‌های ورودی
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = update.message.text
+    if text == "معرفی خدمات":
+        await show_welcome(update, context)
+    elif text == "🎓 آموزش و کلاس‌های آنلاین":
+        await course.courses_menu(update, context)
+    elif text == "🌟 خدمات VIP":
+        await show_vip_services(update, context)
+    elif text == "🛠ابزارها":
+        await show_tools(update, context)
+    elif text == "💰 ولت‌های با Win Rate بالا":
+        await show_wallets(update, context)
+    elif text == "🏆 امتیازدهی توییتر":
+        await show_twitter_rating(update, context)
+    elif text == "📣 دعوت دوستان":
+        await show_invite_friends(update, context)
+    elif text == "💼 مشاهده امتیاز":
+        await show_user_score(update,context)
+
+
+
+async def get_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+
+    if 'step' not in context.user_data:
+        context.user_data['step'] = "GET_NAME"
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
+    elif context.user_data['step'] == "GET_NAME":
+        context.user_data['name'] = update.message.text
+        context.user_data['step'] = "GET_EMAIL"
+        await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
+    elif context.user_data['step'] == "GET_EMAIL":
+        context.user_data['email'] = update.message.text
+        context.user_data['step'] = "GET_PHONE"
+        await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
+    elif context.user_data['step'] == "GET_PHONE":
+        context.user_data['phone'] = update.message.text
+        
+        # ذخیره اطلاعات در دیتابیس (به فرض تابع save_user_info وجود دارد)
+        user_id = update.effective_user.id
+        await course.save_user_info(user_id, chat_id, context.user_data['name'], context.user_data['email'], context.user_data['phone'])
+        
+        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        
+        context.user_data['step'] = None
+
+
+
+
+
+
+
+
 def main() -> None:
     app = Application.builder().token('7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI').build()
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_user_info))
     app.add_handler(MessageHandler(filters.TEXT & filters.Regex("^[^/].*"), show_network_tools))
 
     app.add_handler(MessageHandler(filters.Text("ثبت‌نام VIP"), register_vip))
