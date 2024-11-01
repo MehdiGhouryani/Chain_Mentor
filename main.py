@@ -9,6 +9,7 @@ import os
 import logging
 import referral as rs
 import course
+from admin_panel import add_courses
 
 
 
@@ -37,8 +38,10 @@ def setup_database():
 
     c.execute("""
             CREATE TABLE IF NOT EXISTS courses (
-                course_id INTEGER PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 course_name TEXT NOT NULL,
+                description TEXT NOT NULL,
+                price REAL NOT NULL,
                 registrants_count INTEGER DEFAULT 0
             )
         """)
@@ -361,31 +364,49 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
+async def none_step(update:Update,context:ContextTypes.DEFAULT_TYPEs):
+    context.user_data['online'] = None
+    context.user_data['package'] = None
 
 
 
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text
+    user_id =update.message.from_user.id
     if text == "معرفی خدمات":
+        await none_step(update,context)
         await show_welcome(update, context)
     elif text == "🎓 آموزش و کلاس‌های آنلاین":
+        await none_step(update,context)
         await course.courses_menu(update, context)
     elif text == "🌟 خدمات VIP":
+        await none_step(update,context)        
         await show_vip_services(update, context)
     elif text == "🛠ابزارها":
+        await none_step(update,context)    
         await show_tools(update, context)
     elif text == "💰 ولت‌های با Win Rate بالا":
+        await none_step(update,context)        
         await show_wallets(update, context)
     elif text == "🏆 امتیازدهی توییتر":
+        await none_step(update,context)       
         await show_twitter_rating(update, context)
     elif text == "📣 دعوت دوستان":
+        await none_step(update,context)        
         await show_invite_friends(update, context)
     elif text == "💼 مشاهده امتیاز":
+        await none_step(update,context)       
         await show_user_score(update,context)
+    elif text == "افزودن دوره":
+        if str(user_id) not in ADMIN_CHAT_ID:
+            await update.message.reply_text('شما دسترسی ندارید .')
+            return
+
+        await add_courses(update,context)
+
     elif text =='بازگشت به صفحه قبل ⬅️':
+
         await back_main(update,context)
     else:
         await get_user_info_package(update,context)
@@ -443,6 +464,9 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
         context.user_data['online'] = None
+    
+    else:
+        add_courses(update,context)
 
 
 
