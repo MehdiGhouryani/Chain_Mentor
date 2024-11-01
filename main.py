@@ -445,18 +445,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         #PACKAGE STEP 
     elif context.user_data['package'] == "GET_NAME":
-        context.user_data['name'] = update.message.text
+        context.user_data['name_pack'] = update.message.text
         context.user_data['package'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
     elif context.user_data['package'] == "GET_EMAIL":
-        context.user_data['email'] = update.message.text
+        context.user_data['email_pack'] = update.message.text
         context.user_data['package'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
-    elif context.user_data['package'] == "GET_PHONE":
+    elif context.user_data['package_pack'] == "GET_PHONE":
         context.user_data['phone'] = update.message.text
         
         user_id = update.effective_user.id
-        await course.save_user_info(user_id, chat_id, context.user_data['name'], context.user_data['email'], context.user_data['phone'])
+        await course.save_user_info(user_id, chat_id, context.user_data['name_pack'], context.user_data['email_pack'], context.user_data['phone_pack'])
         
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
@@ -467,18 +467,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         #ONLINE STEP
     elif context.user_data['online'] == "GET_NAME":
-        context.user_data['name'] = update.message.text
+        context.user_data['name_online'] = update.message.text
         context.user_data['online'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
     elif context.user_data['online'] == "GET_EMAIL":
-        context.user_data['email'] = update.message.text
+        context.user_data['email_online'] = update.message.text
         context.user_data['online'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
     elif context.user_data['online'] == "GET_PHONE":
-        context.user_data['phone'] = update.message.text
+        context.user_data['phone_online'] = update.message.text
         
         user_id = update.effective_user.id
-        await course.save_user_info(user_id, chat_id, context.user_data['name'], context.user_data['email'], context.user_data['phone'])
+        await course.save_user_info(user_id, chat_id, context.user_data['name_online'], context.user_data['email_online'], context.user_data['phone_online'])
         
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
