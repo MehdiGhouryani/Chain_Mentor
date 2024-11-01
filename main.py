@@ -9,7 +9,7 @@ import os
 import logging
 import referral as rs
 import course
-from admin_panel import add_courses
+from admin_panel import list_courses
 
 
 
@@ -18,13 +18,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 token=os.getenv('Token')
+
 ADMIN_CHAT_ID=['1717599240','686724429']
-
-
 BOT_USERNAME = "ChainMentor_bot"
 
 
-# اتصال به پایگاه داده
+
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
 
@@ -370,6 +369,16 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+course_data = {}
+current_step = {}
+
+# تابع برای شروع دریافت اطلاعات دوره
+async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    course_data[user_id] = {}
+    current_step[user_id] = "course_name"
+    await update.message.reply_text("لطفاً نام دوره را وارد کنید:")
+
 
 
 
@@ -387,6 +396,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     text = update.message.text
     user_id =update.message.from_user.id
     chat_id = update.effective_chat.id
+
+
     if text == "معرفی خدمات":
         await none_step(update,context)
         await show_welcome(update, context)
@@ -415,8 +426,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if str(user_id) not in ADMIN_CHAT_ID:
             await update.message.reply_text('شما دسترسی ندارید .')
             return
-
         await add_courses(update,context)
+
+
+    elif text == "دوره ها":
+        if str(user_id) not in ADMIN_CHAT_ID:
+            await update.message.reply_text('شما دسترسی ندارید .')
+            return
+        await list_courses(update,context)
+
 
     elif text =='بازگشت به صفحه قبل ⬅️':
 
@@ -445,8 +463,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context.user_data['package'] = None
 
 
-    #ONLINE STEP
 
+
+        #ONLINE STEP
     elif context.user_data['online'] == "GET_NAME":
         context.user_data['name'] = update.message.text
         context.user_data['online'] = "GET_EMAIL"
@@ -466,8 +485,46 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         context.user_data['online'] = None
 
 
-    else:
-        await add_courses(update,context)
+  
+
+
+        # ADD COURSE
+    elif current_step.get(user_id) == "course_name":
+        course_data[user_id]["course_name"] = text
+        current_step[user_id] = "description"
+        await update.message.reply_text("لطفاً توضیحات دوره را وارد کنید:")
+
+    elif current_step.get(user_id) == "description":
+        course_data[user_id]["description"] = text
+        current_step[user_id] = "price"
+        await update.message.reply_text("لطفاً قیمت دوره را وارد کنید:")
+
+    elif current_step.get(user_id) == "price":
+        course_data[user_id]["price"] = int(text)
+        c.execute("INSERT INTO courses (course_name, description, price) VALUES (?, ?, ?)",
+            (course_data[user_id]["course_name"], course_data[user_id]["description"], course_data[user_id]["price"]))
+        conn.commit()
+        await update.message.reply_text("دوره با موفقیت ثبت شد!")
+        
+        # پاک کردن داده‌های کاربر و ریست کردن مرحله
+        course_data.pop(user_id)
+        current_step.pop(user_id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def main() -> None:

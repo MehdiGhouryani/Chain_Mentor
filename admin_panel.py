@@ -1,53 +1,26 @@
-from telegram import Update, ReplyKeyboardRemove
-from telegram.ext import ContextTypes
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import sqlite3
 
-async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("-- add Course --")
-    if "step_add" not in context.user_data:
-        context.user_data["step_add"] = "course_name"
-        await update.message.reply_text("لطفاً نام دوره را وارد کنید:")
-        return
+# ایجاد و اتصال به دیتابیس
+conn = sqlite3.connect("Database.db")
+cursor = conn.cursor()
 
 
-    if context.user_data["step_add"] == "course_name":
-        context.user_data["course_name"] = update.message.text
-        context.user_data["step_add"] = "course_description"
-        await update.message.reply_text("لطفاً توضیحات دوره را وارد کنید:")
-        return
 
 
-    if context.user_data["step_add"] == "course_description":
-        context.user_data["course_description"] = update.message.text
-        context.user_data["step_add"] = "course_price"
-        await update.message.reply_text("لطفاً قیمت دوره را وارد کنید (به عنوان عدد):")
-        return
 
 
-    if context.user_data["step_add"] == "course_price":
-        try:
-            context.user_data["course_price"] = float(update.message.text)  # تبدیل به عدد
-        except ValueError:
-            await update.message.reply_text("لطفاً قیمت را به صورت عدد وارد کنید.")
-            return
 
-        # ذخیره در دیتابیس
-        try:
-            conn = sqlite3.connect("Database.db")
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO courses (name, description, price) VALUES (?, ?, ?)",
-                (
-                    context.user_data["course_name"],
-                    context.user_data["course_description"],
-                    context.user_data["course_price"],
-                ),
-            )
-            conn.commit()
 
-            await update.message.reply_text("دوره با موفقیت ثبت شد!", reply_markup=ReplyKeyboardRemove())
-        except Exception as e:
-            await update.message.reply_text(f"خطا در ثبت دوره: {str(e)}")
-        finally:
-            conn.close()
-        context.user_data.clear()
+async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    cursor.execute("SELECT name, description, price FROM courses")
+    courses = cursor.fetchall()
+    if courses:
+        response = "دوره‌های موجود:\n\n"
+        for course in courses:
+            response += f"نام دوره: {course[0]}\nتوضیحات: {course[1]}\nقیمت: {course[2]} تومان\n\n"
+    else:
+        response = "هیچ دوره‌ای موجود نیست."
+    await update.message.reply_text(response)
+
