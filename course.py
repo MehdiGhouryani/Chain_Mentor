@@ -49,7 +49,7 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("بازگشت", callback_data="back")]
     ]
     await query.edit_message_text("توضیحات مربوط به پکیج ویدئویی: ...", reply_markup=InlineKeyboardMarkup(keyboard))
-    return BUY_VIDEO_PACKAGE
+
 
 
 # تابع ثبت‌نام دوره آنلاین
@@ -62,7 +62,7 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
         [InlineKeyboardButton("بازگشت", callback_data="back")]
     ]
     await query.edit_message_text("توضیحات دوره آنلاین: ...", reply_markup=InlineKeyboardMarkup(keyboard))
-    return REGISTER_ONLINE_COURSE
+
 
 
 
@@ -71,12 +71,14 @@ async def save_user_info(user_id, chat_id, name, email, phone):
     c = conn.cursor()
     c.execute('''INSERT OR IGNORE INTO users (
             user_id,name,phone,email) VALUES (?, ? ,? ,?)''',(user_id,name,email,phone))
+    
 
 
 
 # ارسال لینک پرداخت و افزایش تعداد ثبت‌نام‌کنندگان
 async def send_payment_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['phone'] = update.message.text
+    
     payment_link = "https://example.com/payment"  # لینک پرداخت فرضی
     await update.message.reply_text(f"برای تکمیل ثبت‌نام، لطفاً به لینک زیر مراجعه کرده و پرداخت خود را انجام دهید:\n{payment_link}")
     await update.message.reply_text("پس از پرداخت، لطفاً با ارسال پیام 'پرداخت شد'، پرداخت خود را تأیید کنید.")

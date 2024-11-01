@@ -128,6 +128,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
     await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
 
+async def back_main(update:Update,context:ContextTypes.DEFAULT_TYPE):
+        reply_markup = ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
+        await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
 
 
 async def save_user(user_id,username,chat_id):
@@ -248,7 +251,10 @@ async def handle_vip_acceptance(update: Update, context: ContextTypes.DEFAULT_TY
 async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     welcome_text = "شبکه‌ای که می‌خواهید ابزارهایش را ببینید، انتخاب کنید."
     networks = list(TOOLS_DATA.keys())
-    keyboard = [[KeyboardButton(network)] for network in networks]
+    keyboard = [
+        [KeyboardButton(network) for network in networks],
+        [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
+        ]
     await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
 
 
@@ -332,10 +338,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await course.register_online_course(update,context)
 
     elif data == "register_video_package":
-        await get_user_info(update,context)
+        await get_user_info_package(update,context)
 
     elif data == "register_online_course":
-        await get_user_info(update,context)
+        await get_user_info_online(update,context)
     elif data == "back":
         keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
@@ -379,26 +385,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await show_invite_friends(update, context)
     elif text == "💼 مشاهده امتیاز":
         await show_user_score(update,context)
-    else :
-        await get_user_info(update,context)
+    elif text =='بازگشت به صفحه قبل ⬅️':
+        await back_main(update,context)
+    else:
+        await get_user_info_package(update,context)
 
 
 
-async def get_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
-    if 'step' not in context.user_data:
-        context.user_data['step'] = "GET_NAME"
+    if 'package' not in context.user_data:
+        context.user_data['package'] = "GET_NAME"
         await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
-    elif context.user_data['step'] == "GET_NAME":
+    elif context.user_data['package'] == "GET_NAME":
         context.user_data['name'] = update.message.text
-        context.user_data['step'] = "GET_EMAIL"
+        context.user_data['package'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
-    elif context.user_data['step'] == "GET_EMAIL":
+    elif context.user_data['package'] == "GET_EMAIL":
         context.user_data['email'] = update.message.text
-        context.user_data['step'] = "GET_PHONE"
+        context.user_data['package'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
-    elif context.user_data['step'] == "GET_PHONE":
+    elif context.user_data['package'] == "GET_PHONE":
         context.user_data['phone'] = update.message.text
         
         user_id = update.effective_user.id
@@ -406,7 +414,36 @@ async def get_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
-        context.user_data['step'] = None
+        context.user_data['package'] = None
+    else:
+        await get_user_info_online(update,context)
+
+
+
+async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+
+    if 'online' not in context.user_data:
+        context.user_data['online'] = "GET_NAME"
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
+    elif context.user_data['online'] == "GET_NAME":
+        context.user_data['name'] = update.message.text
+        context.user_data['online'] = "GET_EMAIL"
+        await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
+    elif context.user_data['online'] == "GET_EMAIL":
+        context.user_data['email'] = update.message.text
+        context.user_data['online'] = "GET_PHONE"
+        await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
+    elif context.user_data['online'] == "GET_PHONE":
+        context.user_data['phone'] = update.message.text
+        
+        user_id = update.effective_user.id
+        await course.save_user_info(user_id, chat_id, context.user_data['name'], context.user_data['email'], context.user_data['phone'])
+        
+        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        
+        context.user_data['online'] = None
+
 
 
 
