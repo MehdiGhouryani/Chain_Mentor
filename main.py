@@ -364,7 +364,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-async def none_step(update:Update,context:ContextTypes.DEFAULT_TYPEs):
+async def none_step(update:Update,context:ContextTypes.DEFAULT_TYPE):
     context.user_data['online'] = None
     context.user_data['package'] = None
 
