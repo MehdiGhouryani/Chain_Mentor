@@ -10,7 +10,8 @@ import logging
 import referral as rs
 import course
 from admin_panel import list_courses
-
+import os
+import wallet_tracker
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
@@ -61,6 +62,16 @@ def setup_database():
                       (user_id INTEGER PRIMARY KEY,
                        username TEXT,
                        chat_id TEXT)''')
+    
+
+
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS wallets (
+        user_id INTEGER,
+        wallet_address TEXT,
+        last_transaction_id TEXT
+    )
+    ''')
 
     conn.commit()
 
@@ -394,102 +405,108 @@ async def none_step(update:Update,context:ContextTypes.DEFAULT_TYPE):
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text
-    user_id =update.message.from_user.id
+    user_id = update.message.from_user.id
     chat_id = update.effective_chat.id
+    
+    # دیکشنری برای نگاشت دستورات به توابع مربوطه
+    command_mapping = {
+        "معرفی خدمات": show_welcome,
+        "🎓 آموزش و کلاس‌های آنلاین": course.courses_menu,
+        "🌟 خدمات VIP": show_vip_services,
+        "🛠ابزارها": show_tools,
+        "💰 ولت‌های با Win Rate بالا": show_wallets,
+        "🏆 امتیازدهی توییتر": show_twitter_rating,
+        "📣 دعوت دوستان": show_invite_friends,
+        "💼 مشاهده امتیاز": show_user_score,
+        "بازگشت به صفحه قبل ⬅️": back_main
+    }
+    
+    # چک کردن و اجرای دستورها
+    if text in command_mapping:
+        await none_step(update, context)
+        await command_mapping[text](update, context)
+
+    elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
+        await add_courses(update, context)
+
+    elif text == "دوره ها" and str(user_id) in ADMIN_CHAT_ID:
+        await list_courses(update, context)
+
+    elif context.user_data.get('package'):
+        await handle_package_step(update, context)
+
+    elif context.user_data.get('online'):
+        await handle_online_step(update, context)
 
 
-    if text == "معرفی خدمات":
-        await none_step(update,context)
-        await show_welcome(update, context)
-    elif text == "🎓 آموزش و کلاس‌های آنلاین":
-        await none_step(update,context)
-        await course.courses_menu(update, context)
-    elif text == "🌟 خدمات VIP":
-        await none_step(update,context)        
-        await show_vip_services(update, context)
-    elif text == "🛠ابزارها":
-        await none_step(update,context)    
-        await show_tools(update, context)
-    elif text == "💰 ولت‌های با Win Rate بالا":
-        await none_step(update,context)        
-        await show_wallets(update, context)
-    elif text == "🏆 امتیازدهی توییتر":
-        await none_step(update,context)       
-        await show_twitter_rating(update, context)
-    elif text == "📣 دعوت دوستان":
-        await none_step(update,context)        
-        await show_invite_friends(update, context)
-    elif text == "💼 مشاهده امتیاز":
-        await none_step(update,context)       
-        await show_user_score(update,context)
-    elif text == "افزودن دوره":
-        if str(user_id) not in ADMIN_CHAT_ID:
-            await update.message.reply_text('شما دسترسی ندارید .')
-            return
-        await add_courses(update,context)
-
-
-    elif text == "دوره ها":
-        if str(user_id) not in ADMIN_CHAT_ID:
-            await update.message.reply_text('شما دسترسی ندارید .')
-            return
-        await list_courses(update,context)
-
-
-    elif text =='بازگشت به صفحه قبل ⬅️':
-
-        await back_main(update,context)
+    elif user_id in current_step:
+        await handle_add_course_step(update, user_id, text)
 
 
 
 
-        #PACKAGE STEP 
-    elif context.user_data['package'] == "GET_NAME":
+
+
+async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    package_step = context.user_data.get('package')
+    if package_step == "GET_NAME":
         context.user_data['name_pack'] = update.message.text
         context.user_data['package'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
-    elif context.user_data['package'] == "GET_EMAIL":
+    elif package_step == "GET_EMAIL":
         context.user_data['email_pack'] = update.message.text
         context.user_data['package'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
-    elif context.user_data['package_pack'] == "GET_PHONE":
-        context.user_data['phone'] = update.message.text
-        
-        user_id = update.effective_user.id
-        await course.save_user_info(user_id, chat_id, context.user_data['name_pack'], context.user_data['email_pack'], context.user_data['phone_pack'])
-        
+    elif package_step == "GET_PHONE":
+        context.user_data['phone_pack'] = update.message.text
+        await course.save_user_info(
+            update.effective_user.id,
+            update.effective_chat.id,
+            context.user_data['name_pack'],
+            context.user_data['email_pack'],
+            context.user_data['phone_pack']
+        )
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
-        
         context.user_data['package'] = None
 
 
 
 
-        #ONLINE STEP
-    elif context.user_data['online'] == "GET_NAME":
+
+
+async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    online_step = context.user_data.get('online')
+    if online_step == "GET_NAME":
         context.user_data['name_online'] = update.message.text
         context.user_data['online'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
-    elif context.user_data['online'] == "GET_EMAIL":
+
+    elif online_step == "GET_EMAIL":
         context.user_data['email_online'] = update.message.text
         context.user_data['online'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
-    elif context.user_data['online'] == "GET_PHONE":
+
+    elif online_step == "GET_PHONE":
         context.user_data['phone_online'] = update.message.text
-        
-        user_id = update.effective_user.id
-        await course.save_user_info(user_id, chat_id, context.user_data['name_online'], context.user_data['email_online'], context.user_data['phone_online'])
-        
+        await course.save_user_info(
+            update.effective_user.id,
+            update.effective_chat.id,
+            context.user_data['name_online'],
+            context.user_data['email_online'],
+            context.user_data['phone_online']
+        )
+
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
-        
         context.user_data['online'] = None
 
 
-  
 
 
-        # ADD COURSE
-    elif current_step.get(user_id) == "course_name":
+async def handle_add_course_step(update: Update, user_id: int, text: str):
+
+    if current_step.get(user_id) == "course_name":
         course_data[user_id]["course_name"] = text
         current_step[user_id] = "description"
         await update.message.reply_text("لطفاً توضیحات دوره را وارد کنید:")
@@ -502,21 +519,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif current_step.get(user_id) == "price":
         course_data[user_id]["price"] = int(text)
         c.execute("INSERT INTO courses (course_name, description, price) VALUES (?, ?, ?)",
-            (course_data[user_id]["course_name"], course_data[user_id]["description"], course_data[user_id]["price"]))
+                  (course_data[user_id]["course_name"], course_data[user_id]["description"], course_data[user_id]["price"]))
         conn.commit()
+
         await update.message.reply_text("دوره با موفقیت ثبت شد!")
-        
-        # پاک کردن داده‌های کاربر و ریست کردن مرحله
         course_data.pop(user_id)
         current_step.pop(user_id)
-
-
-
-
-
-
-
-
 
 
 
@@ -533,6 +541,13 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+    app.add_handler(CommandHandler("add_wallet", wallet_tracker.add_wallet))
+    app.add_handler(CommandHandler("remove_wallet", wallet_tracker.remove_wallet))
+    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
+    
+    # راه‌اندازی زمان‌بندی برای پایش تراکنش‌ها
+    wallet_tracker.start_scheduler(app)
+    
     app.add_handler(MessageHandler(filters.TEXT & filters.Regex("^[^/].*"), show_network_tools))
 
     app.add_handler(MessageHandler(filters.Text("ثبت‌نام VIP"), register_vip))
