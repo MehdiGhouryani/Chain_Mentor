@@ -131,9 +131,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
     await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
 
+
+
+
+
+
+
+
 async def back_main(update:Update,context:ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
         reply_markup = ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
-        await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
+        await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
 
 
 async def save_user(user_id,username,chat_id):
@@ -341,10 +353,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await course.register_online_course(update,context)
 
     elif data == "register_video_package":
-        await get_user_info_package(update,context)
+        await course.get_user_info_package(update,context)
 
     elif data == "register_online_course":
-        await get_user_info_online(update,context)
+        await course.get_user_info_online(update,context)
     elif data == "back":
         keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
@@ -374,6 +386,7 @@ async def none_step(update:Update,context:ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text
     user_id =update.message.from_user.id
+    chat_id = update.effective_chat.id
     if text == "معرفی خدمات":
         await none_step(update,context)
         await show_welcome(update, context)
@@ -408,17 +421,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif text =='بازگشت به صفحه قبل ⬅️':
 
         await back_main(update,context)
-    else:
-        await get_user_info_package(update,context)
 
 
 
-async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
 
-    if 'package' not in context.user_data:
-        context.user_data['package'] = "GET_NAME"
-        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
+        #PACKAGE STEP 
     elif context.user_data['package'] == "GET_NAME":
         context.user_data['name'] = update.message.text
         context.user_data['package'] = "GET_EMAIL"
@@ -436,17 +443,10 @@ async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
         context.user_data['package'] = None
-    else:
-        await get_user_info_online(update,context)
 
 
+    #ONLINE STEP
 
-async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-
-    if 'online' not in context.user_data:
-        context.user_data['online'] = "GET_NAME"
-        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
     elif context.user_data['online'] == "GET_NAME":
         context.user_data['name'] = update.message.text
         context.user_data['online'] = "GET_EMAIL"
@@ -464,16 +464,10 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
         context.user_data['online'] = None
-    
+
+
     else:
-        add_courses(update,context)
-
-
-
-
-
-
-
+        await add_courses(update,context)
 
 
 def main() -> None:

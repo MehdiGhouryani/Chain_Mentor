@@ -126,3 +126,24 @@ async def ask_users_for_feedback(update: Update, context: ContextTypes.DEFAULT_T
     await context.bot.send_message(chat_id="your_admin_id", text="از کاربران نظرسنجی کنید.")
     # با این پیام، ادمین می‌تواند تصمیم بگیرد که به کاربرها پیام ارسال کند.
 
+
+
+
+async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    print("-- package --")
+    if 'package' not in context.user_data:
+        context.user_data['package'] = "GET_NAME"
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
+
+
+
+
+async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+
+    if 'online' not in context.user_data:
+        context.user_data['online'] = "GET_NAME"
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
+
+
