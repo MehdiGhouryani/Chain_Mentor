@@ -371,9 +371,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        # فقط تغییر دکمه‌ها بدون تغییر متن
+        await none_step(update,context)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
+        
 
     else:
         # مدیریت هرگونه داده غیرمنتظره برای جلوگیری از ارور
@@ -402,12 +402,14 @@ async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 
+async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
 
-async def none_step(update:Update,context:ContextTypes.DEFAULT_TYPE):
+
     context.user_data['online'] = None
     context.user_data['package'] = None
-
-
+    course_data.pop(user_id, None)
+    current_step.pop(user_id, None)
 
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
