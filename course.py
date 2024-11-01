@@ -128,23 +128,25 @@ async def ask_users_for_feedback(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
-
 async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
+    # دیباگ: چاپ کردن user_data
+    print("Current user_data:", context.user_data)
+
     if 'package' not in context.user_data:
-        print("-- package --")
+        print("-- package initialized --")
         context.user_data['package'] = "GET_NAME"
         await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
-
-
 
 
 async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
+    # دیباگ: چاپ کردن user_data
+    print("Current user_data:", context.user_data)
+
     if 'online' not in context.user_data:
+        print("-- online initialized --")
         context.user_data['online'] = "GET_NAME"
         await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
-
-
