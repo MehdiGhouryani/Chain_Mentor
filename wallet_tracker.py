@@ -24,7 +24,7 @@ async def add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not wallet_address or len(wallet_address) < 26: 
         await update.message.reply_text("لطفاً یک آدرس ولت معتبر وارد کنید.")
         return
-    
+    print(f"-- wallet address : {wallet_address} ")
     cursor.execute("INSERT INTO wallets (user_id, wallet_address) VALUES (?, ?)", (user_id, wallet_address))
     conn.commit()
     await update.message.reply_text(f"ولت {wallet_address} با موفقیت ثبت شد.")
