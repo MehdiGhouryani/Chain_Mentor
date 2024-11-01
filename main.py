@@ -401,7 +401,6 @@ async def get_user_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif context.user_data['step'] == "GET_PHONE":
         context.user_data['phone'] = update.message.text
         
-        # ذخیره اطلاعات در دیتابیس (به فرض تابع save_user_info وجود دارد)
         user_id = update.effective_user.id
         await course.save_user_info(user_id, chat_id, context.user_data['name'], context.user_data['email'], context.user_data['phone'])
         
