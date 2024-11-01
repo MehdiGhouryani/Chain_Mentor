@@ -341,7 +341,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
         [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
     ]
-    await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await query.edit_message_reply_markup("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 
@@ -379,6 +379,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await show_invite_friends(update, context)
     elif text == "💼 مشاهده امتیاز":
         await show_user_score(update,context)
+    else :
+        await get_user_info()
 
 
 
@@ -419,7 +421,7 @@ def main() -> None:
     
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_user_info))
+
     app.add_handler(MessageHandler(filters.TEXT & filters.Regex("^[^/].*"), show_network_tools))
 
     app.add_handler(MessageHandler(filters.Text("ثبت‌نام VIP"), register_vip))
