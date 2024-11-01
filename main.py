@@ -32,7 +32,7 @@ def setup_database():
                     user_id INTEGER PRIMARY KEY,
                     name TEXT,
                     phone TEXT,
-                    email TEXT,
+                    email TEXT
                 )''')
 
     c.execute("""
