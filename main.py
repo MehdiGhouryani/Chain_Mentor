@@ -9,7 +9,7 @@ import os
 import logging
 import referral as rs
 import course
-from message_handle import handle_message
+
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)

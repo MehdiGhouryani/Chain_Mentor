@@ -67,8 +67,11 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def save_user_info(user_id, chat_id, name, email, phone):
-    
-    pass
+    conn =sqlite3.connect("Database.db",check_same_thread=False)
+    c = conn.cursor()
+    c.execute('''INSERT OR IGNORE INTO users (
+            user_id,name,phone,email) VALUES (?, ? ,? ,?)''',(user_id,name,email,phone))
+
 
 
 # ارسال لینک پرداخت و افزایش تعداد ثبت‌نام‌کنندگان
