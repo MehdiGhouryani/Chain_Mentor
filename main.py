@@ -348,32 +348,39 @@ async def show_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await rs.show_score(update, context)  # فراخوانی تابع نمایش امتیاز از فایل referral_system
 
 
-
-
-
-async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE): 
     query = update.callback_query
     data = query.data
     chat_id = update.effective_chat.id
 
     if data == "buy_video_package":
-        await course.buy_video_package(update,context)
+        await course.buy_video_package(update, context)
 
     elif data == "online_course":
-        await course.register_online_course(update,context)
+        await course.register_online_course(update, context)
 
     elif data == "register_video_package":
-        await course.get_user_info_package(update,context)
+        await course.get_user_info_package(update, context)
 
     elif data == "register_online_course":
-        await course.get_user_info_online(update,context)
+        await course.get_user_info_online(update, context)
+
     elif data == "back":
         keyboard = [
-        [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
-    ]
-    await query.edit_message_reply_markup("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
+            [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
+            [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # فقط تغییر دکمه‌ها بدون تغییر متن
+        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+    else:
+        # مدیریت هرگونه داده غیرمنتظره برای جلوگیری از ارور
+        await query.answer("دستور نامعتبر است")
+
+    # تایید دریافت callback query
+    await query.answer()
 
 
 
