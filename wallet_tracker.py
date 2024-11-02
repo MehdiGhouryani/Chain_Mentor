@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
-CHECK_INTERVAL = 10  # فاصله زمانی برای پایش تراکنش‌ها به دقیقه
+CHECK_INTERVAL = 1  # فاصله زمانی برای پایش تراکنش‌ها به دقیقه
 
 
 conn = sqlite3.connect("Database.db", check_same_thread=False)
