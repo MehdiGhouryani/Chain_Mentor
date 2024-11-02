@@ -66,12 +66,12 @@ def setup_database():
 
 
     c.execute('''
-    CREATE TABLE IF NOT EXISTS wallets (
-        user_id INTEGER,
-        wallet_address TEXT,
-        last_transaction_id TEXT
-    )
-    ''')
+            CREATE TABLE IF NOT EXISTS wallets (
+                user_id INTEGER,
+                wallet_address TEXT,
+                last_transaction_id TEXT
+            )
+            ''')
 
     conn.commit()
 
@@ -218,10 +218,8 @@ async def show_welcome(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 
-
 async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("بخش VIP شامل محتوای ویژه است.")
-
 
 
 
@@ -236,26 +234,12 @@ async def register_vip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 
-
 async def handle_vip_acceptance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if context.user_data.get('vip_registration_step') == 'accept_rules':
         user_id = update.message.from_user.id
         c.execute("UPDATE users SET vip_status = 'active' WHERE user_id = ?", (user_id,))
         conn.commit()
         await update.message.reply_text("ثبت‌نام VIP شما با موفقیت انجام شد! از خدمات ما لذت ببرید.")
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -314,7 +298,6 @@ async def show_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def show_twitter_rating(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = "در این بخش می‌توانید پروفایل توییتر خود را متصل کرده و امتیاز کسب کنید."
     await update.message.reply_text(text)
-
 
 
 
@@ -457,7 +440,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     package_step = context.user_data.get('package')
     if package_step == "GET_NAME":
         context.user_data['name_pack'] = update.message.text
@@ -485,7 +467,6 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     online_step = context.user_data.get('online')
     if online_step == "GET_NAME":
         context.user_data['name_online'] = update.message.text
@@ -514,7 +495,6 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def handle_add_course_step(update: Update, user_id: int, text: str):
-
     if current_step.get(user_id) == "course_name":
         course_data[user_id]["course_name"] = text
         current_step[user_id] = "description"

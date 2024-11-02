@@ -4,15 +4,16 @@ from telegram import Update
 from telegram.ext import ContextTypes
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
 
-# تنظیمات API و زمان‌بندی
-API_KEY = os.getenv("BLOCKCHAIN_API_KEY")  # استفاده از متغیر محیطی برای API Key
+load_dotenv()
+
+API_KEY = os.getenv("API_KEY")
 CHECK_INTERVAL = 10  # فاصله زمانی برای پایش تراکنش‌ها به دقیقه
 
-# اتصال به پایگاه داده SQLite
+
 conn = sqlite3.connect("Database.db", check_same_thread=False)
 cursor = conn.cursor()
-
 
 
 
@@ -78,12 +79,19 @@ def check_wallets(application):
                 conn.commit()
 
 
-
-# دریافت تراکنش‌ها از API
 def get_wallet_transactions(wallet_address):
-    url = f"https://api.blockchain.com/v3/addresses/{wallet_address}/transactions?api_key={API_KEY}"
+    url = f"https://api.bscscan.com/api?module=account&action=txlist&address={wallet_address}&startblock=0&endblock=99999999&sort=asc&apikey={API_KEY}"
     response = requests.get(url)
-    return response.json() if response.status_code == 200 else None
+
+    if response.status_code == 200:
+        data = response.json()
+        if 'result' in data:
+            return data['result']
+        else:
+            return None
+    else:
+        return None
+
 
 
 # بررسی تراکنش به عنوان خرید
