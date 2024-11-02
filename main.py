@@ -146,17 +146,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
-async def back_main(update:Update,context:ContextTypes.DEFAULT_TYPE):
-        query = update.callback_query
+async def back_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if query:
         reply_markup = ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
+    else:
+        chat_id = update.effective_chat.id
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً یکی از گزینه‌های اصلی را انتخاب کنید:", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
 
 async def save_user(user_id,username,chat_id):
     connection = sqlite3.connect('Database.db')
