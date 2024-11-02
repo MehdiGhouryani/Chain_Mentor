@@ -51,8 +51,7 @@ def setup_database():
                 score INTEGER NOT NULL
             )
         """)
-
-
+    
     c.execute('''CREATE TABLE IF NOT EXISTS discount_codes (
                 code TEXT PRIMARY KEY,
                 discount INTEGER,
@@ -63,8 +62,6 @@ def setup_database():
                        username TEXT,
                        chat_id TEXT)''')
     
-
-
     c.execute('''
             CREATE TABLE IF NOT EXISTS wallets (
                 user_id INTEGER,
@@ -267,7 +264,7 @@ async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 async def show_network_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    selected_network = update.message.text
+    selected_network = 'سولانا'
     if selected_network in TOOLS_DATA:
         tools = TOOLS_DATA[selected_network]
         response_text = f"ابزارهای موجود برای شبکه {selected_network}:\n\n"
@@ -421,6 +418,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     elif text == "دوره ها" and str(user_id) in ADMIN_CHAT_ID:
         await list_courses(update, context)
+    elif text == 'سولانا':
+        await show_network_tools(update,context)
 
     elif context.user_data.get('package'):
         await handle_package_step(update, context)
