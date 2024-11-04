@@ -524,9 +524,11 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
-        await payment.start_payment(update,context,user_id,course_id)
+        
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
+        await payment.start_payment(update,context,user_id,course_id)
+        
 
 
 
