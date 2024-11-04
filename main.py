@@ -91,7 +91,7 @@ def setup_database():
     # ایجاد جدول کیف پول‌ها
     c.execute('''
             CREATE TABLE IF NOT EXISTS wallets (
-                user_id INT REFERENCES users(user_id),
+                user_id INTEGER,
                 wallet_address VARCHAR(255),
                 last_transaction_id VARCHAR(255),
                 PRIMARY KEY (user_id, wallet_address)
