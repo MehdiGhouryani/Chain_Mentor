@@ -46,7 +46,7 @@ def setup_database():
                 course_name VARCHAR(255) NOT NULL,
                 description TEXT,
                 price DECIMAL(10, 2) NOT NULL,
-                course_type TEXT NOT NULL
+                course_type TEXT NOT NULL,
                 registrants_count INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
