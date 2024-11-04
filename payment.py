@@ -24,14 +24,15 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
         c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
         course_data = c.fetchone()
 
-        print(f"USER ID is   :  {user_id}")
+        # print(f"USER ID is   :  {user_id}")
         print(f"-----  {user_data} in start_payment  for course  :  {course_data}  -----")
         if not user_data or not course_data:
             await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
             return
 
-        amount = course_data[1]  # مبلغ تراکنش
 
+
+        amount = course_data[1]  # مبلغ تراکنش
         headers = {
             'accept': 'application/json',
             'content-type': 'application/json',
@@ -54,25 +55,28 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
 
         response_data = response.json()
 
-        # بررسی کد بازگشتی برای موفقیت درخواست
-        if response_data["data"]["code"] == 100:
-            authority = response_data["data"]["authority"]
-            link = f"https://www.zarinpal.com/pg/StartPay/{authority}"
+        if "data" in response_data and isinstance(response_data["data"], dict):
+            if response_data["data"].get("code") == 100:
+                authority = response_data["data"]["authority"]
+                link = f"https://www.zarinpal.com/pg/StartPay/{authority}"
 
-            # ذخیره وضعیت تراکنش به عنوان "در حال انتظار"
-            c.execute("""
-                INSERT INTO transactions (user_id, course_id, authority_code, amount, status)
-                VALUES (?, ?, ?, ?, 'pending')
-            """, (user_id, course_id, authority, amount))
-            conn.commit()
+                # ذخیره وضعیت تراکنش به عنوان "در حال انتظار"
+                c.execute("""
+                    INSERT INTO transactions (user_id, course_id, authority_code, amount, status)
+                    VALUES (?, ?, ?, ?, 'pending')
+                """, (user_id, course_id, authority, amount))
+                conn.commit()
 
-            keyboard = [
-                [InlineKeyboardButton("پرداخت کنید", url=link)]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text("لطفاً بر روی دکمه زیر برای پرداخت کلیک کنید:", reply_markup=reply_markup)
+                keyboard = [
+                    [InlineKeyboardButton("پرداخت کنید", url=link)]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                await update.message.reply_text("لطفاً بر روی دکمه زیر برای پرداخت کلیک کنید:", reply_markup=reply_markup)
+            else:
+                await update.message.reply_text("خطایی در ایجاد صفحه پرداخت رخ داد. لطفاً مجدداً تلاش کنید.")
         else:
-            await update.message.reply_text("خطایی در ایجاد صفحه پرداخت رخ داد. لطفاً مجدداً تلاش کنید.")
+            await update.message.reply_text("پاسخی نامعتبر از درگاه پرداخت دریافت شد.")
+            print("Invalid response structure:", response_data)
 
     except requests.exceptions.RequestException as e:
         # خطا در اتصال به API زرین پال
@@ -93,6 +97,12 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
         # سایر خطاهای پیش‌بینی نشده
         await update.message.reply_text("خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.")
         print(f"Unexpected Error: {e}")
+
+
+
+
+
+
 
 
 
