@@ -18,7 +18,7 @@ ZARINPAL_CALLBACK_URL = "YOUR_CALLBACK_URL"  # آدرس بازگشت خود را
 async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
     try:
         print(f"----- {user_id} in start_payment -----")
-        c.execute("SELECT name, email, phone FROM users WHERE telegram_id = ?", (user_id,))
+        c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
         user_data = c.fetchone()
         
         c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
