@@ -8,7 +8,7 @@ import requests
 
 ZARINPAL_API_KEY = os.getenv("ZARINPAL_API_KEY")
 
-conn = sqlite3.connect('your_database.db', check_same_thread=False)
+conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
 
 
@@ -88,7 +88,6 @@ async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYP
         "amount": amount,
         "authority": authority_code
     }
-
     response = requests.post(f"{ZARINPAL_API_URL}/verify.json", json=data)
     response_data = response.json()
 
@@ -100,10 +99,9 @@ async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYP
             WHERE authority_code = ?
         """, (authority_code,))
         conn.commit()
-
         await update.message.reply_text("پرداخت با موفقیت انجام شد. ثبت‌نام شما تایید شد.")
     else:
-        # در صورت ناموفق بودن
+
         c.execute("""
             UPDATE transactions
             SET status = 'failed'

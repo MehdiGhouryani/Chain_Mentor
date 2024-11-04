@@ -55,7 +55,7 @@ async def list_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # تنظیم اتصال به دیتابیس
-conn = sqlite3.connect("wallet_tracker.db", check_same_thread=False)
+conn = sqlite3.connect("Database.db", check_same_thread=False)
 cursor = conn.cursor()
 
 # تابع اصلی برای چک کردن ولت‌ها
