@@ -499,12 +499,12 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(type,))
     last_course = c.fetchone()
-
+    print(f"LAST COURSE   :{last_course})
     if last_course:
         course_id =last_course[0]
     else:
         print("دوره انلاینی موجود نیست فعلا")
-
+    print(f"COURSE ID   :{course_id})
     online_step = context.user_data.get('online')
     if online_step == "GET_NAME":
         context.user_data['name_online'] = update.message.text
