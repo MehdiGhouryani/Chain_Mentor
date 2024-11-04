@@ -31,8 +31,9 @@ c = conn.cursor()
 def setup_database():
     # ایجاد جدول کاربران
     c.execute('''CREATE TABLE IF NOT EXISTS users (
-            user_id SERIAL PRIMARY KEY,
-            telegram_id BIGINT UNIQUE NOT NULL,
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT UNIQUE NOT NULL,
+            chat_id INT,
             name VARCHAR(255),
             email VARCHAR(255),
             phone VARCHAR(20),
