@@ -43,15 +43,14 @@ def setup_database():
     # ایجاد جدول دوره‌ها
     c.execute("""
             CREATE TABLE IF NOT EXISTS courses (
-                course_id SERIAL PRIMARY KEY,
-                course_name VARCHAR(255) NOT NULL,
-                description TEXT,
-                price DECIMAL(10, 2) NOT NULL,
-                course_type TEXT NOT NULL,
-                registrants_count INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+            course_id INTEGER PRIMARY KEY AUTOINCREMENT, -- شناسه منحصر به فرد هر دوره با افزایش خودکار
+            course_name VARCHAR(255) NOT NULL,           -- نام دوره که اجباری است
+            description TEXT,                            -- توضیحات دوره که می‌تواند خالی باشد
+            price REAL NOT NULL,                         -- قیمت دوره که از نوع REAL است
+            course_type TEXT NOT NULL,                   -- نوع دوره که باید به صورت آنلاین یا ویدیو باشد
+            registrants_count INTEGER DEFAULT 0,         -- تعداد شرکت‌کنندگان که به صورت پیش‌فرض 0 است
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- تاریخ و زمان ایجاد رکورد که به صورت خودکار پر می‌شود
+              )""")
 
     # ایجاد جدول تراکنش‌ها
     c.execute("""
@@ -495,9 +494,9 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    type = 'online'
+    course_type = 'online'
 
-    c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(type,))
+    c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
     last_course = c.fetchone()
     print(f"LAST COURSE   :{last_course}")
     if last_course:
@@ -533,7 +532,6 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 
-
 async def handle_add_course_step(update: Update, user_id: int, text: str):
     if current_step.get(user_id) == "course_name":
         course_data[user_id]["course_name"] = text
@@ -546,21 +544,29 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
         await update.message.reply_text("لطفاً قیمت دوره را وارد کنید:")
 
     elif current_step.get(user_id) == "price":
-        course_data[user_id]["price"] = int(text)
-        current_step[user_id] = "type"
-        await update.message.reply_text("لطفاً نوع دوره را وارد کنید:\n\nonline یا video")
+        try:
+            course_data[user_id]["price"] = float(text)
+            current_step[user_id] = "type"
+            await update.message.reply_text("لطفاً نوع دوره را وارد کنید:\n\nonline یا video")
+        except ValueError:
+            await update.message.reply_text("قیمت نامعتبر است! لطفاً یک مقدار عددی وارد کنید:")
 
     elif current_step.get(user_id) == "type":
         course_data[user_id]["type"] = text
-    
-        c.execute("INSERT INTO courses (course_name,description,price,course_type) VALUES (?, ?, ?, ?)",
-                  (course_data[user_id]["course_name"], course_data[user_id]["description"], course_data[user_id]["price"],course_data[user_id]["type"]))
+
+        # ذخیره اطلاعات در دیتابیس
+        c.execute(
+            "INSERT INTO courses (course_name, description, price, course_type) VALUES (?, ?, ?, ?)",
+            (course_data[user_id]["course_name"], 
+             course_data[user_id]["description"], 
+             course_data[user_id]["price"], 
+             course_data[user_id]["type"])
+        )
         conn.commit()
 
         await update.message.reply_text("دوره با موفقیت ثبت شد!")
-        course_data.pop(user_id)
-        current_step.pop(user_id)
-
+        course_data.pop(user_id, None)
+        current_step.pop(user_id, None)
 
 
 
