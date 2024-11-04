@@ -17,13 +17,13 @@ ZARINPAL_CALLBACK_URL = "YOUR_CALLBACK_URL"  # آدرس بازگشت خود را
 
 async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
     try:
-        print(f"----- {user_id} in start_payment  for course  :  {course_id}-----")
+
         c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
         user_data = c.fetchone()
         
         c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
         course_data = c.fetchone()
-
+        print(f"----- {user_data} in start_payment  for course  :  {course_data}-----")
         if not user_data or not course_data:
             await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
             return
