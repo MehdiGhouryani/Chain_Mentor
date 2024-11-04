@@ -23,7 +23,9 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
         
         c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
         course_data = c.fetchone()
-        print(f"----- {user_data} in start_payment  for course  :  {course_data}-----")
+
+        print(f"USER ID is   :  {user_id}")
+        print(f"-----  {user_data} in start_payment  for course  :  {course_data}  -----")
         if not user_data or not course_data:
             await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
             return

@@ -494,6 +494,7 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    chat_id =update.effective_chat.id
     course_type = 'online'
 
     c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
@@ -519,7 +520,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
         context.user_data['phone_online'] = update.message.text
         await course.save_user_info(
             user_id,
-            update.effective_chat.id,
+            chat_id,
             context.user_data['name_online'],
             context.user_data['email_online'],
             context.user_data['phone_online']
