@@ -21,7 +21,7 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
         c.execute("SELECT name, email, phone FROM users WHERE telegram_id = ?", (user_id,))
         user_data = c.fetchone()
         
-        c.execute("SELECT course_name, price FROM courses WHERE id = ?", (course_id,))
+        c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
         course_data = c.fetchone()
 
         if not user_data or not course_data:
