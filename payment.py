@@ -1,66 +1,98 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-import requests
+from telegram import Update ,InlineKeyboardButton,InlineKeyboardMarkup
+from telegram.ext import ContextTypes
+from azbankgateways import bankfactories, models as bank_models, default_settings as settings
+from azbankgateways.bankfactories import BankFactory,BankType
+from azbankgateways.exceptions import AZBankGatewaysException
 import sqlite3
+import os
+import asyncio
 
-# تابعی برای دریافت هزینه دوره از دیتابیس
-def get_course_price():
-    conn = sqlite3.connect("Database.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT price FROM courses WHERE course_name = 'your_course_name'")
-    price = cursor.fetchone()[0]
-    conn.close()
-    return price
 
-# تابع برای ساخت صفحه پرداخت و ارسال لینک به کاربر
-def send_payment_link(update, context):
-    user_id = update.message.chat_id
+ZARINPAL_API_KEY = os.getenv("ZARINPAL_API_KEY")
+
+conn = sqlite3.connect('your_database.db', check_same_thread=False)
+c = conn.cursor()
+
+async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
+
+    c.execute("SELECT name, email, phone FROM users WHERE telegram_id = ?", (user_id,))
+    user_data = c.fetchone()
     
-    # دریافت هزینه دوره از دیتابیس
-    course_price = get_course_price()
-    
-    # ساخت درخواست به درگاه پرداخت
-    payment_data = {
-        "amount": course_price,
-        "description": f"پرداخت برای ثبت نام در دوره",
-        "callback_url": "https://your_callback_url.com",  # لینک بازگشت از درگاه پرداخت پس از اتمام پرداخت
-        "metadata": {
-            "user_id": user_id,
-        }
-    }
-    
-    # ایجاد صفحه پرداخت با API درگاه پرداخت ایرانی
-    response = requests.post("https://api.iranian_payment_gateway.com/payment", json=payment_data)
-    if response.status_code == 200:
-        payment_url = response.json()["payment_url"]
+    c.execute("SELECT course_name, price FROM courses WHERE id = ?", (course_id,))
+    course_data = c.fetchone()
+
+    if not user_data or not course_data:
+        await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
+        return
+
+    # تنظیمات درگاه پرداخت و ایجاد درخواست پرداخت
+    try:
+ 
+        factory = BankFactory()
+        bank = factory.auto_create(bank_type=BankType.ZARINPAL, configs={'merchant_code': ZARINPAL_API_KEY})
         
-        # ساخت inline keyboard با لینک پرداخت
-        keyboard = [[InlineKeyboardButton("پرداخت", url=payment_url)]]
+        bank.set_amount(course_data[1])  # قیمت دوره
+        bank.set_client_callback_url("YOUR_CALLBACK_URL")  # آدرس بازگشت
+        bank.set_mobile_number(user_data[2])  # شماره تماس کاربر
+
+        # آماده سازی درخواست پرداخت
+        bank_request = bank.ready()
+        authority = bank_request.authority_id
+        link = bank_request.url
+
+        # ذخیره وضعیت تراکنش به عنوان "در حال انتظار"
+        c.execute("""
+            INSERT INTO transactions (user_id, course_id, authority_code, amount, status)
+            VALUES (?, ?, ?, ?, 'pending')
+        """, (user_id, course_id, authority, course_data[1]))
+        conn.commit()
+
+
+        keyboard = [
+            [InlineKeyboardButton("پرداخت کنید", url=link)] 
+        ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        # ارسال لینک پرداخت به کاربر
-        context.bot.send_message(chat_id=user_id, text="لطفاً هزینه دوره را از طریق لینک زیر پرداخت کنید:", reply_markup=reply_markup)
-        
-        # بررسی نتیجه پرداخت
-        check_payment_status(user_id, response.json()["payment_id"], context)
-    else:
-        context.bot.send_message(chat_id=user_id, text="مشکلی در ایجاد لینک پرداخت پیش آمده است. لطفاً دوباره تلاش کنید.")
+        await update.message.reply_text("لطفاً بر روی دکمه زیر برای پرداخت کلیک کنید:", reply_markup=reply_markup)
 
-# تابع بررسی وضعیت پرداخت
-def check_payment_status(user_id, payment_id, context):
-    # ایجاد یک تایمر یا استفاده از polling برای بررسی وضعیت پرداخت
-    response = requests.get(f"https://api.iranian_payment_gateway.com/payment/status/{payment_id}")
+
+        await asyncio.sleep(60)  
+        keyboard_payment_check = [
+            [InlineKeyboardButton("پرداخت کردم", callback_data=f"payment_check_{authority}")]
+        ]
+        reply_markup_payment_check = InlineKeyboardMarkup(keyboard_payment_check)
+
+        await update.message.reply_text("اگر پرداخت کردید، روی دکمه زیر کلیک کنید تا وضعیت پرداخت را بررسی کنیم:", reply_markup=reply_markup_payment_check)
+    except AZBankGatewaysException as e:
+        await update.message.reply_text("خطایی در ایجاد صفحه پرداخت رخ داد. لطفاً مجدداً تلاش کنید.")    
+
+
+
+async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    authority_code = context.args[0]  # شناسه تراکنش که از آدرس بازگشت دریافت می‌شود
     
-    if response.status_code == 200:
-        payment_status = response.json()["status"]
-        
-        if payment_status == "paid":
-            # پرداخت موفق
-            context.bot.send_message(chat_id=user_id, text="پرداخت شما تایید شد. ثبت نام شما با موفقیت انجام شد.")
-            # اطلاع‌رسانی به ادمین در صورت تایید پرداخت
-            admin_id = "1717599240"
-            context.bot.send_message(chat_id=admin_id, text=f"کاربر {user_id} با موفقیت ثبت نام کرد.")
-        else:
-            # پرداخت ناموفق
-            context.bot.send_message(chat_id=user_id, text="پرداخت شما تایید نشد. لطفاً دوباره تلاش کنید.")
-    else:
-        context.bot.send_message(chat_id=user_id, text="مشکلی در بررسی وضعیت پرداخت پیش آمده است. لطفاً دوباره تلاش کنید.")
+    try:
+        factory = bankfactories.BankFactory()
+        bank = factory.auto_create(bank_models.BankType.ZARINPAL)
+        bank.set_request(request=None)
+        bank.verify(authority_code)
+
+        # اگر تراکنش موفق بود
+        c.execute("""
+            UPDATE transactions
+            SET status = 'successful'
+            WHERE authority_code = ?
+        """, (authority_code,))
+        conn.commit()
+
+        await update.message.reply_text("پرداخت با موفقیت انجام شد. ثبت‌نام شما تایید شد.")
+    except AZBankGatewaysException:
+        # اگر تراکنش ناموفق بود
+        c.execute("""
+            UPDATE transactions
+            SET status = 'failed'
+            WHERE authority_code = ?
+        """, (authority_code,))
+        conn.commit()
+
+        await update.message.reply_text("پرداخت شما ناموفق بود. لطفاً دوباره تلاش کنید.")

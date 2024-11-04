@@ -3,6 +3,7 @@ from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardB
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler , ConversationHandler
 import sqlite3
 import random
+import os
 import string
 from dotenv import load_dotenv
 import os
@@ -10,7 +11,7 @@ import logging
 import referral as rs
 import course
 from admin_panel import list_courses
-import os
+import payment
 import wallet_tracker
 
 
@@ -27,51 +28,77 @@ BOT_USERNAME = "ChainMentor_bot"
 
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
-
 def setup_database():
+    # ایجاد جدول کاربران
     c.execute('''CREATE TABLE IF NOT EXISTS users (
-                    user_id INTEGER PRIMARY KEY,
-                    name TEXT,
-                    phone TEXT,
-                    email TEXT
-                )''')
-
+            user_id SERIAL PRIMARY KEY,
+            telegram_id BIGINT UNIQUE NOT NULL,
+            name VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+    
+    # ایجاد جدول دوره‌ها
     c.execute("""
             CREATE TABLE IF NOT EXISTS courses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                course_name TEXT NOT NULL,
-                description TEXT NOT NULL,
-                price REAL NOT NULL,
-                registrants_count INTEGER DEFAULT 0
+                course_id SERIAL PRIMARY KEY,
+                course_name VARCHAR(255) NOT NULL,
+                description TEXT,
+                price DECIMAL(10, 2) NOT NULL,
+                course_type TEXT NOT NULL
+                registrants_count INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+    # ایجاد جدول تراکنش‌ها
+    c.execute("""
+            CREATE TABLE IF NOT EXISTS transactions (
+                transaction_id SERIAL PRIMARY KEY,
+                user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+                course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
+                authority_code VARCHAR(255),
+                amount DECIMAL(10, 2) NOT NULL,
+                status VARCHAR(20),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+    """)
+
+    # ایجاد جدول امتیازات کاربران
     c.execute("""
             CREATE TABLE IF NOT EXISTS points (
-                user_id INTEGER PRIMARY KEY,
+                user_id INT REFERENCES users(user_id) PRIMARY KEY,
                 score INTEGER NOT NULL
             )
         """)
-    
+
+    # ایجاد جدول کدهای تخفیف
     c.execute('''CREATE TABLE IF NOT EXISTS discount_codes (
-                code TEXT PRIMARY KEY,
-                discount INTEGER,
-                used INTEGER DEFAULT 0)''')
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS save_user
-                      (user_id INTEGER PRIMARY KEY,
-                       username TEXT,
-                       chat_id TEXT)''')
-    
+                code VARCHAR(50) PRIMARY KEY,
+                discount INTEGER NOT NULL CHECK (discount >= 0 AND discount <= 100),
+                used INTEGER DEFAULT 0
+            )''')
+
+    # ایجاد جدول ذخیره اطلاعات کاربر
+    c.execute('''CREATE TABLE IF NOT EXISTS save_user (
+                      user_id INT REFERENCES users(user_id) PRIMARY KEY,
+                      username VARCHAR(255),
+                      chat_id VARCHAR(255) NOT NULL
+                  )''')
+
+    # ایجاد جدول کیف پول‌ها
     c.execute('''
             CREATE TABLE IF NOT EXISTS wallets (
-                user_id INTEGER,
-                wallet_address TEXT,
-                last_transaction_id TEXT
+                user_id INT REFERENCES users(user_id),
+                wallet_address VARCHAR(255),
+                last_transaction_id VARCHAR(255),
+                PRIMARY KEY (user_id, wallet_address)
             )
-            ''')
+    ''')
 
     conn.commit()
-
 setup_database()
 
 
@@ -263,8 +290,8 @@ async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 
-async def show_network_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    selected_network = 'سولانا'
+async def show_network_tools(update: Update, context: ContextTypes.DEFAULT_TYPE,text) -> None:
+    selected_network = text
     if selected_network in TOOLS_DATA:
         tools = TOOLS_DATA[selected_network]
         response_text = f"ابزارهای موجود برای شبکه {selected_network}:\n\n"
@@ -419,7 +446,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif text == "دوره ها" and str(user_id) in ADMIN_CHAT_ID:
         await list_courses(update, context)
     elif text == 'سولانا':
-        await show_network_tools(update,context)
+        await show_network_tools(update,context,text)
 
     elif context.user_data.get('package'):
         await handle_package_step(update, context)
@@ -442,10 +469,12 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
         context.user_data['name_pack'] = update.message.text
         context.user_data['package'] = "GET_EMAIL"
         await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
+
     elif package_step == "GET_EMAIL":
         context.user_data['email_pack'] = update.message.text
         context.user_data['package'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
+
     elif package_step == "GET_PHONE":
         context.user_data['phone_pack'] = update.message.text
         await course.save_user_info(
@@ -464,6 +493,17 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    type = 'online'
+
+    c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(type,))
+    last_course = c.fetchone()
+
+    if last_course:
+        course_id =last_course[0]
+    else:
+        print("دوره انلاینی موجود نیست فعلا")
+
     online_step = context.user_data.get('online')
     if online_step == "GET_NAME":
         context.user_data['name_online'] = update.message.text
@@ -484,7 +524,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
-
+        await payment.start_payment(update,context,user_id,course_id)
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
 
@@ -504,8 +544,14 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
 
     elif current_step.get(user_id) == "price":
         course_data[user_id]["price"] = int(text)
-        c.execute("INSERT INTO courses (course_name, description, price) VALUES (?, ?, ?)",
-                  (course_data[user_id]["course_name"], course_data[user_id]["description"], course_data[user_id]["price"]))
+        current_step[user_id] = "type"
+        await update.message.reply_text("لطفاً نوع دوره را وارد کنید:\n\nonline یا video")
+
+    elif current_step.get(user_id) == "type":
+        course_data[user_id]["type"] = text
+    
+        c.execute("INSERT INTO courses (course_name,description,price,course_type) VALUES (?, ?, ?, ?)",
+                  (course_data[user_id]["course_name"], course_data[user_id]["description"], course_data[user_id]["price"],course_data[user_id]["type"]))
         conn.commit()
 
         await update.message.reply_text("دوره با موفقیت ثبت شد!")
