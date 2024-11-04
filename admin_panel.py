@@ -14,7 +14,7 @@ cursor = conn.cursor()
 
 
 async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    cursor.execute("SELECT cource_id,course_name,description,price,course_type,registrants_count,created_at FROM courses")
+    cursor.execute("SELECT course_id,course_name,description,price,course_type,registrants_count,created_at FROM courses")
     courses = cursor.fetchall()
     if courses:
         response = "دوره‌های موجود:\n\n"
