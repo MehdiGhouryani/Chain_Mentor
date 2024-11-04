@@ -32,7 +32,7 @@ def setup_database():
     # ایجاد جدول کاربران
     c.execute('''CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
-            user_id BIGINT UNIQUE NOT NULL,
+            user_id BIGINT NOT NULL,
             chat_id INT,
             name VARCHAR(255),
             email VARCHAR(255),
@@ -518,7 +518,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif online_step == "GET_PHONE":
         context.user_data['phone_online'] = update.message.text
         await course.save_user_info(
-            update.effective_user.id,
+            user_id,
             update.effective_chat.id,
             context.user_data['name_online'],
             context.user_data['email_online'],
