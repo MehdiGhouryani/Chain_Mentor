@@ -65,14 +65,37 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
 
 
 
+import sqlite3
 
 async def save_user_info(user_id, chat_id, name, email, phone):
-    conn =sqlite3.connect("Database.db",check_same_thread=False)
-    c = conn.cursor()
-    c.execute('''INSERT OR IGNORE INTO users (
-            user_id,chat_id,name,phone,email) VALUES (?, ? ,? ,? ,?)''',(user_id,chat_id,name,email,phone))
-    
+    try:
 
+        conn = sqlite3.connect("Database.db", check_same_thread=False)
+        c = conn.cursor()
+        c.execute('''INSERT OR IGNORE INTO users (
+                user_id, chat_id, name, phone, email) 
+                VALUES (?, ?, ?, ?, ?)''', (user_id, chat_id, name, phone, email))
+        
+        conn.commit() 
+        print("User info saved successfully.")
+
+    except sqlite3.IntegrityError as e:
+        print(f"IntegrityError: {e}")
+    
+    except sqlite3.OperationalError as e:
+        # خطای عملیاتی دیتابیس، مثلاً مشکل در ساختار کوئری یا دیتابیس
+        print(f"OperationalError: {e}")
+    
+    except sqlite3.Error as e:
+        # سایر خطاهای عمومی دیتابیس
+        print(f"Database Error: {e}")
+
+    except Exception as e:
+        print(f"Unexpected Error: {e}")
+
+    finally:
+ 
+        conn.close()
 
 
 # ارسال لینک پرداخت و افزایش تعداد ثبت‌نام‌کنندگان
