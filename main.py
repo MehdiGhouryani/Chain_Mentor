@@ -130,9 +130,9 @@ main_menu = [
     [KeyboardButton("معرفی خدمات")],
     [KeyboardButton("🎓 آموزش و کلاس‌های آنلاین")],
     [KeyboardButton("🌟 خدمات VIP"),KeyboardButton("🛠ابزارها")],
-    [KeyboardButton("💰 ولت‌های با Win Rate بالا")],
-    [KeyboardButton("🏆 امتیازدهی توییتر"), KeyboardButton("💼 مشاهده امتیاز")],
-    [KeyboardButton("📣 دعوت دوستان")]
+    # [KeyboardButton("💰 ولت‌های با Win Rate بالا")],
+    # [KeyboardButton("🏆 امتیازدهی توییتر"),
+    [KeyboardButton("💼 مشاهده امتیاز"),KeyboardButton("📣 دعوت دوستان")]
 ]
 
 

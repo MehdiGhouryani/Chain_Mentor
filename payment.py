@@ -78,6 +78,10 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
             await update.message.reply_text("پاسخی نامعتبر از درگاه پرداخت دریافت شد.")
             print("Invalid response structure:", response_data)
 
+
+
+
+
     except requests.exceptions.RequestException as e:
         # خطا در اتصال به API زرین پال
         await update.message.reply_text("خطا در برقراری ارتباط با درگاه پرداخت. لطفاً بعداً تلاش کنید.")
