@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("apiKey_solscan")
 CHECK_INTERVAL = 1  # فاصله زمانی برای پایش تراکنش‌ها به دقیقه
 
 
@@ -58,50 +58,44 @@ async def list_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE):
 conn = sqlite3.connect("Database.db", check_same_thread=False)
 cursor = conn.cursor()
 
-# تابع اصلی برای چک کردن ولت‌ها
+
+
+def get_wallet_transactions(wallet_address):
+    url = f"https://public-api.solscan.io/account/transactions?account={wallet_address}&limit=10"
+    headers = {"accept": "application/json", "token": API_KEY}
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        if isinstance(data, list):  # بررسی می‌کنیم که داده‌ها به صورت لیست هستند
+            return data
+        else:
+            print(f"No transactions found for {wallet_address}")
+            return []
+    else:
+        print(f"API request failed with status code: {response.status_code}")
+        return None
+
+
+# تابع برای بررسی تراکنش‌های جدید کیف‌پول
 def check_wallets(application):
     cursor.execute("SELECT user_id, wallet_address, last_transaction_id FROM wallets")
     wallets = cursor.fetchall()
     
     for user_id, wallet_address, last_transaction_id in wallets:
-        print(f"Checking wallet: {wallet_address} for user: {user_id}")
         transactions = get_wallet_transactions(wallet_address)
-        print(f"Transactions fetched: {transactions}")
-
-        if transactions and isinstance(transactions, list):
-            new_transactions = [t for t in transactions if t.get("hash") != last_transaction_id]
-            print(f"New transactions: {new_transactions}")
-
-            for transaction in new_transactions:
-                if is_purchase_transaction(transaction):
-                    print(f"New purchase transaction found for wallet {wallet_address}")
-                    application.bot.send_message(chat_id=user_id, text=f"تراکنش خرید جدید برای ولت {wallet_address}")
-                
+        if transactions:
+            new_transactions = [t for t in transactions if t.get("txHash") != last_transaction_id]
             if new_transactions:
-                last_tx_id = new_transactions[0].get("hash")
+                # ارسال پیام به کاربر برای تراکنش جدید
+                application.bot.send_message(chat_id=user_id, text=f"تراکنش جدیدی برای کیف‌پول {wallet_address} وجود دارد.")
+                
+                # به‌روزرسانی آخرین تراکنش در پایگاه داده
+                latest_tx_id = new_transactions[0].get("txHash")
                 cursor.execute("UPDATE wallets SET last_transaction_id = ? WHERE user_id = ? AND wallet_address = ?", 
-                               (last_tx_id, user_id, wallet_address))
-                conn.commit()
+                               (latest_tx_id, user_id, wallet_address))
 
-# تابع برای دریافت تراکنش‌های ولت از BscScan
-def get_wallet_transactions(wallet_address):
-    url = f"https://api.bscscan.com/api?module=account&action=txlist&address={wallet_address}&startblock=0&endblock=99999999&sort=desc&apikey={API_KEY}"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        try:
-            data = response.json()
-            print(f"Data from API for {wallet_address}: {data}")
-            if data.get("status") == "1":
-                return data.get("result")
-            else:
-                print(f"No transactions found for {wallet_address}")
-                return []
-        except ValueError:
-            print("Error: Could not parse JSON response")
-            return None
-    print(f"API request failed with status code: {response.status_code}")
-    return None
 
 # تابع برای شناسایی تراکنش‌های خرید
 def is_purchase_transaction(transaction):
