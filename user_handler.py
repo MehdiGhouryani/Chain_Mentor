@@ -19,20 +19,22 @@ async def receive_user_message_handler(update: Update, context: ContextTypes.DEF
         user_id=user.id
         full_name =user.full_name
         chat_id=update.effective_message.id
-       
-        for admin_id in ADMIN_CHAT_ID:
-            reply_button = InlineKeyboardButton("پاسخ به کاربر", callback_data=f"reply_to_user_{user_id}")
-            reply_markup = InlineKeyboardMarkup([[reply_button]])
+        try:
+            for admin_id in ADMIN_CHAT_ID:
+                reply_button = InlineKeyboardButton("پاسخ به کاربر", callback_data=f"reply_to_user_{user_id}")
+                reply_markup = InlineKeyboardMarkup([[reply_button]])
 
-            await context.bot.send_message(
-                chat_id=admin_id,
-                text = 
-                f"پیام جدید از سمت {full_name} دریافت شد!\n"
-                f"نام کاربری: @{username}\n"
-                f"آیدی کاربر: {user_id}\n"
-                f"متن پیام: {user_message}",
-                reply_markup=reply_markup
-            )
+                await context.bot.send_message(
+                    chat_id=admin_id,
+                    text = 
+                    f"پیام جدید از سمت {full_name} دریافت شد!\n"
+                    f"نام کاربری: @{username}\n"
+                    f"آیدی کاربر: {user_id}\n"
+                    f"متن پیام: {user_message}",
+                    reply_markup=reply_markup
+                )
 
-        await update.message.reply_text("پیام شما ارسال شد.")
+            await update.message.reply_text("پیام شما ارسال شد.")
 
+        except Exception as e:
+            print(f' === user message handler ERROR  :  {e}')
