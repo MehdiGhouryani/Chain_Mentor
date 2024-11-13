@@ -38,7 +38,7 @@ async def recommended_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE
     - ترون: TronLink
     - اتریوم و شبکه‌های EVM: MetaMask
     
-    [آموزش ویدئویی](لینک_ویدئو)
+    [آموزش ویدئویی](https://t.me/memeland_persia/2171)
     """
     await update.message.reply_text(text, parse_mode='Markdown')
 
@@ -49,7 +49,7 @@ async def basic_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE
     - جوپیتر برای سولانا
     - ریدیوم برای سولانا
     
-    [لینک‌های مربوطه](لینک)
+    [لینک‌های مربوطه](https://t.me/memeland_persia/2173)
     """
     await update.message.reply_text(text, parse_mode='Markdown')
 
