@@ -20,6 +20,7 @@ async def reply_to_user_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def receive_admin_response_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("--- receive_admin_response_handler ---")
     if "reply_to" in context.user_data:
         user_chat_id = context.user_data["reply_to"]
         await context.bot.send_message(chat_id=user_chat_id, text=f"پاسخ ادمین:\n\n{update.message.text}")
