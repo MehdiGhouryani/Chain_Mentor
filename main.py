@@ -10,12 +10,13 @@ import os
 import logging
 import referral as rs
 import course
-from admin_panel import list_courses
+from tools import *
+from user_handler import contact_us_handler,receive_user_message_handler
+from admin_panel import list_courses,receive_admin_response_handler
 import payment
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
-from tools import *
-from user_handler import contact_us_handler,receive_admin_response_handler,receive_user_message_handler
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -333,7 +334,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     chat_id = update.effective_chat.id
 
-    if data == "buy_video_package":
+    if data.startswith("reply_to_user"):
+        user_id = int(query.data.split("_")[-1])
+        
+        context.user_data["reply_to"] = user_id
+        await query.message.reply_text("لطفاً پیام خود را برای پاسخ به کاربر وارد کنید.")
+
+    elif data == "buy_video_package":
         await course.buy_video_package(update, context)
 
     elif data == "online_course":
@@ -395,7 +402,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     text = update.message.text
     user_id = update.message.from_user.id
     chat_id = update.effective_chat.id
-    
+    admin_id = id in ADMIN_CHAT_ID
     # دیکشنری برای نگاشت دستورات به توابع مربوطه
     command_mapping = {
         "معرفی خدمات": show_welcome,
@@ -437,6 +444,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     elif context.user_data.get("awaiting_message"):
         await receive_user_message_handler(update,context)
+        
+    elif admin_id and "reply_to" in context.user_data:
+        await receive_admin_response_handler(update,context)
+
     elif user_id in current_step:
         await handle_add_course_step(update, user_id, text)
 
