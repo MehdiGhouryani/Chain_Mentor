@@ -21,15 +21,18 @@ async def reply_to_user_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 async def receive_admin_response_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("--- receive_admin_response_handler ---")
-    if "reply_to" in context.user_data:
-        user_chat_id = context.user_data["reply_to"]
-        await context.bot.send_message(chat_id=user_chat_id, text=f"پاسخ ادمین:\n\n{update.message.text}")
-        del context.user_data["reply_to"]
-        await update.message.reply_text("پاسخ شما به کاربر ارسال شد.")
-    else:
-        await update.message.reply_text("شما در حال پاسخ‌دهی به کاربری نیستید.")
-
-
+    try:
+        if "reply_to" in context.user_data:
+            user_chat_id = context.user_data["reply_to"]
+            await context.bot.send_message(chat_id=user_chat_id, text=f"پاسخ ادمین:\n\n{update.message.text}")
+            del context.user_data["reply_to"]
+            await update.message.reply_text("پاسخ شما به کاربر ارسال شد.")
+        else:
+            await update.message.reply_text("شما در حال پاسخ‌دهی به کاربری نیستید.")
+    except Exception as e:
+        print(f'ERROR IN THE RECEIVE MESSAGE ADMIN   :   {e}') 
+    finally:
+        context.user_data["reply_to"] = None
 
 async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     cursor.execute("SELECT course_id,course_name,description,price,course_type,registrants_count,created_at FROM courses")
