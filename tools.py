@@ -57,7 +57,7 @@ async def basic_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard =[
-        [InlineKeyboardButton("لینک ثبت نام ",url= ' ')]
+        [InlineKeyboardButton("لینک ثبت نام ",url= 'example.com')]
         ]
     reply_markup =InlineKeyboardMarkup(keyboard)
 
