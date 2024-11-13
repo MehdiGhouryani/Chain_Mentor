@@ -4,11 +4,11 @@ import os
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 
-# بارگذاری متغیرهای محیطی
+
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
-# تنظیم پایگاه داده
+
 conn = sqlite3.connect("Database.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -54,3 +54,41 @@ def start_scheduler(application):
     scheduler = BackgroundScheduler()
     scheduler.add_job(lambda: check_wallets(application), 'interval', minutes=10)
     scheduler.start()
+
+
+
+def create_table():
+    connection = sqlite3.connect("bot_database.db")
+    cursor = connection.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS points (
+            user_id INTEGER PRIMARY KEY,
+            score INTEGER DEFAULT 0
+        )
+    """)
+    connection.commit()
+    connection.close()
+
+def get_user_score(user_id):
+    connection = sqlite3.connect("bot_database.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT score FROM points WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    connection.close()
+    return result[0] if result else None
+
+def add_points(user_id, points):
+    connection = sqlite3.connect("bot_database.db")
+    cursor = connection.cursor()
+    cursor.execute("INSERT OR IGNORE INTO points (user_id, score) VALUES (?, 0)", (user_id,))
+    cursor.execute("UPDATE points SET score = score + ? WHERE user_id = ?", (points, user_id))
+    connection.commit()
+    connection.close()
+
+def remove_points(user_id, points):
+    connection = sqlite3.connect("bot_database.db")
+    cursor = connection.cursor()
+    cursor.execute("INSERT OR IGNORE INTO points (user_id, score) VALUES (?, 0)", (user_id,))
+    cursor.execute("UPDATE points SET score = score - ? WHERE user_id = ?", (points, user_id))
+    connection.commit()
+    connection.close()

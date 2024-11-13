@@ -20,7 +20,6 @@ def increase_registrants_count():
 
 
 
-# نمایش منوی دوره‌ها
 async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],

@@ -1,6 +1,6 @@
 
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler , ConversationHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler 
 import sqlite3
 import random
 import os
@@ -13,16 +13,15 @@ import course
 from admin_panel import list_courses
 import payment
 import wallet_tracker
-
+from config import ADMIN_CHAT_ID,BOT_USERNAME
+from tools import *
+from user_handler import contact_us_handler,receive_admin_response_handler,receive_user_message_handler
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 token=os.getenv('Token')
-
-ADMIN_CHAT_ID=['1717599240','686724429']
-BOT_USERNAME = "ChainMentor_bot"
 
 
 
@@ -132,7 +131,8 @@ main_menu = [
     [KeyboardButton("🌟 خدمات VIP"),KeyboardButton("🛠ابزارها")],
     # [KeyboardButton("💰 ولت‌های با Win Rate بالا")],
     # [KeyboardButton("🏆 امتیازدهی توییتر"),
-    [KeyboardButton("💼 مشاهده امتیاز"),KeyboardButton("📣 دعوت دوستان")]
+    [KeyboardButton("💼 مشاهده امتیاز"),KeyboardButton("📣 دعوت دوستان")],
+    [KeyboardButton("ارتباط با ما")]
 ]
 
 
@@ -280,32 +280,7 @@ async def handle_vip_acceptance(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    welcome_text = "شبکه‌ای که می‌خواهید ابزارهایش را ببینید، انتخاب کنید."
-    networks = list(TOOLS_DATA.keys())
-    keyboard = [
-        [KeyboardButton(network) for network in networks],
-        [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
-        ]
-    await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True))
-
-
-
-async def show_network_tools(update: Update, context: ContextTypes.DEFAULT_TYPE,text) -> None:
-    selected_network = text
-    if selected_network in TOOLS_DATA:
-        tools = TOOLS_DATA[selected_network]
-        response_text = f"ابزارهای موجود برای شبکه {selected_network}:\n\n"
-        for tool_name, tool_info in tools.items():
-            response_text += f"🔹 {tool_name}\n"
-            response_text += f"توضیح: {tool_info['description']}\n"
-            response_text += f"لینک: {tool_info['link']}\n\n"
-        await update.message.reply_text(response_text)
-    else:
-        await update.message.reply_text("شبکه نامعتبر است. لطفاً از شبکه‌های موجود انتخاب کنید.")
-
-
-
-
+    await update.message.reply_text("لطفاً یک ابزار انتخاب کنید:", reply_markup=tools_keyboard())
 
 
 
@@ -405,7 +380,6 @@ async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 
-
 async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # دریافت user_id با توجه به نوع پیام (message یا callback_query)
     user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
@@ -432,6 +406,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "🏆 امتیازدهی توییتر": show_twitter_rating,
         "📣 دعوت دوستان": show_invite_friends,
         "💼 مشاهده امتیاز": show_user_score,
+        "ارتباط با ما":contact_us_handler,
         "بازگشت به صفحه قبل ⬅️": back_main
     }
     
@@ -439,14 +414,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if text in command_mapping:
         await none_step(update, context)
         await command_mapping[text](update, context)
+    elif text == "مشاهده چارت":
+        await view_chart(update, context)
+    elif text == "ولت‌های پیشنهادی":
+        await recommended_wallets(update, context)
+    elif text == "ابزارهای خرید و فروش عادی":
+        await basic_trading_tools(update, context)
+    elif text == "ابزارهای خرید و فروش حرفه‌ای":
+        await advanced_trading_tools(update, context)
 
     elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
         await add_courses(update, context)
 
     elif text == "دوره ها" and str(user_id) in ADMIN_CHAT_ID:
         await list_courses(update, context)
-    elif text == 'سولانا':
-        await show_network_tools(update,context,text)
 
     elif context.user_data.get('package'):
         await handle_package_step(update, context)
@@ -454,7 +435,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif context.user_data.get('online'):
         await handle_online_step(update, context)
 
-
+    elif context.user_data.get("awaiting_message"):
+        await receive_user_message_handler(update,context)
     elif user_id in current_step:
         await handle_add_course_step(update, user_id, text)
 
@@ -586,11 +568,11 @@ def main() -> None:
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.add_wallet))
     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.remove_wallet))
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
-    
+    app.add_handler(CommandHandler("add_points", rs.add_points_handler))
+    app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     # راه‌اندازی زمان‌بندی برای پایش تراکنش‌ها
     wallet_tracker.start_scheduler(app)
     
-    app.add_handler(MessageHandler(filters.TEXT & filters.Regex("^[^/].*"), show_network_tools))
 
     app.add_handler(MessageHandler(filters.Text("ثبت‌نام VIP"), register_vip))
     app.add_handler(MessageHandler(filters.Text("بله، قبول دارم"), handle_vip_acceptance))

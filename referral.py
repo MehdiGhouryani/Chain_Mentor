@@ -1,6 +1,6 @@
 import sqlite3
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext,ContextTypes
 
 # تنظیمات امتیازدهی
 INITIAL_SCORE = 0
@@ -116,3 +116,72 @@ async def penalize_user(update: Update, context: CallbackContext):
         await update.message.reply_text(f"امتیاز کاربر {user_id} به مقدار {points} کاهش یافت.")
     except ValueError:
         await update.message.reply_text("اطلاعات وارد شده معتبر نیست.")
+
+
+
+def get_user_score(user_id):
+    connection = sqlite3.connect("Database.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT score FROM points WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    connection.close()
+    return result[0] if result else None
+
+def add_points(user_id, points):
+    connection = sqlite3.connect("Database.db")
+    cursor = connection.cursor()
+    cursor.execute("INSERT OR IGNORE INTO points (user_id, score) VALUES (?, 0)", (user_id,))
+    cursor.execute("UPDATE points SET score = score + ? WHERE user_id = ?", (points, user_id))
+    connection.commit()
+    connection.close()
+
+def remove_points(user_id, points):
+    connection = sqlite3.connect("Database.db")
+    cursor = connection.cursor()
+    cursor.execute("INSERT OR IGNORE INTO points (user_id, score) VALUES (?, 0)", (user_id,))
+    cursor.execute("UPDATE points SET score = score - ? WHERE user_id = ?", (points, user_id))
+    connection.commit()
+    connection.close()
+
+
+
+
+async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message.reply_to_message:
+        await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
+        return
+
+    if not is_admin(update):  # بررسی اینکه کاربر ادمین است
+        await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
+        return
+
+    user_id = update.message.reply_to_message.from_user.id
+    points = int(context.args[0]) if context.args else 1  # اگر مقدار امتیاز داده نشده، به طور پیش‌فرض 1 است
+
+    add_points(user_id, points)
+    new_score = get_user_score(user_id)
+    await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
+
+
+async def remove_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message.reply_to_message:
+        await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
+        return
+
+    if not is_admin(update):
+        await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
+        return
+
+    user_id = update.message.reply_to_message.from_user.id
+    points = int(context.args[0]) if context.args else 1  # اگر مقدار امتیاز داده نشده، به طور پیش‌فرض 1 است
+
+    remove_points(user_id, points)
+    new_score = get_user_score(user_id)
+    await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
+
+
+def is_admin(update):
+    user = update.message.from_user
+    chat_id = update.message.chat_id
+    member = update.message.bot.get_chat_member(chat_id, user.id)
+    return member.status in ['administrator', 'creator']

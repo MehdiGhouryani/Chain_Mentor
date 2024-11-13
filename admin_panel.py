@@ -1,8 +1,9 @@
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
 import sqlite3
+from config import ADMIN_CHAT_ID
 
-# ایجاد و اتصال به دیتابیس
+
 conn = sqlite3.connect("Database.db")
 cursor = conn.cursor()
 
@@ -10,6 +11,22 @@ cursor = conn.cursor()
 
 
 
+
+async def reply_to_user_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user_chat_id = int(query.data.split("_")[1])
+    context.user_data["reply_to"] = user_chat_id
+    await query.message.reply_text("لطفاً پیام خود را برای پاسخ به کاربر ارسال کنید.")
+
+
+async def receive_admin_response_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if "reply_to" in context.user_data:
+        user_chat_id = context.user_data["reply_to"]
+        await context.bot.send_message(chat_id=user_chat_id, text=f"پاسخ ادمین:\n\n{update.message.text}")
+        del context.user_data["reply_to"]
+        await update.message.reply_text("پاسخ شما به کاربر ارسال شد.")
+    else:
+        await update.message.reply_text("شما در حال پاسخ‌دهی به کاربری نیستید.")
 
 
 

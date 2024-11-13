@@ -13,7 +13,7 @@ c = conn.cursor()
 
 
 ZARINPAL_API_URL = "https://api.zarinpal.com/pg/v4/payment"
-ZARINPAL_CALLBACK_URL = "YOUR_CALLBACK_URL"  # آدرس بازگشت خود را وارد کنید
+ZARINPAL_CALLBACK_URL = "YOUR_CALLBACK_URL"  
 
 async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
     try:
