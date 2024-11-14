@@ -28,7 +28,7 @@ async def add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cursor.execute("INSERT INTO wallets (user_id, wallet_address) VALUES (?, ?)", (user_id, wallet_address))
     conn.commit()
     await update.message.reply_text(f"ولت {wallet_address} با موفقیت ثبت شد.")
-    context.user_data.get["add_wallet"] = None
+    context.user_data["add_wallet"] = None
 
 
 
@@ -40,7 +40,7 @@ async def remove_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cursor.execute("DELETE FROM wallets WHERE user_id = ? AND wallet_address = ?", (user_id, wallet_address))
     conn.commit()
     await update.message.reply_text(f"ولت {wallet_address} با موفقیت حذف شد.")
-    context.user_data.get["remove_wallet"]= None
+    context.user_data["remove_wallet"]= None
 
 
 
