@@ -19,12 +19,13 @@ cursor = conn.cursor()
 async def add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     wallet_address = " ".join(context.args).strip() 
-    if not wallet_address or len(wallet_address) < 26:
+    if not wallet_address or len(wallet_address) < 20:
         await update.message.reply_text("لطفاً یک آدرس ولت معتبر وارد کنید.")
         return
     cursor.execute("INSERT INTO wallets (user_id, wallet_address) VALUES (?, ?)", (user_id, wallet_address))
     conn.commit()
     await update.message.reply_text(f"ولت {wallet_address} با موفقیت ثبت شد.")
+    context.user_data.get("add_wallet") = None
 
 
 
@@ -36,7 +37,7 @@ async def remove_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cursor.execute("DELETE FROM wallets WHERE user_id = ? AND wallet_address = ?", (user_id, wallet_address))
     conn.commit()
     await update.message.reply_text(f"ولت {wallet_address} با موفقیت حذف شد.")
-
+    context.user_data.get("remove_wallet")= None
 
 
 
@@ -97,6 +98,30 @@ def check_wallets(application):
                                (latest_tx_id, user_id, wallet_address))
 
 
+
+async def wait_add_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    print("user_data:", context.user_data)
+
+    if not context.user_data.get('add_wallet'):
+
+        context.user_data['add_wallet'] = True
+        await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
+
+
+
+async def wait_remove_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    print("user_data:", context.user_data)
+
+    if not context.user_data.get('remove_wallet'):
+
+        context.user_data['remove_wallet'] = True
+        await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
+
+
+
+
 # تابع برای شناسایی تراکنش‌های خرید
 def is_purchase_transaction(transaction):
     return transaction.get("to") != ""
@@ -106,3 +131,6 @@ def start_scheduler(application):
     scheduler = BackgroundScheduler()
     scheduler.add_job(lambda: check_wallets(application), 'interval', minutes=CHECK_INTERVAL)
     scheduler.start()
+
+
+

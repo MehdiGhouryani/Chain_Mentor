@@ -97,21 +97,6 @@ async def save_user_info(user_id, chat_id, name, email, phone):
         conn.close()
 
 
-# ارسال لینک پرداخت و افزایش تعداد ثبت‌نام‌کنندگان
-async def send_payment_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['phone'] = update.message.text
-    
-    payment_link = "https://example.com/payment"  # لینک پرداخت فرضی
-    await update.message.reply_text(f"برای تکمیل ثبت‌نام، لطفاً به لینک زیر مراجعه کرده و پرداخت خود را انجام دهید:\n{payment_link}")
-    await update.message.reply_text("پس از پرداخت، لطفاً با ارسال پیام 'پرداخت شد'، پرداخت خود را تأیید کنید.")
-    # افزایش تعداد ثبت‌نام‌کنندگان و دریافت مقدار فعلی
-    registrants_count = increase_registrants_count()
-    # ارسال تعداد ثبت‌نام‌کنندگان به ادمین
-    admin_id = "your_admin_id"  # شناسه ادمین
-    await context.bot.send_message(chat_id=admin_id, text=f"ثبت‌نام جدید در دوره آنلاین انجام شد.\nتعداد کل ثبت‌نام‌کنندگان: {registrants_count}")
-    return CONFIRM_PAYMENT
-
-
 
 # تایید پرداخت و افزودن امتیاز
 async def finalize_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -119,10 +104,9 @@ async def finalize_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     add_score(user_id)
 
     await update.message.reply_text("پرداخت شما تأیید شد. شما ۱۰۰۰ امتیاز به حساب خود اضافه کردید.")
-    admin_id = "your_admin_id"  # شناسه ادمین
+    admin_id = " "  # شناسه ادمین
     await context.bot.send_message(chat_id=admin_id, text=f"کاربر {context.user_data['name']} با ایمیل {context.user_data['email']} و شماره تلفن {context.user_data['phone']} ثبت‌نام کرد.")
 
-    return ConversationHandler.END
 
 
 # بررسی حد نصاب ثبت‌نام‌کنندگان

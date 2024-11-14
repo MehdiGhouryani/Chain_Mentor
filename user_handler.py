@@ -6,7 +6,10 @@ from config import ADMIN_CHAT_ID
 
 async def contact_us_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
-    await update.message.reply_text("پیام خود را ارسال کنید. پس از ارسال، در انتظار پاسخ باشید.")
+    await update.message.reply_text(
+        """ پیام خود را ارسال کنید.
+در اولین فرصت ادمین های ما بررسی و پاسخ خواهند داد."""
+)
     context.user_data["awaiting_message"] = True
 
 
