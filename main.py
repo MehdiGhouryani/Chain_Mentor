@@ -1,6 +1,6 @@
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup,LabeledPrice
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler 
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler ,PreCheckoutQueryHandler
 import sqlite3
 import random
 import os
@@ -12,9 +12,9 @@ import referral as rs
 import course
 from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
-from admin_panel import list_courses,receive_admin_response_handler,generate_report
-
-from payment import store_payment_data ,check_payment_status,start_payment
+from admin_panel import list_courses,receive_admin_response_handler
+from star_pay import send_invoice,precheckout_callback,successful_payment_callback
+from payment import check_payment_status,start_payment
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME,PAYMENT_PROVIDER_TOKEN
 
@@ -58,7 +58,7 @@ def setup_database():
 
     # ایجاد جدول تراکنش‌ها
     c.execute("""
-            CREATE TABLE IF NOT EXISTS transactions (
+            CREATE TABLE IF NOT EXISTS transactions_zarin (
                 transaction_id SERIAL PRIMARY KEY,
                 user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
                 course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
@@ -69,6 +69,15 @@ def setup_database():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
     """)
+    c.execute('''CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id BIGINT NOT NULL,
+            amount INT,
+            currency VARCHAR(10),
+            status VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )''')
 
     # ایجاد جدول امتیازات کاربران
     c.execute("""
@@ -257,11 +266,11 @@ async def show_welcome(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("عضویت در VIP",callback_data='vip_start')]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("بخش VIP شامل محتوای ویژه است.",reply_markup=reply_markup)
-
+    # keyboard = [
+    #     [InlineKeyboardButton("عضویت در VIP",callback_data='vip_start')]]
+    # reply_markup = InlineKeyboardMarkup(keyboard)
+    # await update.message.reply_text("بخش VIP شامل محتوای ویژه است.",reply_markup=reply_markup)
+    await send_invoice(update, context)
 
 
 async def register_vip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -370,8 +379,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "register_online_course":
         await course.get_user_info_online(update, context)
     
-    elif data == 'vip_start':
-        await start_vip(update,context)
+    # elif data == 'vip_start':
+    #     await start_vip(update,context)
 
     elif data == "back":
         keyboard = [
@@ -418,6 +427,13 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     current_step.pop(user_id, None)
 
 
+
+
+
+
+
+
+
 # مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text
@@ -443,6 +459,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if text in command_mapping:
         await none_step(update, context)
         await command_mapping[text](update, context)
+    elif update.message.successful_payment:
+        await successful_payment_callback(update,context)
     elif text == "مشاهده چارت":
         await view_chart(update, context)
     elif text == "ولت‌های پیشنهادی":
@@ -588,53 +606,6 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
 
 
 
-PRICE = [LabeledPrice("VIP Access", 1000)]
-
-
-# تابع برای شروع فرآیند پرداخت
-async def start_vip(update: Update, context:ContextTypes.DEFAULT_TYPE):
-    try:
-        chat_id =update.effective_chat.id
-        title = "دریافت دسترسی VIP"
-        description = "پرداخت برای دریافت دسترسی VIP در ربات"
-        
-        # ارسال فاکتور
-        await context.bot.send_invoice(
-            chat_id=chat_id,
-            title=title,
-            description=description,
-            payload="VIP-payment",
-            provider_token=PAYMENT_PROVIDER_TOKEN,
-            currency="USD",
-            prices=PRICE,
-            start_parameter="VIP-access"
-        )
-    except Exception as e:
-        print(f"Error in sending invoice: {e}")
-        await update.message.reply_text("خطا در ارسال فاکتور. لطفا دوباره تلاش کنید.")
-
-# تابع برای تأیید پرداخت و ذخیره اطلاعات
-async def successful_payment(update: Update, context):
-    try:
-        chat_id =update.effective_chat.id
-        payment_amount = PRICE[0].amount
-        
-        # ذخیره اطلاعات پرداخت در دیتابیس
-        if store_payment_data(c, conn, chat_id, payment_amount):
-            await update.message.reply_text("پرداخت با موفقیت انجام شد! شما به عنوان کاربر VIP ارتقاء یافتید.")
-        else:
-            await update.message.reply_text("خطا در ذخیره اطلاعات پرداخت. لطفا دوباره تلاش کنید.")
-    except Exception as e:
-        print(f"Unexpected error in successful_payment: {e}")
-        await update.message.reply_text("خطای غیرمنتظره‌ای پیش آمده است. لطفا دوباره تلاش کنید.")
-
-# تابع گزارش‌گیری از پرداخت‌ها
-async def report_payments(update: Update, context):
-    report = generate_report(c)
-    await update.message.reply_text(report)
-
-
-
 
 def main() -> None:
     app = Application.builder().token('7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI').build()
@@ -647,9 +618,8 @@ def main() -> None:
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
-    
-    app.add_handler(CommandHandler("report_payments", report_payments))  # گزارش‌گیری
-    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
+    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
     # راه‌اندازی زمان‌بندی برای پایش تراکنش‌ها
     wallet_tracker.start_scheduler(app)

@@ -62,7 +62,7 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
 
                 # ذخیره وضعیت تراکنش به عنوان "در حال انتظار"
                 c.execute("""
-                    INSERT INTO transactions (user_id, course_id, authority_code, amount, status)
+                    INSERT INTO transactions_zarin (user_id, course_id, authority_code, amount, status)
                     VALUES (?, ?, ?, ?, 'pending')
                 """, (user_id, course_id, authority, amount))
                 conn.commit()
@@ -110,7 +110,7 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
 
 async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYPE, authority_code):
 
-    c.execute("SELECT amount FROM transactions WHERE authority_code = ?", (authority_code,))
+    c.execute("SELECT amount FROM transactions_zarin WHERE authority_code = ?", (authority_code,))
     amount_data = c.fetchone()
     
     if not amount_data:
@@ -130,7 +130,7 @@ async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYP
     if response_data["data"]["code"] == 100:
         # در صورت موفقیت
         c.execute("""
-            UPDATE transactions
+            UPDATE transactions_zarin
             SET status = 'successful'
             WHERE authority_code = ?
         """, (authority_code,))
@@ -139,7 +139,7 @@ async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYP
     else:
 
         c.execute("""
-            UPDATE transactions
+            UPDATE transactions_zarin
             SET status = 'failed'
             WHERE authority_code = ?
         """, (authority_code,))
@@ -149,18 +149,3 @@ async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 
-
-# star payment 
-
-def store_payment_data(cursor, conn, user_id, payment_amount):
-    try:
-        payment_date = datetime.datetime.now().date()
-        cursor.execute("INSERT OR REPLACE INTO users (user_id, is_vip, vip_since) VALUES (?, ?, ?)",
-                       (user_id, True, payment_date))
-        cursor.execute("INSERT INTO payments (user_id, amount, payment_date) VALUES (?, ?, ?)",
-                       (user_id, payment_amount, payment_date))
-        conn.commit()
-    except sqlite3.Error as e:
-        print(f"Database error in store_payment_data: {e}")
-        return False
-    return True

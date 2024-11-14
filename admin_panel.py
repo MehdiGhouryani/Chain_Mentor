@@ -46,30 +46,3 @@ async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(response)
 
 
-
-
-
-# تابع گزارش‌گیری از پرداخت‌ها
-def generate_report(cursor):
-    try:
-        # تعداد کاربران VIP
-        cursor.execute("SELECT COUNT(*) FROM users WHERE is_vip = 1")
-        vip_count = cursor.fetchone()[0]
-
-        # مجموع پرداخت‌ها و تعداد تراکنش‌ها
-        cursor.execute("SELECT COUNT(*), SUM(amount) FROM payments")
-        transaction_count, total_amount = cursor.fetchone()
-
-        report = (
-            f"گزارش پرداخت‌ها:\n"
-            f"- تعداد کاربران VIP: {vip_count}\n"
-            f"- تعداد تراکنش‌ها: {transaction_count}\n"
-            f"- مجموع مبلغ پرداخت‌شده: {total_amount} (واحد ارز)"
-        )
-        return report
-    except sqlite3.Error as e:
-        print(f"Database error in generate_report: {e}")
-        return "خطا در دریافت گزارش."
-    except Exception as e:
-        print(f"Unexpected error in generate_report: {e}")
-        return "خطای غیرمنتظره‌ای پیش آمده است."
