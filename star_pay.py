@@ -12,8 +12,8 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     description = "Get VIP access with exclusive features."
     payload = "VIP-access"
     currency = "XTR"
-    price = 10
-    prices = [LabeledPrice("VIP Access", price * 100)]
+    price = 1
+    prices = [LabeledPrice("VIP Access", price * 1)]
     
     await context.bot.send_invoice(
         chat_id, title, description, payload, "", currency, prices
