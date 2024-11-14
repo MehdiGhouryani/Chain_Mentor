@@ -18,8 +18,11 @@ cursor = conn.cursor()
 
 async def add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    address = update.message.text
+    print(address)
     wallet_address = " ".join(context.args).strip() 
-    if not wallet_address or len(wallet_address) < 20:
+    print(wallet_address)
+    if not wallet_address or len(wallet_address) < 26:
         await update.message.reply_text("لطفاً یک آدرس ولت معتبر وارد کنید.")
         return
     cursor.execute("INSERT INTO wallets (user_id, wallet_address) VALUES (?, ?)", (user_id, wallet_address))
