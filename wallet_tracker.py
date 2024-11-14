@@ -35,8 +35,8 @@ async def add_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def remove_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    wallet_address = " ".join(context.args).strip()
-    
+    # wallet_address = " ".join(context.args).strip()
+    wallet_address = update.message.text
     cursor.execute("DELETE FROM wallets WHERE user_id = ? AND wallet_address = ?", (user_id, wallet_address))
     conn.commit()
     await update.message.reply_text(f"ولت {wallet_address} با موفقیت حذف شد.")
