@@ -594,7 +594,7 @@ PRICE = [LabeledPrice("VIP Access", 1000)]
 # تابع برای شروع فرآیند پرداخت
 async def start_vip(update: Update, context:ContextTypes.DEFAULT_TYPE):
     try:
-        chat_id = update.message.chat_id
+        chat_id =update.effective_chat.id
         title = "دریافت دسترسی VIP"
         description = "پرداخت برای دریافت دسترسی VIP در ربات"
         
@@ -616,7 +616,7 @@ async def start_vip(update: Update, context:ContextTypes.DEFAULT_TYPE):
 # تابع برای تأیید پرداخت و ذخیره اطلاعات
 async def successful_payment(update: Update, context):
     try:
-        chat_id = update.message.chat_id
+        chat_id =update.effective_chat.id
         payment_amount = PRICE[0].amount
         
         # ذخیره اطلاعات پرداخت در دیتابیس

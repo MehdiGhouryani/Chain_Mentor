@@ -1,15 +1,20 @@
-#
 
-# لیست قیمت‌ها
-PRICE = [LabeledPrice("VIP Access", 1000)]
+def setup_database():
+    try:
+        conn = sqlite3.connect("vip_users.db")
+        cursor = conn.cursor()
 
-# تنظیم دیتابیس
-conn, cursor = setup_database()
+        # ایجاد جدول کاربران و پرداخت‌ها
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            is_vip BOOLEAN,
+            vip_since DATE
+        )
+        """)
 
-# اضافه کردن هندلرها
-app.add_handler(CommandHandler("start_vip", start_vip))
-# راه‌اندازی ربات
-try:
-    app.run_polling()
-except Exception as e:
-    print(f"Error while running the bot: {e}")
+        conn.commit()
+        return conn, cursor
+    except sqlite3.Error as e:
+        print(f"Error while setting up the database: {e}")
+        exit(1)
