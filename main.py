@@ -1,5 +1,5 @@
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup,LabeledPrice
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler 
 import sqlite3
 import random
@@ -12,10 +12,13 @@ import referral as rs
 import course
 from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
-from admin_panel import list_courses,receive_admin_response_handler
-import payment
+from admin_panel import list_courses,receive_admin_response_handler,generate_report
+
+from payment import store_payment_data ,check_payment_status,start_payment
 import wallet_tracker
-from config import ADMIN_CHAT_ID,BOT_USERNAME
+from config import ADMIN_CHAT_ID,BOT_USERNAME,PAYMENT_PROVIDER_TOKEN
+
+
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
@@ -34,6 +37,7 @@ def setup_database():
             id SERIAL PRIMARY KEY,
             user_id BIGINT NOT NULL,
             chat_id INT,
+            is_vip BOOLEAN,
             name VARCHAR(255),
             email VARCHAR(255),
             phone VARCHAR(20),
@@ -96,7 +100,18 @@ def setup_database():
                 last_transaction_id VARCHAR(255),
                 PRIMARY KEY (user_id, wallet_address)
             )
+              
     ''')
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS payments_stars (
+            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            amount INTEGER,
+            payment_date DATE
+        )
+        """)
+
 
     conn.commit()
 setup_database()
@@ -242,7 +257,10 @@ async def show_welcome(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("بخش VIP شامل محتوای ویژه است.")
+    keyboard = [
+        [InlineKeyboardButton("عضویت در VIP",callback_data='vip_start')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("بخش VIP شامل محتوای ویژه است.",reply_markup=reply_markup)
 
 
 
@@ -351,6 +369,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data == "register_online_course":
         await course.get_user_info_online(update, context)
+    
+    elif data == 'vip_start':
+        await start_vip(update,context)
 
     elif data == "back":
         keyboard = [
@@ -414,6 +435,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "📣 دعوت دوستان": show_invite_friends,
         "💼 مشاهده امتیاز": show_user_score,
         "ارتباط با ما":contact_us_handler,
+        "دریافت کد تخفیف":generate_discount_code,
         "بازگشت به صفحه قبل ⬅️": back_main
     }
     
@@ -518,7 +540,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
-        await payment.start_payment(update,context,user_id,course_id)
+        await start_payment(update,context,user_id,course_id)
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
         
@@ -566,6 +588,50 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
 
 
 
+PRICE = [LabeledPrice("VIP Access", 1000)]
+
+
+# تابع برای شروع فرآیند پرداخت
+async def start_vip(update: Update, context:ContextTypes.DEFAULT_TYPE):
+    try:
+        chat_id = update.message.chat_id
+        title = "دریافت دسترسی VIP"
+        description = "پرداخت برای دریافت دسترسی VIP در ربات"
+        
+        # ارسال فاکتور
+        await context.bot.send_invoice(
+            chat_id=chat_id,
+            title=title,
+            description=description,
+            payload="VIP-payment",
+            provider_token=PAYMENT_PROVIDER_TOKEN,
+            currency="USD",
+            prices=PRICE,
+            start_parameter="VIP-access"
+        )
+    except Exception as e:
+        print(f"Error in sending invoice: {e}")
+        await update.message.reply_text("خطا در ارسال فاکتور. لطفا دوباره تلاش کنید.")
+
+# تابع برای تأیید پرداخت و ذخیره اطلاعات
+async def successful_payment(update: Update, context):
+    try:
+        chat_id = update.message.chat_id
+        payment_amount = PRICE[0].amount
+        
+        # ذخیره اطلاعات پرداخت در دیتابیس
+        if store_payment_data(c, conn, chat_id, payment_amount):
+            await update.message.reply_text("پرداخت با موفقیت انجام شد! شما به عنوان کاربر VIP ارتقاء یافتید.")
+        else:
+            await update.message.reply_text("خطا در ذخیره اطلاعات پرداخت. لطفا دوباره تلاش کنید.")
+    except Exception as e:
+        print(f"Unexpected error in successful_payment: {e}")
+        await update.message.reply_text("خطای غیرمنتظره‌ای پیش آمده است. لطفا دوباره تلاش کنید.")
+
+# تابع گزارش‌گیری از پرداخت‌ها
+async def report_payments(update: Update, context):
+    report = generate_report(c)
+    await update.message.reply_text(report)
 
 
 
@@ -581,13 +647,13 @@ def main() -> None:
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
+    
+    app.add_handler(CommandHandler("report_payments", report_payments))  # گزارش‌گیری
+    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
+
     # راه‌اندازی زمان‌بندی برای پایش تراکنش‌ها
     wallet_tracker.start_scheduler(app)
     
-
-    app.add_handler(MessageHandler(filters.Text("ثبت‌نام VIP"), register_vip))
-    app.add_handler(MessageHandler(filters.Text("بله، قبول دارم"), handle_vip_acceptance))
-    app.add_handler(MessageHandler(filters.Text("دریافت کد تخفیف"), generate_discount_code))
 
     app.add_handler(CallbackQueryHandler(callback_handler))
 

@@ -4,8 +4,7 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,In
 
 def tools_keyboard():
     keyboard = [
-        [KeyboardButton("مشاهده چارت")],
-        [KeyboardButton("ولت‌های پیشنهادی")],
+        [KeyboardButton("مشاهده چارت"),KeyboardButton("ولت‌های پیشنهادی")],
         [KeyboardButton("ابزارهای خرید و فروش عادی")],
         [KeyboardButton("ابزارهای خرید و فروش حرفه‌ای")],
         [KeyboardButton("بازگشت به صفحه قبل ⬅️")]

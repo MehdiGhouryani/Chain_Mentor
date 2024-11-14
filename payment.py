@@ -4,7 +4,7 @@ import sqlite3
 import os
 import asyncio
 import requests
-
+import datetime
 
 ZARINPAL_API_KEY = os.getenv("ZARINPAL_API_KEY")
 
@@ -108,9 +108,6 @@ async def start_payment(update: Update, context: ContextTypes.DEFAULT_TYPE, user
 
 
 
-
-
-
 async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYPE, authority_code):
 
     c.execute("SELECT amount FROM transactions WHERE authority_code = ?", (authority_code,))
@@ -149,3 +146,21 @@ async def check_payment_status(update: Update, context: ContextTypes.DEFAULT_TYP
         conn.commit()
 
         await update.message.reply_text("پرداخت شما ناموفق بود. لطفاً دوباره تلاش کنید.")
+
+
+
+
+# star payment 
+
+def store_payment_data(cursor, conn, user_id, payment_amount):
+    try:
+        payment_date = datetime.datetime.now().date()
+        cursor.execute("INSERT OR REPLACE INTO users (user_id, is_vip, vip_since) VALUES (?, ?, ?)",
+                       (user_id, True, payment_date))
+        cursor.execute("INSERT INTO payments (user_id, amount, payment_date) VALUES (?, ?, ?)",
+                       (user_id, payment_amount, payment_date))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Database error in store_payment_data: {e}")
+        return False
+    return True
