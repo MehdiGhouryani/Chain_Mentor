@@ -6,19 +6,18 @@ import random
 import os
 import string
 from dotenv import load_dotenv
-import os
 import logging
 import referral as rs
 import course
 from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
-from admin_panel import list_courses,receive_admin_response_handler
-from star_pay import send_invoice,precheckout_callback,successful_payment_callback
+from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command
+from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification
 from payment import check_payment_status,start_payment
 import wallet_tracker
-from config import ADMIN_CHAT_ID,BOT_USERNAME,PAYMENT_PROVIDER_TOKEN
-
-
+from config import ADMIN_CHAT_ID,BOT_USERNAME
+from database import setup_database
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
@@ -27,135 +26,17 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 token=os.getenv('Token')
 
-
+setup_database()
 
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
-def setup_database():
-    # ایجاد جدول کاربران
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            user_id BIGINT NOT NULL,
-            chat_id INT,
-            is_vip BOOLEAN,
-            name VARCHAR(255),
-            email VARCHAR(255),
-            phone VARCHAR(20),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )''')
-    
-    # ایجاد جدول دوره‌ها
-    c.execute("""
-            CREATE TABLE IF NOT EXISTS courses (
-            course_id INTEGER PRIMARY KEY AUTOINCREMENT, -- شناسه منحصر به فرد هر دوره با افزایش خودکار
-            course_name VARCHAR(255) NOT NULL,           -- نام دوره که اجباری است
-            description TEXT,                            -- توضیحات دوره که می‌تواند خالی باشد
-            price REAL NOT NULL,                         -- قیمت دوره که از نوع REAL است
-            course_type TEXT NOT NULL,                   -- نوع دوره که باید به صورت آنلاین یا ویدیو باشد
-            registrants_count INTEGER DEFAULT 0,         -- تعداد شرکت‌کنندگان که به صورت پیش‌فرض 0 است
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- تاریخ و زمان ایجاد رکورد که به صورت خودکار پر می‌شود
-              )""")
 
-    # ایجاد جدول تراکنش‌ها
-    c.execute("""
-            CREATE TABLE IF NOT EXISTS transactions_zarin (
-                transaction_id SERIAL PRIMARY KEY,
-                user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
-                authority_code VARCHAR(255),
-                amount DECIMAL(10, 2) NOT NULL,
-                status VARCHAR(20),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-    """)
-    c.execute('''CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id BIGINT NOT NULL,
-            amount INT,
-            currency VARCHAR(10),
-            status VARCHAR(50),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(user_id)
-        )''')
-
-    # ایجاد جدول امتیازات کاربران
-    c.execute("""
-            CREATE TABLE IF NOT EXISTS points (
-                user_id INT REFERENCES users(user_id) PRIMARY KEY,
-                score INTEGER NOT NULL
-            )
-        """)
-
-    # ایجاد جدول کدهای تخفیف
-    c.execute('''CREATE TABLE IF NOT EXISTS discount_codes (
-                code VARCHAR(50) PRIMARY KEY,
-                discount INTEGER NOT NULL CHECK (discount >= 0 AND discount <= 100),
-                used INTEGER DEFAULT 0
-            )''')
-
-    # ایجاد جدول ذخیره اطلاعات کاربر
-    c.execute('''CREATE TABLE IF NOT EXISTS save_user (
-                      user_id INT REFERENCES users(user_id) PRIMARY KEY,
-                      username VARCHAR(255),
-                      chat_id VARCHAR(255) NOT NULL
-                  )''')
-
-    # ایجاد جدول کیف پول‌ها
-    c.execute('''
-            CREATE TABLE IF NOT EXISTS wallets (
-                user_id INTEGER,
-                wallet_address VARCHAR(255),
-                last_transaction_id VARCHAR(255),
-                PRIMARY KEY (user_id, wallet_address)
-            )
-              
-    ''')
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS payments_stars (
-            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            amount INTEGER,
-            payment_date DATE
-        )
-        """)
-
-
-    conn.commit()
-setup_database()
-
-
-
-
-
-
-# داده‌های ابزارها برای شبکه‌ها
-TOOLS_DATA = {
-    "سولانا": {
-        "دکس اسکرینر": {
-            "description": "ابزاری برای نمایش چارت قیمت، حجم معاملات و اطلاعات مربوط به توکن‌ها در صرافی‌های غیرمتمرکز سولانا.",
-            "link": "https://www.solflare.com/"
-        },
-        "ابزارهای تجزیه و تحلیل چارت": {
-            "description": "ابزارهایی برای تحلیل چارت قیمت توکن‌ها، شناسایی الگوها و پیش‌بینی قیمت.",
-            "link": "https://www.tradingview.com/"
-        },
-        "ابزارهای ترید": {
-            "description": "ابزارهای مورد نیاز برای انجام معاملات در سولانا، مثل کیف پول‌های سولانا و صرافی‌های غیرمتمرکز.",
-            "link": "https://phantom.app/"
-        },
-    },
-    # شبکه‌های دیگر را می‌توان به همین شکل اضافه کرد.
-}
 
 
 main_menu = [
     [KeyboardButton("معرفی خدمات")],
     [KeyboardButton("🎓 آموزش و کلاس‌های آنلاین")],
     [KeyboardButton("🌟 خدمات VIP"),KeyboardButton("🛠ابزارها")],
-    # [KeyboardButton("💰 ولت‌های با Win Rate بالا")],
-    # [KeyboardButton("🏆 امتیازدهی توییتر"),
     [KeyboardButton("💼 مشاهده امتیاز"),KeyboardButton("📣 دعوت دوستان")],
     [KeyboardButton("ارتباط با ما")]
 ]
@@ -172,9 +53,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await save_user(user_id, username, chat_id)
 
     if not rs.user_exists(user_id):
-        rs.register_user(user_id)  # ثبت کاربر جدید با امتیاز اولیه
+        rs.register_user(user_id) 
 
-        # بررسی اینکه آیا کاربر از طریق لینک دعوت وارد شده است
         args = context.args
         if args:
             inviter_id = args[0]  # آی‌دی کاربر دعوت‌کننده را از پارامتر start بگیریم
@@ -203,6 +83,7 @@ async def back_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         chat_id = update.effective_chat.id
         await context.bot.send_message(chat_id=chat_id, text="لطفاً یکی از گزینه‌های اصلی را انتخاب کنید:", reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+
 
 
 async def save_user(user_id,username,chat_id):
@@ -244,56 +125,13 @@ async def show_welcome(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
-
 async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # keyboard = [
-    #     [InlineKeyboardButton("عضویت در VIP",callback_data='vip_start')]]
-    # reply_markup = InlineKeyboardMarkup(keyboard)
-    # await update.message.reply_text("بخش VIP شامل محتوای ویژه است.",reply_markup=reply_markup)
     await send_invoice(update, context)
-
-
-async def register_vip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("برای استفاده از خدمات VIP، لطفاً قوانین را مطالعه و پذیرش کنید.")
-    c.execute("SELECT rule FROM vip_rules")
-    rules = "\n".join([row[0] for row in c.fetchall()])
-    await update.message.reply_text(f"قوانین VIP:\n{rules}")
-    await update.message.reply_text("آیا قوانین را قبول دارید؟", reply_markup=ReplyKeyboardMarkup([[KeyboardButton("بله، قبول دارم")]], resize_keyboard=True))
-    context.user_data['vip_registration_step'] = 'accept_rules'
-
-
-
-
-async def handle_vip_acceptance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if context.user_data.get('vip_registration_step') == 'accept_rules':
-        user_id = update.message.from_user.id
-        c.execute("UPDATE users SET vip_status = 'active' WHERE user_id = ?", (user_id,))
-        conn.commit()
-        await update.message.reply_text("ثبت‌نام VIP شما با موفقیت انجام شد! از خدمات ما لذت ببرید.")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("لطفاً یک ابزار انتخاب کنید:", reply_markup=tools_keyboard())
-
-
-
 
 
 
@@ -361,9 +199,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "register_online_course":
         await course.get_user_info_online(update, context)
     
-    # elif data == 'vip_start':
-    #     await start_vip(update,context)
-
     elif data == "back":
         keyboard = [
             [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
@@ -375,13 +210,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
 
     else:
-        # مدیریت هرگونه داده غیرمنتظره برای جلوگیری از ارور
         await query.answer("دستور نامعتبر است")
 
-    # تایید دریافت callback query
     await query.answer()
-
-
 
 
 
@@ -398,7 +229,6 @@ async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 
-
 async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # دریافت user_id با توجه به نوع پیام (message یا callback_query)
     user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
@@ -412,15 +242,9 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
-
-
-# مدیریت پیام‌های ورودی
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text
     user_id = update.message.from_user.id
-    chat_id = update.effective_chat.id
     admin_id = id in ADMIN_CHAT_ID
     # دیکشنری برای نگاشت دستورات به توابع مربوطه
     command_mapping = {
@@ -437,12 +261,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "بازگشت به صفحه قبل ⬅️": back_main
     }
     
-    # چک کردن و اجرای دستورها
     if text in command_mapping:
         await none_step(update, context)
         await command_mapping[text](update, context)
+
     elif update.message.successful_payment:
         await successful_payment_callback(update,context)
+
     elif text == "مشاهده چارت":
         await view_chart(update, context)
     elif text == "ولت‌های پیشنهادی":
@@ -576,7 +401,6 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
     elif current_step.get(user_id) == "type":
         course_data[user_id]["type"] = text
 
-        # ذخیره اطلاعات در دیتابیس
         c.execute(
             "INSERT INTO courses (course_name, description, price, course_type) VALUES (?, ?, ?, ?)",
             (course_data[user_id]["course_name"], 
@@ -594,6 +418,10 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
 
 
 
+async def send_daily_notifications(context: ContextTypes.DEFAULT_TYPE):
+    """Daily scheduled task to send renewal notifications and expired notifications."""
+    await send_renewal_notification(context)
+    await send_vip_expired_notification(context)
 
 def main() -> None:
     app = Application.builder().token('7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI').build()
@@ -606,16 +434,19 @@ def main() -> None:
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
+    app.add_handler(CommandHandler("grant_vip", grant_vip_command))
+    app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
+
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
-    # راه‌اندازی زمان‌بندی برای پایش تراکنش‌ها
     wallet_tracker.start_scheduler(app)
-    
 
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(send_daily_notifications, "interval", days=1) 
+    scheduler.start()
+    
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-  
     app.run_polling()
 
 if __name__ == '__main__':
