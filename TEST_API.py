@@ -1,41 +1,25 @@
-import cloudscraper
+import requests
 
-def get_last_transaction(wallet_address, api_key):
-    """
-    دریافت آخرین تراکنش ولت سولانا با استفاده از Solscan API و دور زدن Cloudflare.
-    """
-    url = f"https://api.solscan.io/account/transactions?address={wallet_address}&limit=1"
-    headers = {
-        "accept": "application/json",
-        "token": api_key,
-    }
+# تنظیمات
+api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3MzA4MzY2NjcxNTYsImVtYWlsIjoibW9oYW1tYWRtYWhkaTY3MEBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3MzA4MzY2Njd9.jfLUoLs_zYsunT-QUMM2BTN8MvFjUZRTr8ECo6yOekU"  # API Key خود را اینجا قرار دهید
+url = "https://api.solscan.io/v1/account/overview"  # یک endpoint از Solscan
+address = "8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6"  # یک آدرس Solana معتبر برای تست
 
-    try:
-        # ایجاد scraper
-        scraper = cloudscraper.create_scraper()
+# هدرها
+headers = {
+    "accept": "application/json",
+    "token": api_key
+}
 
-        # ارسال درخواست
-        response = scraper.get(url, headers=headers)
+# ارسال درخواست
+response = requests.get(f"{url}?address={address}", headers=headers)
 
-        if response.status_code == 200:
-            data = response.json()
-            if data:
-                # اطلاعات آخرین تراکنش
-                transaction = data[0]
-                tx_signature = transaction.get("txHash", "نامشخص")
-                block_time = transaction.get("blockTime", "نامشخص")
-                return f"آخرین تراکنش:\nامضای تراکنش: {tx_signature}\nزمان بلاک: {block_time}"
-            else:
-                return "هیچ تراکنشی برای این ولت یافت نشد."
-        else:
-            return f"خطا در درخواست API: {response.status_code} - {response.text}"
-    except Exception as e:
-        return f"خطای ناشناخته: {str(e)}"
-
-# تست کد
-if __name__ == "__main__":
-    wallet_address = "8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6"  # آدرس ولت سولانا را وارد کنید
-    api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3MzA4MzY2NjcxNTYsImVtYWlsIjoibW9oYW1tYWRtYWhkaTY3MEBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3MzA4MzY2Njd9.jfLUoLs_zYsunT-QUMM2BTN8MvFjUZRTr8ECo6yOekU"  # کلید API را وارد کنید
-
-    result = get_last_transaction(wallet_address, api_key)
-    print(result)
+# بررسی پاسخ
+if response.status_code == 200:
+    print("API Key معتبر است و داده‌ها دریافت شد:")
+    print(response.json())
+elif response.status_code == 401:
+    print("API Key نامعتبر است.")
+else:
+    print(f"خطا: {response.status_code}")
+    print(response.json())
