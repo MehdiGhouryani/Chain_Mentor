@@ -22,7 +22,7 @@ def setup_database():
             CREATE TABLE IF NOT EXISTS vip_users (
             user_id INTEGER,
             is_vip INTEGER, 
-            vip_expiry_date TEXT
+            vip_expiry_date TEXT,
             FOREIGN KEY (user_id) REFERENCES users (user_id)
               )''')
     # ایجاد جدول دوره‌ها
