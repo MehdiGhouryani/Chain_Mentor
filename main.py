@@ -136,7 +136,8 @@ async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         [KeyboardButton("ETH")],
         [KeyboardButton("Sui")],
         [KeyboardButton("بازگشت به صفحه قبل ⬅️")]]
-    await update.message.reply_text("لطفاً یک شیکه را انتخاب کنید:", reply_markup=keyboard)
+    reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True)
+    await update.message.reply_text("لطفاً یک شیکه را انتخاب کنید:", reply_markup=reply_markup)
 
 
 
