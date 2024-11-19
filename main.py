@@ -12,7 +12,7 @@ import course
 from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command
-from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online
+from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
 from payment import check_payment_status,start_payment
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
@@ -310,6 +310,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    chat_id =update.effective_chat.id
+    course_type = 'video'
+
+    c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
+    last_course = c.fetchone()
+    print(f"LAST COURSE   :{last_course}")
+    if last_course:
+        course_id =last_course[0]
+    else:
+        print("دوره انلاینی موجود نیست فعلا")
+
+
     package_step = context.user_data.get('package')
     if package_step == "GET_NAME":
         context.user_data['name_pack'] = update.message.text
@@ -330,11 +343,11 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
             context.user_data['email_pack'],
             context.user_data['phone_pack']
         )
-        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+
+        # await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        
+        await star_payment_package(update,context,user_id,course_id)
         context.user_data['package'] = None
-
-
-
 
 
 
@@ -372,7 +385,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['phone_online']
         )
         await star_payment_online(update,context,user_id,course_id)
-        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        # await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
         
 
