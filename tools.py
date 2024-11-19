@@ -99,3 +99,16 @@ async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_T
 - قبل از شروع معاملات حرفه‌ای، توصیه می‌شود با مدیریت ریسک‌ها و استفاده از ابزارهای تحلیلی، برنامه‌ریزی دقیق‌تری انجام دهید.
     """
     await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+
+
+async def Solana_tools(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("لطفاً یک ابزار انتخاب کنید:", reply_markup=tools_keyboard())
+
+
+    
+async def ETH_tools(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("این بخش درحال توسعه است")
+
+    
+async def Sui_tools(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("این بخش درحال توسعه است")

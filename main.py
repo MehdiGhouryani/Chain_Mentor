@@ -131,7 +131,12 @@ async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("لطفاً یک ابزار انتخاب کنید:", reply_markup=tools_keyboard())
+    keyboard = [
+        [KeyboardButton("Solana")],
+        [KeyboardButton("ETH")],
+        [KeyboardButton("Sui")],
+        [KeyboardButton("بازگشت به صفحه قبل ⬅️")]]
+    await update.message.reply_text("لطفاً یک شیکه را انتخاب کنید:", reply_markup=keyboard)
 
 
 
@@ -258,6 +263,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "💼 مشاهده امتیاز": show_user_score,
         "ارتباط با ما":contact_us_handler,
         "دریافت کد تخفیف":generate_discount_code,
+        "Solana" :Solana_tools,
+        "ETH":ETH_tools,
+        "Sui":Sui_tools,
         "بازگشت به صفحه قبل ⬅️": back_main
     }
     
