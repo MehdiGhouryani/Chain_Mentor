@@ -38,18 +38,18 @@ def setup_database():
               )""")
 
     # ایجاد جدول تراکنش‌ها
-    c.execute("""
-            CREATE TABLE IF NOT EXISTS transactions_zarin (
-                transaction_id SERIAL PRIMARY KEY,
-                user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
-                course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
-                authority_code VARCHAR(255),
-                amount DECIMAL(10, 2) NOT NULL,
-                status VARCHAR(20),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    c.execute("""CREATE TABLE IF NOT EXISTS transactions_zarin (
+            transaction_id SERIAL PRIMARY KEY,
+            user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+            course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
+            authority_code VARCHAR(255),
+            amount DECIMAL(10, 2) NOT NULL,
+            status VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
     """)
+
     c.execute('''CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id BIGINT NOT NULL,
@@ -101,13 +101,6 @@ def setup_database():
             payment_date DATE
         )
         """)
-
-    c.execute('''CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER, 
-            amount REAL, 
-            currency TEXT, 
-            status TEXT)''')
 
     conn.commit()
 
