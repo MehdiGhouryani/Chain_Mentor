@@ -82,3 +82,42 @@ async def send_vip_expired_notification(context):
             chat_id=user_id,
             text="اشتراک VIP شما به پایان رسیده است. برای دسترسی به امکانات VIP، لطفاً اشتراک خود را تمدید کنید."
         )
+
+
+async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
+    try:
+
+        c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
+        user_data = c.fetchone()
+        
+        c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
+        course_data = c.fetchone()
+
+        # print(f"USER ID is   :  {user_id}")
+        print(f"-----  {user_data} in start_payment  for course  :  {course_data}  -----")
+        if not user_data or not course_data:
+            await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
+            return
+
+
+        amount = course_data[1]  # مبلغ تراکنش
+
+        title = "ONLINE COURSE PAYMENT"
+        description = "ثبت نام در دوره انلاین"
+        payload = "online-Course"
+        currency = "XTR"
+        price = amount
+        prices = [LabeledPrice("OnlineCourse", price)]
+        
+        await context.bot.send_invoice(
+            chat_id=user_id, 
+            title=title, 
+            description=description, 
+            payload=payload, 
+            provider_token="",  
+            currency=currency, 
+            prices=prices
+        )
+
+    except Exception as e:
+        print(f"ERROR IN ONLINE PAY{e}")

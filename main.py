@@ -12,7 +12,7 @@ import course
 from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command
-from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification
+from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online
 from payment import check_payment_status,start_payment
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
@@ -371,7 +371,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
-        await start_payment(update,context,user_id,course_id)
+        await star_payment_online(update,context,user_id,course_id)
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
         
