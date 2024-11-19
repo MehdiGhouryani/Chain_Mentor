@@ -106,7 +106,7 @@ async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE
         description = "ثبت نام در دوره انلاین"
         payload = "online-Course"
         currency = "XTR"
-        price = amount
+        price = int(amount)
         prices = [LabeledPrice("OnlineCourse", price)]
         
         await context.bot.send_invoice(
