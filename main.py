@@ -441,9 +441,10 @@ def main() -> None:
 
     wallet_tracker.start_scheduler(app)
 
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_daily_notifications, "interval", days=1) 
-    scheduler.start()
+    app.job_queue.run_repeating(
+        send_daily_notifications,
+        interval=86400,
+        first=0)
     
     app.add_handler(CallbackQueryHandler(callback_handler))
 
