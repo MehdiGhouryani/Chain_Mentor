@@ -137,7 +137,7 @@ async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         [KeyboardButton("Sui")],
         [KeyboardButton("بازگشت به صفحه قبل ⬅️")]]
     reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True)
-    await update.message.reply_text("لطفاً یک شیکه را انتخاب کنید:", reply_markup=reply_markup)
+    await update.message.reply_text("لطفاً یک شبکه را انتخاب کنید:", reply_markup=reply_markup)
 
 
 
