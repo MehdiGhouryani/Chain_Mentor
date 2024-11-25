@@ -182,11 +182,23 @@ async def send_renewal_notification(context):
 
 async def send_vip_expired_notification(context):
     expired_users = get_users_with_expired_vip()
-    for user_id in expired_users:
+    for user_id, full_name, username in expired_users:
         await context.bot.send_message(
             chat_id=user_id,
             text="اشتراک VIP شما به پایان رسیده است. برای دسترسی به امکانات VIP، لطفاً اشتراک خود را تمدید کنید."
         )
+        
+        for admin_id in ADMIN_CHAT_ID:
+            await context.bot.send_message(
+                chat_id=admin_id,
+                text=(
+                    f"تاریخ VIP کاربر {full_name} به اتمام رسید.\n"
+                    f"نام کاربری: @{username}\n"
+                    f"آیدی کاربر: {user_id}\n"
+                )
+            )
+
+
 
 
 async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):

@@ -151,18 +151,19 @@ def get_users_with_expired_vip():
     try:
         today = datetime.date.today()
         # انتخاب کاربران VIP که تاریخ انقضای آن‌ها گذشته است
-        c.execute("SELECT user_id FROM users WHERE vip_expiration <= ?", (today,))
-        expired_users = [row[0] for row in c.fetchall()]
+        c.execute("SELECT user_id, full_name, username FROM users WHERE vip_expiration <= ?", (today,))
+        expired_users = c.fetchall()  # حالا یک لیست از تاپل‌ها (user_id, full_name, username) داریم
         
         # به‌روزرسانی کاربران به حالت عادی
-        c.execute("UPDATE users SET is_vip = 0 WHERE user_id IN (?)", (expired_users,))
-        conn.commit()
+        user_ids = [row[0] for row in expired_users]
+        if user_ids:
+            c.execute("DELETE FROM vip_users WHERE user_id IN ({})".format(','.join('?' * len(user_ids))), user_ids)
+            conn.commit()
         
-        return expired_users
+        return expired_users  # بازگشت لیست کاربران منقضی شده
     except Exception as e:
         print(f"Error fetching expired VIP users: {e}")
         return []
-    
 
 
 def grant_vip(user_id,full_name,user_name,expiry_date):

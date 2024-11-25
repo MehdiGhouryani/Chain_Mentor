@@ -1,6 +1,10 @@
 
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup,Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler ,PreCheckoutQueryHandler,ApplicationBuilder
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+import asyncio
 import sqlite3
 import random
 import os
@@ -13,7 +17,7 @@ from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
 from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
-from payment import check_payment_status,start_payment
+# from payment import check_payment_status,start_payment
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
@@ -448,12 +452,9 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
 
 
 
-
-async def send_daily_notifications(context: ContextTypes.DEFAULT_TYPE):
-    """Daily scheduled task to send renewal notifications and expired notifications."""
+async def scheduled_jobs(context):
     await send_renewal_notification(context)
     await send_vip_expired_notification(context)
-
 
 
 # async def start_wallet_monitoring(wallets, websocket_url, app):
@@ -488,13 +489,14 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-    # قبل از فراخوانی create_task، باید یک event loop در حال اجرا باشد
     loop = asyncio.get_event_loop()
 
-    # ایجاد وظیفه برای مانیتور کردن ولت‌ها
-    # loop.create_task(start_wallet_monitoring(wallets, websocket_url, app))
+    scheduler = AsyncIOScheduler()
+    # با استفاده از CronTrigger، هر روز در ساعت 00:00 اجرا می‌شود
+    scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])  
+    scheduler.start()
 
-    # اجرای ربات تلگرام
+
     app.run_polling()
 
 if __name__ == '__main__':
