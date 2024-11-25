@@ -79,9 +79,9 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
 
         expiry_date = (datetime.now() + timedelta(days=days)).strftime('%Y-%m-%d %H:%M:%S')
-        
+
         grant_vip(user_id, full_name, user_name, expiry_date)
-        await update.message.reply_text(f"کاربر با آیدی {user_id} و نام {full_name} و آیدی {user_name} با موفقیت عضو VIP شد و تا تاریخ {expiry_date} فعال خواهد بود.")
+        await update.message.reply_text(f"کاربر با آیدی {user_id} و نام {full_name} و آیدی @{user_name} با موفقیت عضو VIP شد و تا تاریخ {expiry_date} فعال خواهد بود.")
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))
 
