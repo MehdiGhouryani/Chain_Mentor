@@ -460,8 +460,6 @@ async def send_daily_notifications(context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
 async def start_wallet_monitoring(wallets, websocket_url, app):
     """شروع مانیتور کردن ولت‌ها به صورت همزمان"""
     tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
@@ -492,12 +490,14 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
+    # قبل از فراخوانی create_task، باید یک event loop در حال اجرا باشد
+    loop = asyncio.get_event_loop()
+
     # ایجاد وظیفه برای مانیتور کردن ولت‌ها
-    asyncio.create_task(start_wallet_monitoring(wallets, websocket_url, app))
+    loop.create_task(start_wallet_monitoring(wallets, websocket_url, app))
 
     # اجرای ربات تلگرام
     app.run_polling()
 
 if __name__ == '__main__':
     main()
-
