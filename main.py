@@ -460,7 +460,25 @@ from database import get_wallets_from_db
 from wallet_tracker import monitor_wallet
 
 BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
-async def main():
+import os
+import asyncio
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
+from telegram import Bot
+from database import get_wallets_from_db
+from wallet_tracker import monitor_wallet
+from reward_system import RewardSystem
+from notifications import send_daily_notifications
+from utils import start, handle_message, grant_vip_command, revoke_vip_command, callback_handler
+
+# Load token from environment variables
+BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+
+async def start_wallet_monitoring(wallets, websocket_url, app):
+    """شروع مانیتور کردن ولت‌ها به صورت همزمان"""
+    tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
+    await asyncio.gather(*tasks)
+
+def main():
     """Main function to initialize and run the bot."""
     if not BOT_TOKEN:
         raise ValueError("Telegram bot token not found. Set TELEGRAM_BOT_TOKEN environment variable.")
@@ -471,9 +489,6 @@ async def main():
     # دریافت ولت‌ها از دیتابیس
     wallets = get_wallets_from_db()  # فرض می‌شود که این تابع لیست ولت‌ها را می‌دهد
     websocket_url = "wss://api.mainnet-beta.solana.com"  # آدرس WebSocket سرور Solana
-
-    # مدیریت WebSocket برای هر ولت به صورت همزمان
-    tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
 
     # ثبت دستورات و دستگیره‌ها
     app.add_handler(CommandHandler("start", start))
@@ -488,11 +503,12 @@ async def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-    # شروع وظایف همزمان
-    await asyncio.gather(*tasks)
+    # ایجاد وظیفه برای مانیتور کردن ولت‌ها
+    asyncio.create_task(start_wallet_monitoring(wallets, websocket_url, app))
 
     # اجرای ربات تلگرام
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
+
