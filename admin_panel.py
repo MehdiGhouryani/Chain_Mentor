@@ -46,36 +46,46 @@ async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(response)
 
 
-
 async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if update.message.reply_to_message:
-        user =update.message.reply_to_message.from_user
-        user_id =user.id
-        full_name =user.first_name
+        user = update.message.reply_to_message.from_user
+        user_id = user.id
+        full_name = user.first_name
         user_name = user.username if user.username else 'None'
     else:
-        # If no reply, extract the user ID from command arguments
+
         if len(context.args) != 2:
-            await update.message.reply_text("لطفاً آیدی کاربر را وارد کنید یا روی پیام او ریپلای کنید.")
+            await update.message.reply_text("لطفاً آیدی کاربر و تعداد روزهای VIP را وارد کنید یا روی پیام او ریپلای کنید.")
             return
+        
         user_id = context.args[0]
-        days = context.args[1]
+        
+        try:
+            days = int(context.args[1])  
+        except ValueError:
+            await update.message.reply_text("لطفاً تعداد روزهای معتبر وارد کنید.")
+            return
+
         user = await context.bot.get_chat(user_id)
-        full_name=user.first_name
+        full_name = user.first_name
         user_name = user.username if user.username else 'None'
-    # Check if the user is an admin
+
+
     if not is_admin(update.message.from_user.id):
-        print(update.message.from_user.id)
         await update.message.reply_text("شما دسترسی لازم برای این عملیات را ندارید.")
         return
 
     try:
-        expiry_date =(datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-        grant_vip(user_id,full_name,user_name,expiry_date)
-        await update.message.reply_text(f"کاربر با  آیدی {user_id}   و نام {full_name}   و آیدی {user_name}  تا تاریخ {expiry_date}   عضو VIP شد .")
+
+        expiry_date = (datetime.now() + timedelta(days=days)).strftime('%Y-%m-%d %H:%M:%S')
+        
+        grant_vip(user_id, full_name, user_name, expiry_date)
+        await update.message.reply_text(f"کاربر با آیدی {user_id} و نام {full_name} و آیدی {user_name} با موفقیت عضو VIP شد و تا تاریخ {expiry_date} فعال خواهد بود.")
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))
+
+
 
 
 async def revoke_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
