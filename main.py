@@ -11,7 +11,7 @@ import referral as rs
 import course
 from tools import *
 from user_handler import contact_us_handler,receive_user_message_handler
-from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command
+from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
 from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
 from payment import check_payment_status,start_payment
 import wallet_tracker
@@ -483,6 +483,8 @@ def main():
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
+    app.add_handler(CommandHandler('list_vip',list_vip))
+
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
