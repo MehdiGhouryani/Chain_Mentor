@@ -57,7 +57,7 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user =update.message.reply_to_message.from_user
         user_id =user.id
         full_name =user.first_name
-        user_name = user.username if user.username else 
+        user_name = user.username if user.username else 'None'
     else:
         # If no reply, extract the user ID from command arguments
         if len(context.args) != 1:
