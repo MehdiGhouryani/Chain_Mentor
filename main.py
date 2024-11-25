@@ -482,7 +482,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))  # تغییر به تابع مربوطه
     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))  # تغییر به تابع مربوطه
-    app.add_handler(CommandHandler("list_wallets", handle_message))  # تغییر به تابع مربوطه
+    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))  # تغییر به تابع مربوطه
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
