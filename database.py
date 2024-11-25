@@ -21,7 +21,8 @@ def setup_database():
     c.execute('''
             CREATE TABLE IF NOT EXISTS vip_users (
             user_id INTEGER,
-            is_vip INTEGER, 
+            full_name VARCHAR(255),
+            user_name VARCHAR(255),
             vip_expiry_date TEXT,
             FOREIGN KEY (user_id) REFERENCES users (user_id)
               )''')
@@ -140,7 +141,7 @@ def get_users_with_expiring_vip():
     try:
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
         # انتخاب کاربران VIP که یک روز تا پایان VIP آن‌ها مانده است
-        c.execute("SELECT user_id FROM users WHERE is_vip = 1 AND vip_expiration = ?", (tomorrow,))
+        c.execute("SELECT user_id FROM users WHERE vip_expiration = ?", (tomorrow,))
         return [row[0] for row in c.fetchall()]
     except Exception as e:
         print(f"Error fetching expiring VIP users: {e}")
@@ -150,7 +151,7 @@ def get_users_with_expired_vip():
     try:
         today = datetime.date.today()
         # انتخاب کاربران VIP که تاریخ انقضای آن‌ها گذشته است
-        c.execute("SELECT user_id FROM users WHERE is_vip = 1 AND vip_expiration <= ?", (today,))
+        c.execute("SELECT user_id FROM users WHERE vip_expiration <= ?", (today,))
         expired_users = [row[0] for row in c.fetchall()]
         
         # به‌روزرسانی کاربران به حالت عادی
@@ -164,13 +165,13 @@ def get_users_with_expired_vip():
     
 
 
-def grant_vip(user_id):
+def grant_vip(user_id,full_name,user_name):
     """
     Grants VIP status to a user by adding them to the vip_users table.
     """
     try:
         # Insert the user into the vip_users table
-        c.execute("INSERT OR IGNORE INTO vip_users (user_id) VALUES (?)", (user_id,))
+        c.execute("INSERT OR IGNORE INTO vip_users (user_id,full_name,user_name) VALUES (?)", (user_id,full_name,user_name))
         conn.commit()
     except Exception as e:
         raise Exception(f"خطا در افزودن کاربر به VIP: {e}")
@@ -193,6 +194,25 @@ def is_admin(user_id):
 
 
 
+
+def VipMembers():
+    vip_user_list = []
+
+    try:
+        c.execute("SELECT user_id,user_name,full_name from vip_users")
+        vip_users = c.fetchall()
+
+        for user in vip_users:
+            user_id,user_name,full_name = user
+            vip_user_list.append({
+                'id':user_id,
+                'name':full_name,
+                'username':user_name
+            })
+            
+    except Exception as e:
+        raise Exception(f"خطا در افزودن کاربر به VIP: {e}")
+    return vip_user_list
 
 
 def get_wallets_from_db(wallet_address: str = None):

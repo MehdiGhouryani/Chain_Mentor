@@ -2,7 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 import sqlite3
 from config import ADMIN_CHAT_ID
-from database import grant_vip, revoke_vip, is_admin
+from database import grant_vip, revoke_vip, is_admin , VipMembers
 
 conn = sqlite3.connect("Database.db")
 cursor = conn.cursor()
@@ -54,14 +54,19 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     # Check if the command is a reply to a message
     if update.message.reply_to_message:
-        user_id = update.message.reply_to_message.from_user.id
+        user =update.message.reply_to_message.from_user
+        user_id =user.id
+        full_name =user.first_name
+        user_name = user.username if user.username else 
     else:
         # If no reply, extract the user ID from command arguments
         if len(context.args) != 1:
             await update.message.reply_text("لطفاً آیدی کاربر را وارد کنید یا روی پیام او ریپلای کنید.")
             return
         user_id = context.args[0]
-
+        user = await context.bot.get_chat(user_id)
+        full_name=user.first_name
+        user_name = user.username if user.username else 'None'
     # Check if the user is an admin
     if not is_admin(update.message.from_user.id):
         print(update.message.from_user.id)
@@ -70,8 +75,8 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         # Grant VIP status to the user
-        grant_vip(user_id)
-        await update.message.reply_text(f"کاربر با آیدی {user_id} با موفقیت VIP شد.")
+        grant_vip(user_id,full_name,user_name)
+        await update.message.reply_text(f"کاربر با آیدی {user_id} و نام {full_name} و آیدی {user_name}با موفقیت عضو VIP شد .")
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))
 
@@ -104,3 +109,21 @@ async def revoke_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("خطایی رخ داد: " + str(e))
 
 
+async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
+
+    if not is_admin(update.message.from_user.id):
+        print(update.message.from_user.id)
+        await update.message.reply_text("شما دسترسی لازم برای این عملیات را ندارید.")
+        return
+
+    try:
+        vip_users = VipMembers()
+
+        for user in vip_users:
+            await update.message.reply_text(
+                f"NUM_ID : {user['id']}\n"
+                f"NAME :{user['name']}\n"
+                f"USER_NAME :{user['username']}\n\n"
+                )
+    except Exception as e:
+        await update.message.reply_text("خطایی رخ داد: " + str(e))
