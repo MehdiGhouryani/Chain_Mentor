@@ -189,10 +189,7 @@ def revoke_vip(user_id):
 
 
 def is_admin(user_id):
-    """
-    Checks if a user is an admin by comparing their user ID with the predefined admin ID.
-    """
-    return str(user_id) == ADMIN_CHAT_ID
+    return str(user_id) in ADMIN_CHAT_ID
 
 
 
