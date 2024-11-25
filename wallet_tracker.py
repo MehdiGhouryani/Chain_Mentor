@@ -84,41 +84,39 @@ async def wait_remove_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 # تنظیمات گزارش‌گیری برای ردیابی وضعیت اتصال
 logging.basicConfig(level=logging.INFO)
-
 async def monitor_wallet(wallet_address, websocket_url, bot, app):
     """
-    این تابع برای مانیتور کردن ولت یک کاربر با استفاده از WebSocket
-    به سرور Solana متصل می‌شود و تراکنش‌های جدید را بررسی می‌کند.
-    وقتی تراکنش جدیدی شناسایی شود، یک پیام به کاربر ارسال می‌کند.
+    مانیتورینگ ولت یک کاربر از طریق WebSocket و ارسال پیام به تلگرام
     """
     while True:
         try:
-            # اتصال به WebSocket و استفاده از ping/pong برای حفظ اتصال
+            # اتصال به WebSocket با پینگ برای حفظ اتصال
             async with websockets.connect(websocket_url, ping_interval=60, ping_timeout=30) as websocket:
                 logging.info(f"Connected to WebSocket for wallet {wallet_address}")
 
                 # ارسال درخواست برای مانیتور کردن ولت
                 await websocket.send(f"monitor {wallet_address}")
 
-                # دریافت پیام‌ها از WebSocket (تراکنش‌ها)
+                # دریافت تراکنش‌ها
                 while True:
-                    response = await websocket.recv()
-                    logging.info(f"New transaction for wallet {wallet_address}: {response}")
-                    
-                    # ارسال پیام به تلگرام به کاربر وقتی تراکنش جدید رخ می‌دهد
-                    await bot.send_message(chat_id=app.bot.id, text=f"New transaction detected for wallet {wallet_address}: {response}")
-        
+                    try:
+                        response = await websocket.recv()
+                        logging.info(f"New transaction for wallet {wallet_address}: {response}")
+                        
+                        # ارسال پیام به تلگرام
+                        # اطمینان حاصل کنید که chat_id یک شناسه کاربری واقعی است
+                        chat_id = 123456789  # شناسه کاربری واقعی را وارد کنید
+                        await bot.send_message(chat_id=chat_id, text=f"New transaction detected for wallet {wallet_address}: {response}")
+                    except websockets.exceptions.ConnectionClosedError as e:
+                        logging.error(f"Connection closed unexpectedly for wallet {wallet_address}: {e}")
+                        break
         except websockets.exceptions.ConnectionClosedError as e:
-            # در صورتی که اتصال WebSocket قطع شود، خطا را ثبت کرده و دوباره تلاش می‌کنیم
-            logging.error(f"Connection closed unexpectedly for wallet {wallet_address}: {e}")
+            logging.error(f"Connection closed for wallet {wallet_address}: {e}")
             logging.info(f"Retrying connection for wallet {wallet_address}...")
-            # بعد از قطع اتصال، 5 ثانیه صبر کرده و سپس دوباره تلاش می‌کنیم
-            time.sleep(5)
+            await asyncio.sleep(5)  # صبر و تلاش مجدد
             continue
-        
         except Exception as e:
-            # در صورتی که خطای دیگری اتفاق بیافتد، آن را ثبت کرده و دوباره تلاش می‌کنیم
             logging.error(f"Error occurred for wallet {wallet_address}: {e}")
             logging.info(f"Retrying connection for wallet {wallet_address}...")
-            time.sleep(5)
+            await asyncio.sleep(5)  # صبر و تلاش مجدد
             continue
