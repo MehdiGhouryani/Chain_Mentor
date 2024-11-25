@@ -5,7 +5,10 @@ from telegram.ext import ContextTypes
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-
+import asyncio
+import json
+import websockets
+from database import get_wallets_from_db
 load_dotenv()
 
 API_KEY = os.getenv("apiKey_solscan")
@@ -56,50 +59,6 @@ async def list_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-# تنظیم اتصال به دیتابیس
-conn = sqlite3.connect("Database.db", check_same_thread=False)
-cursor = conn.cursor()
-
-
-
-def get_wallet_transactions(wallet_address):
-    url = f"https://public-api.solscan.io/account/transactions?account={wallet_address}&limit=10"
-    headers = {"accept": "application/json", "token": API_KEY}
-    
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code == 200:
-        data = response.json()
-        if isinstance(data, list):  # بررسی می‌کنیم که داده‌ها به صورت لیست هستند
-            return data
-        else:
-            print(f"No transactions found for {wallet_address}")
-            return []
-    else:
-        print(f"API request failed with status code: {response.status_code}")
-        return None
-
-
-# تابع برای بررسی تراکنش‌های جدید کیف‌پول
-def check_wallets(application):
-    cursor.execute("SELECT user_id, wallet_address, last_transaction_id FROM wallets")
-    wallets = cursor.fetchall()
-    
-    for user_id, wallet_address, last_transaction_id in wallets:
-        transactions = get_wallet_transactions(wallet_address)
-        if transactions:
-            new_transactions = [t for t in transactions if t.get("txHash") != last_transaction_id]
-            if new_transactions:
-                # ارسال پیام به کاربر برای تراکنش جدید
-                application.bot.send_message(chat_id=user_id, text=f"تراکنش جدیدی برای کیف‌پول {wallet_address} وجود دارد.")
-                
-                # به‌روزرسانی آخرین تراکنش در پایگاه داده
-                latest_tx_id = new_transactions[0].get("txHash")
-                cursor.execute("UPDATE wallets SET last_transaction_id = ? WHERE user_id = ? AND wallet_address = ?", 
-                               (latest_tx_id, user_id, wallet_address))
-
-
-
 async def wait_add_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     print("user_data:", context.user_data)
@@ -122,16 +81,32 @@ async def wait_remove_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 
+async def monitor_wallet(wallet_address: str, websocket_url: str, bot, app):
+    """وظیفه مانیتور کردن یک آدرس ولت خاص"""
+    async with websockets.connect(websocket_url) as websocket:
+        subscription_message = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "accountSubscribe",
+            "params": [wallet_address]
+        }
 
-# تابع برای شناسایی تراکنش‌های خرید
-def is_purchase_transaction(transaction):
-    return transaction.get("to") != ""
+        # ارسال درخواست به WebSocket
+        await websocket.send(json.dumps(subscription_message))
+        print(f"Monitoring wallet: {wallet_address}")
 
-# شروع زمانبند برای پایش دوره‌ای ولت‌ها
-def start_scheduler(application):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: check_wallets(application), 'interval', minutes=CHECK_INTERVAL)
-    scheduler.start()
+        while True:
+            response = await websocket.recv()
+            response_data = json.loads(response)
+            # بررسی اگر تراکنش جدیدی دریافت شده است
+            if 'result' in response_data:
+                # ارسال پیام هشدار به کاربران
+                await notify_users(wallet_address, app, bot)
 
 
-
+async def notify_users(wallet_address: str, app, bot):
+    """ارسال هشدار به کاربران در صورت وجود تراکنش جدید"""
+    users = get_wallets_from_db(wallet_address)
+    message = f"تراکنش جدید برای ولت {wallet_address} رخ داده است."
+    for user_id in users:
+        await bot.send_message(user_id, message)

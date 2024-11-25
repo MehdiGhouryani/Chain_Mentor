@@ -193,3 +193,22 @@ def is_admin(user_id):
     Checks if a user is an admin by comparing their user ID with the predefined admin ID.
     """
     return str(user_id) == ADMIN_CHAT_ID
+
+
+
+
+
+def get_wallets_from_db(wallet_address: str = None):
+    """دریافت لیست ولت‌ها از دیتابیس"""
+    conn = sqlite3.connect('Database.db')
+    cursor = conn.cursor()
+
+    if wallet_address:
+        cursor.execute("SELECT user_id FROM wallets WHERE wallet_address = ?", (wallet_address,))
+        users = cursor.fetchall()
+    else:
+        cursor.execute("SELECT wallet_address FROM wallets")
+        users = cursor.fetchall()
+    
+    conn.close()
+    return users

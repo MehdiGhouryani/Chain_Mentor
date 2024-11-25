@@ -1,6 +1,6 @@
 
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler ,PreCheckoutQueryHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler ,PreCheckoutQueryHandler,ApplicationBuilder
 import sqlite3
 import random
 import os
@@ -18,6 +18,8 @@ import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import asyncio
+from wallet_tracker import WalletTracker
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
@@ -30,6 +32,8 @@ setup_database()
 
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
+
+
 
 
 
@@ -445,32 +449,50 @@ async def send_daily_notifications(context: ContextTypes.DEFAULT_TYPE):
     await send_renewal_notification(context)
     await send_vip_expired_notification(context)
 
-def main() -> None:
-    app = Application.builder().token('7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI').build()
-    
+
+
+
+import os
+import asyncio
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
+from telegram import Bot
+from database import get_wallets_from_db
+from wallet_tracker import monitor_wallet
+
+BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
+async def main():
+    """Main function to initialize and run the bot."""
+    if not BOT_TOKEN:
+        raise ValueError("Telegram bot token not found. Set TELEGRAM_BOT_TOKEN environment variable.")
+
+    # ایجاد اپلیکیشن تلگرام
+    app = Application.builder().token(BOT_TOKEN).build()
+
+    # دریافت ولت‌ها از دیتابیس
+    wallets = get_wallets_from_db()  # فرض می‌شود که این تابع لیست ولت‌ها را می‌دهد
+    websocket_url = "wss://api.mainnet-beta.solana.com"  # آدرس WebSocket سرور Solana
+
+    # مدیریت WebSocket برای هر ولت به صورت همزمان
+    tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
+
+    # ثبت دستورات و دستگیره‌ها
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
-    app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
-    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
+    app.add_handler(CommandHandler("add_wallet", handle_message))  # تغییر به تابع مربوطه
+    app.add_handler(CommandHandler("remove_wallet", handle_message))  # تغییر به تابع مربوطه
+    app.add_handler(CommandHandler("list_wallets", handle_message))  # تغییر به تابع مربوطه
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
-
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-
-    wallet_tracker.start_scheduler(app)
-
-    app.job_queue.run_repeating(
-        send_daily_notifications,
-        interval=86400,
-        first=0)
-    
     app.add_handler(CallbackQueryHandler(callback_handler))
 
+    # شروع وظایف همزمان
+    await asyncio.gather(*tasks)
+
+    # اجرای ربات تلگرام
     app.run_polling()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
