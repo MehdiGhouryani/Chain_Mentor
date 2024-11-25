@@ -64,6 +64,7 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if the user is an admin
     if not is_admin(update.message.from_user.id):
+        print(update.message.from_user.id)
         await update.message.reply_text("شما دسترسی لازم برای این عملیات را ندارید.")
         return
 
