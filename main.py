@@ -1,5 +1,5 @@
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup,Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler ,PreCheckoutQueryHandler,ApplicationBuilder
 import sqlite3
 import random
@@ -19,6 +19,15 @@ from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
+from database import get_wallets_from_db
+from wallet_tracker import monitor_wallet
+
+BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
+
+
+from telegram import Bot
+from database import get_wallets_from_db
+from wallet_tracker import monitor_wallet
 
 
 
@@ -452,26 +461,6 @@ async def send_daily_notifications(context: ContextTypes.DEFAULT_TYPE):
 
 
 
-import os
-import asyncio
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
-from telegram import Bot
-from database import get_wallets_from_db
-from wallet_tracker import monitor_wallet
-
-BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
-import os
-import asyncio
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
-from telegram import Bot
-from database import get_wallets_from_db
-from wallet_tracker import monitor_wallet
-from reward_system import RewardSystem
-from notifications import send_daily_notifications
-from utils import start, handle_message, grant_vip_command, revoke_vip_command, callback_handler
-
-# Load token from environment variables
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 async def start_wallet_monitoring(wallets, websocket_url, app):
     """شروع مانیتور کردن ولت‌ها به صورت همزمان"""
