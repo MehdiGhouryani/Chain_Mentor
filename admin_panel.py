@@ -1,9 +1,9 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import ContextTypes
 import sqlite3
 from config import ADMIN_CHAT_ID
-from database import grant_vip, revoke_vip, is_admin , VipMembers
-
+from database import grant_vip,revoke_vip,is_admin,VipMembers
+from datetime import datetime,timedelta
 conn = sqlite3.connect("Database.db")
 cursor = conn.cursor()
 
@@ -48,11 +48,7 @@ async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Command to manually grant VIP status to a user.
-    Can be executed by replying to a user's message or providing their user ID as an argument.
-    """
-    # Check if the command is a reply to a message
+
     if update.message.reply_to_message:
         user =update.message.reply_to_message.from_user
         user_id =user.id
@@ -60,10 +56,11 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_name = user.username if user.username else 'None'
     else:
         # If no reply, extract the user ID from command arguments
-        if len(context.args) != 1:
+        if len(context.args) != 2:
             await update.message.reply_text("لطفاً آیدی کاربر را وارد کنید یا روی پیام او ریپلای کنید.")
             return
         user_id = context.args[0]
+        days = context.args[1]
         user = await context.bot.get_chat(user_id)
         full_name=user.first_name
         user_name = user.username if user.username else 'None'
@@ -74,9 +71,9 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        # Grant VIP status to the user
-        grant_vip(user_id,full_name,user_name)
-        await update.message.reply_text(f"کاربر با آیدی {user_id} و نام {full_name} و آیدی {user_name}با موفقیت عضو VIP شد .")
+        expiry_date =(datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+        grant_vip(user_id,full_name,user_name,expiry_date)
+        await update.message.reply_text(f"کاربر با  آیدی {user_id}   و نام {full_name}   و آیدی {user_name}  تا تاریخ {expiry_date}   عضو VIP شد .")
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))
 
@@ -123,7 +120,7 @@ async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(
                 f"NUM_ID : {user['id']}\n"
                 f"NAME :{user['name']}\n"
-                f"USER_NAME :{user['username']}\n\n"
+                f"USER_NAME :@{user['username']}\n\n"
                 )
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))

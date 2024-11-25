@@ -165,13 +165,13 @@ def get_users_with_expired_vip():
     
 
 
-def grant_vip(user_id,full_name,user_name):
+def grant_vip(user_id,full_name,user_name,expiry_date):
     """
     Grants VIP status to a user by adding them to the vip_users table.
     """
     try:
         # Insert the user into the vip_users table
-        c.execute("INSERT OR IGNORE INTO vip_users (user_id,full_name,user_name) VALUES (?,?,?)", (user_id,full_name,user_name))
+        c.execute("INSERT OR IGNORE INTO vip_users (user_id,full_name,user_name,vip_expiry_date) VALUES (?,?,?,?)", (user_id,full_name,user_name,expiry_date))
         conn.commit()
     except Exception as e:
         raise Exception(f"خطا در افزودن کاربر به VIP: {e}")
