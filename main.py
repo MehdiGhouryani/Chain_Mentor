@@ -19,7 +19,7 @@ from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
-from wallet_tracker import WalletTracker
+
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
