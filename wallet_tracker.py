@@ -1,14 +1,16 @@
 import sqlite3
-import requests
+
 from telegram import Update
 from telegram.ext import ContextTypes
 import os
-from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 import asyncio
 import json
 import websockets
 from database import get_wallets_from_db
+import logging
+import time
+
 load_dotenv()
 
 API_KEY = os.getenv("apiKey_solscan")
@@ -80,33 +82,43 @@ async def wait_remove_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
 
 
+# تنظیمات گزارش‌گیری برای ردیابی وضعیت اتصال
+logging.basicConfig(level=logging.INFO)
 
-async def monitor_wallet(wallet_address: str, websocket_url: str, bot, app):
-    """وظیفه مانیتور کردن یک آدرس ولت خاص"""
-    async with websockets.connect(websocket_url) as websocket:
-        subscription_message = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "accountSubscribe",
-            "params": [wallet_address]
-        }
+async def monitor_wallet(wallet_address, websocket_url, bot, app):
+    """
+    این تابع برای مانیتور کردن ولت یک کاربر با استفاده از WebSocket
+    به سرور Solana متصل می‌شود و تراکنش‌های جدید را بررسی می‌کند.
+    وقتی تراکنش جدیدی شناسایی شود، یک پیام به کاربر ارسال می‌کند.
+    """
+    while True:
+        try:
+            # اتصال به WebSocket و استفاده از ping/pong برای حفظ اتصال
+            async with websockets.connect(websocket_url, ping_interval=60, ping_timeout=30) as websocket:
+                logging.info(f"Connected to WebSocket for wallet {wallet_address}")
 
-        # ارسال درخواست به WebSocket
-        await websocket.send(json.dumps(subscription_message))
-        print(f"Monitoring wallet: {wallet_address}")
+                # ارسال درخواست برای مانیتور کردن ولت
+                await websocket.send(f"monitor {wallet_address}")
 
-        while True:
-            response = await websocket.recv()
-            response_data = json.loads(response)
-            # بررسی اگر تراکنش جدیدی دریافت شده است
-            if 'result' in response_data:
-                # ارسال پیام هشدار به کاربران
-                await notify_users(wallet_address, app, bot)
-
-
-async def notify_users(wallet_address: str, app, bot):
-    """ارسال هشدار به کاربران در صورت وجود تراکنش جدید"""
-    users = get_wallets_from_db(wallet_address)
-    message = f"تراکنش جدید برای ولت {wallet_address} رخ داده است."
-    for user_id in users:
-        await bot.send_message(user_id, message)
+                # دریافت پیام‌ها از WebSocket (تراکنش‌ها)
+                while True:
+                    response = await websocket.recv()
+                    logging.info(f"New transaction for wallet {wallet_address}: {response}")
+                    
+                    # ارسال پیام به تلگرام به کاربر وقتی تراکنش جدید رخ می‌دهد
+                    await bot.send_message(chat_id=app.bot.id, text=f"New transaction detected for wallet {wallet_address}: {response}")
+        
+        except websockets.exceptions.ConnectionClosedError as e:
+            # در صورتی که اتصال WebSocket قطع شود، خطا را ثبت کرده و دوباره تلاش می‌کنیم
+            logging.error(f"Connection closed unexpectedly for wallet {wallet_address}: {e}")
+            logging.info(f"Retrying connection for wallet {wallet_address}...")
+            # بعد از قطع اتصال، 5 ثانیه صبر کرده و سپس دوباره تلاش می‌کنیم
+            time.sleep(5)
+            continue
+        
+        except Exception as e:
+            # در صورتی که خطای دیگری اتفاق بیافتد، آن را ثبت کرده و دوباره تلاش می‌کنیم
+            logging.error(f"Error occurred for wallet {wallet_address}: {e}")
+            logging.info(f"Retrying connection for wallet {wallet_address}...")
+            time.sleep(5)
+            continue
