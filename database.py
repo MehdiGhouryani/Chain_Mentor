@@ -171,7 +171,7 @@ def grant_vip(user_id,full_name,user_name):
     """
     try:
         # Insert the user into the vip_users table
-        c.execute("INSERT OR IGNORE INTO vip_users (user_id,full_name,user_name) VALUES (?)", (user_id,full_name,user_name))
+        c.execute("INSERT OR IGNORE INTO vip_users (user_id,full_name,user_name) VALUES (?,?,?)", (user_id,full_name,user_name))
         conn.commit()
     except Exception as e:
         raise Exception(f"خطا در افزودن کاربر به VIP: {e}")
