@@ -492,7 +492,7 @@ async def main():
     await asyncio.gather(*tasks)
 
     # اجرای ربات تلگرام
-    app.run_polling()
+    await app.run_polling()
 
 if __name__ == '__main__':
     asyncio.run(main())
