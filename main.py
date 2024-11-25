@@ -19,15 +19,11 @@ from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
-from database import get_wallets_from_db
-from wallet_tracker import monitor_wallet
+# from database import get_wallets_from_db
+# from wallet_tracker import monitor_wallet
 
 BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
 
-
-from telegram import Bot
-from database import get_wallets_from_db
-from wallet_tracker import monitor_wallet
 
 
 
@@ -460,10 +456,10 @@ async def send_daily_notifications(context: ContextTypes.DEFAULT_TYPE):
 
 
 
-async def start_wallet_monitoring(wallets, websocket_url, app):
-    """شروع مانیتور کردن ولت‌ها به صورت همزمان"""
-    tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
-    await asyncio.gather(*tasks)
+# async def start_wallet_monitoring(wallets, websocket_url, app):
+#     """شروع مانیتور کردن ولت‌ها به صورت همزمان"""
+#     tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
+#     await asyncio.gather(*tasks)
 
 def main():
     """Main function to initialize and run the bot."""
@@ -473,9 +469,9 @@ def main():
     # ایجاد اپلیکیشن تلگرام
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # دریافت ولت‌ها از دیتابیس
-    wallets = get_wallets_from_db()  # فرض می‌شود که این تابع لیست ولت‌ها را می‌دهد
-    websocket_url = "wss://api.mainnet-beta.solana.com"  # آدرس WebSocket سرور Solana
+    # # دریافت ولت‌ها از دیتابیس
+    # wallets = get_wallets_from_db()  # فرض می‌شود که این تابع لیست ولت‌ها را می‌دهد
+    # websocket_url = "wss://api.mainnet-beta.solana.com"  # آدرس WebSocket سرور Solana
 
     # ثبت دستورات و دستگیره‌ها
     app.add_handler(CommandHandler("start", start))
@@ -494,7 +490,7 @@ def main():
     loop = asyncio.get_event_loop()
 
     # ایجاد وظیفه برای مانیتور کردن ولت‌ها
-    loop.create_task(start_wallet_monitoring(wallets, websocket_url, app))
+    # loop.create_task(start_wallet_monitoring(wallets, websocket_url, app))
 
     # اجرای ربات تلگرام
     app.run_polling()
