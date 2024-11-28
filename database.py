@@ -20,7 +20,7 @@ def setup_database():
         )''')
     c.execute('''
             CREATE TABLE IF NOT EXISTS vip_users (
-            user_id INTEGER,
+            user_id INTEGER PRIMARY KEY,
             full_name VARCHAR(255),
             user_name VARCHAR(255),
             vip_expiry_date TEXT,
@@ -185,26 +185,27 @@ def get_users_with_expired_vip():
         print(f"خطای غیرمنتظره: {e}")
         return []
 
+def grant_vip(user_id, full_name, user_name, expiry_date):
 
-
-def grant_vip(user_id,full_name,user_name,expiry_date):
-    """
-    Grants VIP status to a user by adding them to the vip_users table.
-    """
     try:
-        # Insert the user into the vip_users table
-        c.execute("INSERT OR IGNORE INTO vip_users (user_id,full_name,user_name,vip_expiry_date) VALUES (?,?,?,?)", (user_id,full_name,user_name,expiry_date))
-        conn.commit()
-    except Exception as e:
-        raise Exception(f"خطا در افزودن کاربر به VIP: {e}")
+        c.execute("SELECT vip_expiry_date FROM vip_users WHERE user_id = ?", (user_id,))
+        result = c.fetchone()
 
+        if result:
+            c.execute("UPDATE vip_users SET vip_expiry_date = ? WHERE user_id = ?", (expiry_date, user_id))
+            conn.commit()
+        else:
+            c.execute("INSERT INTO vip_users (user_id, full_name, user_name, vip_expiry_date) VALUES (?,?,?,?)", (user_id, full_name, user_name, expiry_date))
+            conn.commit()
+    except Exception as e:
+        raise Exception(f"خطا در افزودن یا بروزرسانی کاربر به VIP: {e}")
+    
 
 def revoke_vip(user_id):
     """
     Revokes VIP status from a user by removing them from the vip_users table.
     """
     try:
-        # Remove the user from the vip_users table
         c.execute("DELETE FROM vip_users WHERE user_id = ?", (user_id,))
         conn.commit()
     except Exception as e:
