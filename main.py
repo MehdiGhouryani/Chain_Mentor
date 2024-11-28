@@ -144,13 +144,12 @@ async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
 
-    # چک کردن وضعیت VIP کاربر از دیتابیس
     c.execute("SELECT vip_expiry_date FROM vip_users WHERE user_id = ?", (user_id,))
     result = c.fetchone()
 
     if result:
         expiry_date_str = result[0]
-        expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d')
+        expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d %H:%M:%S')
         remaining_days = (expiry_date - datetime.now()).days
 
         if remaining_days > 0:
