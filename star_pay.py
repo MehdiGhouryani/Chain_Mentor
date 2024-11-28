@@ -72,7 +72,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 
 
 async def upgrade_to_vip(update:Update,context:ContextTypes.DEFAULT_TYPE,user_id, chat_id, amount, currency,full_name,user_name):
-    expiry_date = (datetime.now() + timedelta(days=VIP_DURATION_DAYS)).strftime('%Y-%m-%d')
+    expiry_date = (datetime.now() + timedelta(days=VIP_DURATION_DAYS)).strftime('%Y-%m-%d %H:%M:%S')
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     admin_message = (
     f"خرید اشتراک توسط {full_name} ثبت شد!\n"
@@ -267,7 +267,7 @@ async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def renew_vip(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, chat_id, amount, currency, full_name, user_name):
-    expiry_date = (datetime.now() + timedelta(days=VIP_DURATION_DAYS)).strftime('%Y-%m-%d')
+    expiry_date = (datetime.now() + timedelta(days=VIP_DURATION_DAYS)).strftime('%Y-%m-%d %H:%M:%S')
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     admin_message = (
         f"تمدید اشتراک VIP توسط {full_name} ثبت شد!\n"

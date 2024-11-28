@@ -115,14 +115,25 @@ def get_connection():
 
 
 
-def update_user_vip_status(user_id,expiry_date=None):
+def update_user_vip_status(user_id, expiry_date=None):
     try:
         with get_connection() as conn:
             with closing(conn.cursor()) as c:
-                c.execute("UPDATE vip_users SET vip_expiry_date = ? WHERE user_id = ?", (expiry_date, user_id))
+
+                c.execute("SELECT vip_expiry_date FROM vip_users WHERE user_id = ?", (user_id,))
+                result = c.fetchone()
+
+                if result:
+                    c.execute("UPDATE vip_users SET vip_expiry_date = ? WHERE user_id = ?", (expiry_date, user_id))
+                else:
+                    c.execute("INSERT INTO vip_users (user_id, vip_expiry_date) VALUES (?, ?)", (user_id, expiry_date))
+                
                 conn.commit()
     except Exception as e:
-        print(f"Error updating VIP status: {e}")
+        print(f"Error updating or adding VIP status: {e}")
+
+
+
 
 
 
@@ -177,7 +188,7 @@ def get_users_with_expired_vip():
         conn.commit()
         print(f"موفقیت: کاربران VIP زیر از جدول vip_users حذف شدند: {user_ids}")
 
-        return expired_users  # بازگشت لیست کاربران منقضی‌شده
+        return expired_users  
     except sqlite3.Error as e:
         print(f"خطای پایگاه داده: هنگام دریافت یا حذف کاربران منقضی‌شده: {e}")
         return []
@@ -202,9 +213,6 @@ def grant_vip(user_id, full_name, user_name, expiry_date):
     
 
 def revoke_vip(user_id):
-    """
-    Revokes VIP status from a user by removing them from the vip_users table.
-    """
     try:
         c.execute("DELETE FROM vip_users WHERE user_id = ?", (user_id,))
         conn.commit()
