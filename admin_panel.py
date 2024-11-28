@@ -40,7 +40,7 @@ async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if courses:
         response = "دوره‌های موجود:\n\n"
         for course in courses:
-            response += f"ID :{course[0]}\nنام دوره: {course[1]}\nتوضیحات: {course[2]}\nقیمت: {course[3]} تومان\n نوع : {course[4]}\n تعداد افراد عضو شده:  {course[5]}\n تاریخ ایجاد : {course[6]}\n\n\n"
+            response += f"ID :{course[0]}\nنام دوره: {course[1]}\nتوضیحات: {course[2]}\nقیمت: {course[3]} استارز\n نوع : {course[4]}\n تعداد افراد عضو شده:  {course[5]}\n تاریخ ایجاد : {course[6]}\n\n\n"
     else:
         response = "هیچ دوره‌ای موجود نیست."
     await update.message.reply_text(response)

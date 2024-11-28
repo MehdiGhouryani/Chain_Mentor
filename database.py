@@ -115,14 +115,16 @@ def get_connection():
 
 
 
-def update_user_vip_status(user_id, is_vip, expiry_date=None):
+def update_user_vip_status(user_id,expiry_date=None):
     try:
         with get_connection() as conn:
             with closing(conn.cursor()) as c:
-                c.execute("UPDATE users SET is_vip = ?, vip_expiry_date = ? WHERE user_id = ?", (is_vip, expiry_date, user_id))
+                c.execute("UPDATE vip_users SET vip_expiry_date = ? WHERE user_id = ?", (expiry_date, user_id))
                 conn.commit()
     except Exception as e:
         print(f"Error updating VIP status: {e}")
+
+
 
 def log_transaction(user_id, amount, currency, status):
     try:
@@ -182,6 +184,8 @@ def get_users_with_expired_vip():
     except Exception as e:
         print(f"خطای غیرمنتظره: {e}")
         return []
+
+
 
 def grant_vip(user_id,full_name,user_name,expiry_date):
     """

@@ -5,6 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import asyncio
+from datetime import datetime
 import sqlite3
 import random
 import os
@@ -14,15 +15,16 @@ import logging
 import referral as rs
 import course
 from tools import *
-from user_handler import contact_us_handler,receive_user_message_handler
-from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
-from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
-# from payment import check_payment_status,start_payment
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
+from user_handler import contact_us_handler,receive_user_message_handler
+from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
+from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
+# from payment import check_payment_status,start_payment
+
 # from database import get_wallets_from_db
 # from wallet_tracker import monitor_wallet
 
@@ -139,7 +141,23 @@ async def show_welcome(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await send_invoice(update, context)
+    user_id = update.message.from_user.id
+    chat_id = update.message.chat_id
+
+    # چک کردن وضعیت VIP کاربر از دیتابیس
+    c.execute("SELECT vip_expiry_date FROM vip_users WHERE user_id = ?", (user_id,))
+    result = c.fetchone()
+
+    if result:
+        expiry_date_str = result[0]
+        expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d')
+        remaining_days = (expiry_date - datetime.now()).days
+
+        if remaining_days > 0:
+            await update.message.reply_text(f"شما عضو VIP هستید و {remaining_days} روز از عضویت شما باقی مانده.")
+        else:
+
+            await send_invoice(update, context)
 
 
 
@@ -236,94 +254,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-course_data = {}
-current_step = {}
-
-# تابع برای شروع دریافت اطلاعات دوره
-async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
-    course_data[user_id] = {}
-    current_step[user_id] = "course_name"
-    await update.message.reply_text("لطفاً نام دوره را وارد کنید:")
-
-
-
-async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # دریافت user_id با توجه به نوع پیام (message یا callback_query)
-    user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
-
-    context.user_data['online'] = None
-    context.user_data['package'] = None
-    course_data.pop(user_id, None)
-    current_step.pop(user_id, None)
 
 
 
 
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    text = update.message.text
-    user_id = update.message.from_user.id
-    admin_id = id in ADMIN_CHAT_ID
-    # دیکشنری برای نگاشت دستورات به توابع مربوطه
-    command_mapping = {
-        "معرفی خدمات": show_welcome,
-        "🎓 آموزش و کلاس‌های آنلاین": course.courses_menu,
-        "🌟 خدمات VIP": show_vip_services,
-        "🛠ابزارها": show_tools,
-        "🏆 امتیازدهی توییتر": show_twitter_rating,
-        "📣 دعوت دوستان": show_invite_friends,
-        "💼 مشاهده امتیاز": show_user_score,
-        "ارتباط با ما":contact_us_handler,
-        "دریافت کد تخفیف":generate_discount_code,
-        "Solana" :Solana_tools,
-        "ETH":ETH_tools,
-        "Sui":Sui_tools,
-        "بازگشت به صفحه قبل ⬅️": back_main
-    }
-    
-    if text in command_mapping:
-        await none_step(update, context)
-        await command_mapping[text](update, context)
 
-    elif update.message.successful_payment:
-        await successful_payment_callback(update,context)
-
-    elif text == "مشاهده چارت":
-        await view_chart(update, context)
-    elif text == "ولت‌های پیشنهادی":
-        await recommended_wallets(update, context)
-    elif text == "ابزارهای خرید و فروش عادی":
-        await basic_trading_tools(update, context)
-    elif text == "ابزارهای خرید و فروش حرفه‌ای":
-        await advanced_trading_tools(update, context)
-
-    elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
-        await add_courses(update, context)
-
-    elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
-        await list_courses(update, context)
-
-    elif context.user_data.get('package'):
-        await handle_package_step(update, context)
-
-    elif context.user_data.get('online'):
-        await handle_online_step(update, context)
-
-    elif context.user_data.get("awaiting_message"):
-        await receive_user_message_handler(update,context)
-
-    elif context.user_data.get("add_wallet"):
-        await wallet_tracker.add_wallet(update,context)
-
-    elif context.user_data.get("remove_wallet"):
-        await wallet_tracker.remove_wallet(update,context)
-        
-    elif "reply_to" in context.user_data:
-        await receive_admin_response_handler(update,context)
-
-    elif user_id in current_step:
-        await handle_add_course_step(update, user_id, text)
 
 
 
@@ -451,6 +387,99 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
 
 
 
+course_data = {}
+current_step = {}
+
+# تابع برای شروع دریافت اطلاعات دوره
+async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    course_data[user_id] = {}
+    current_step[user_id] = "course_name"
+    await update.message.reply_text("لطفاً نام دوره را وارد کنید:")
+
+
+
+async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # دریافت user_id با توجه به نوع پیام (message یا callback_query)
+    user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
+
+    context.user_data['online'] = None
+    context.user_data['package'] = None
+    course_data.pop(user_id, None)
+    current_step.pop(user_id, None)
+
+
+
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = update.message.text
+    user_id = update.message.from_user.id
+    admin_id = id in ADMIN_CHAT_ID
+    # دیکشنری برای نگاشت دستورات به توابع مربوطه
+    command_mapping = {
+        "معرفی خدمات": show_welcome,
+        "🎓 آموزش و کلاس‌های آنلاین": course.courses_menu,
+        "🌟 خدمات VIP": show_vip_services,
+        "🛠ابزارها": show_tools,
+        "🏆 امتیازدهی توییتر": show_twitter_rating,
+        "📣 دعوت دوستان": show_invite_friends,
+        "💼 مشاهده امتیاز": show_user_score,
+        "ارتباط با ما":contact_us_handler,
+        "دریافت کد تخفیف":generate_discount_code,
+        "Solana" :Solana_tools,
+        "ETH":ETH_tools,
+        "Sui":Sui_tools,
+        "بازگشت به صفحه قبل ⬅️": back_main
+    }
+    
+    if text in command_mapping:
+        await none_step(update, context)
+        await command_mapping[text](update, context)
+
+    elif update.message.successful_payment:
+        await successful_payment_callback(update,context)
+
+    elif text == "مشاهده چارت":
+        await view_chart(update, context)
+    elif text == "ولت‌های پیشنهادی":
+        await recommended_wallets(update, context)
+    elif text == "ابزارهای خرید و فروش عادی":
+        await basic_trading_tools(update, context)
+    elif text == "ابزارهای خرید و فروش حرفه‌ای":
+        await advanced_trading_tools(update, context)
+
+    elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
+        await add_courses(update, context)
+
+    elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
+        await list_courses(update, context)
+
+    elif context.user_data.get('package'):
+        await handle_package_step(update, context)
+
+    elif context.user_data.get('online'):
+        await handle_online_step(update, context)
+
+    elif context.user_data.get("awaiting_message"):
+        await receive_user_message_handler(update,context)
+
+    elif context.user_data.get("add_wallet"):
+        await wallet_tracker.add_wallet(update,context)
+
+    elif context.user_data.get("remove_wallet"):
+        await wallet_tracker.remove_wallet(update,context)
+        
+    elif "reply_to" in context.user_data:
+        await receive_admin_response_handler(update,context)
+
+    elif user_id in current_step:
+        await handle_add_course_step(update, user_id, text)
+
+
+
+
+
 async def scheduled_jobs(context):
     await send_renewal_notification(context)
     await send_vip_expired_notification(context)
@@ -492,8 +521,7 @@ def main():
 
     scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(scheduled_jobs, CronTrigger(minute="*", hour="*", day="*", month="*", week="*"), args=[app])
-
+    scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])  
     scheduler.start()
 
 
