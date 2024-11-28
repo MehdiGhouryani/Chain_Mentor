@@ -156,49 +156,68 @@ async def notify_admin_about_video_package(update:Update,context:ContextTypes.DE
 
 
 async def send_renewal_notification(context):
-    expiring_users = get_users_with_expiring_vip()
-    for user_id in expiring_users:
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="یک روز مانده به اتمام اشتراک VIP شما. برای تمدید اشتراک، لطفاً از طریق پرداخت استارز اقدام کنید."
-        )
-        # ارسال لینک پرداخت برای تمدید اشتراک VIP
-        title = "Renew VIP Membership"
-        description = "Extend your VIP membership for another 30 days."
-        payload = "VIP-renewal"
-        currency = "XTR"
-        price = 1
-        prices = [LabeledPrice("VIP Renewal", price * 1)]
-        
-        await context.bot.send_invoice(
-            chat_id=user_id, 
-            title=title, 
-            description=description, 
-            payload=payload, 
-            provider_token="",  
-            currency=currency, 
-            prices=prices
-        )
+    try:
+        expiring_users = get_users_with_expiring_vip()
+        if not expiring_users:
+            return
 
-async def send_vip_expired_notification(context):
-    expired_users = get_users_with_expired_vip()
-    for user_id, full_name, username in expired_users:
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="اشتراک VIP شما به پایان رسیده است. برای دسترسی به امکانات VIP، لطفاً اشتراک خود را تمدید کنید."
-        )
-        
-        for admin_id in ADMIN_CHAT_ID:
-            await context.bot.send_message(
-                chat_id=admin_id,
-                text=(
-                    f"تاریخ VIP کاربر {full_name} به اتمام رسید.\n"
-                    f"نام کاربری: @{username}\n"
-                    f"آیدی کاربر: {user_id}\n"
+        for user_id in expiring_users:
+            try:
+                # ارسال پیام تمدید
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text="یک روز مانده به اتمام اشتراک VIP شما. برای تمدید اشتراک، لطفاً از طریق پرداخت استارز اقدام کنید."
                 )
-            )
+                # ارسال لینک پرداخت
+                title = "Renew VIP Membership"
+                description = "Extend your VIP membership for another 30 days."
+                payload = "VIP-renewal"
+                currency = "XTR"
+                price = 1
+                prices = [LabeledPrice("VIP Renewal", price * 1)]
 
+                await context.bot.send_invoice(
+                    chat_id=user_id,
+                    title=title,
+                    description=description,
+                    payload=payload,
+                    provider_token="",  # توکن پرداخت
+                    currency=currency,
+                    prices=prices
+                )
+            except Exception as e:
+                print(f"Error sending renewal notification to {user_id}: {e}")
+    except Exception as e:
+        print(f"Error in send_renewal_notification: {e}")
 
+# اطلاع‌رسانی انقضای VIP
+async def send_vip_expired_notification(context):
+    try:
+        expired_users = get_users_with_expired_vip()
+        if not expired_users:
+            return
+
+        for user_id, full_name, username in expired_users:
+            try:
+                # اطلاع‌رسانی به کاربر
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text="اشتراک VIP شما به پایان رسیده است. برای دسترسی به امکانات VIP، لطفاً اشتراک خود را تمدید کنید."
+                )
+                # اطلاع‌رسانی به ادمین
+                for admin_id in ADMIN_CHAT_ID:
+                    await context.bot.send_message(
+                        chat_id=admin_id,
+                        text=(
+                            f"تاریخ VIP کاربر {full_name} به اتمام رسید.\n"
+                            f"نام کاربری: @{username}\n"
+                            f"آیدی کاربر: {user_id}\n"
+                        )
+                    )
+            except Exception as e:
+                print(f"Error notifying user {user_id} or admins: {e}")
+    except Exception as e:
+        print(f"Error in send_vip_expired_notification: {e}")
 
 
 async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):

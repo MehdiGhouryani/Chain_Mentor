@@ -137,34 +137,66 @@ def log_transaction(user_id, amount, currency, status):
 
 import datetime
 
-def get_users_with_expiring_vip():
-    try:
-        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        # انتخاب کاربران VIP که یک روز تا پایان VIP آن‌ها مانده است
-        c.execute("SELECT user_id FROM users WHERE vip_expiration = ?", (tomorrow,))
-        return [row[0] for row in c.fetchall()]
-    except Exception as e:
-        print(f"Error fetching expiring VIP users: {e}")
-        return []
-
 def get_users_with_expired_vip():
+    """دریافت کاربران VIP که اشتراکشان منقضی شده است و حذف آنها از جدول VIP."""
     try:
-        today = datetime.date.today()
-        # انتخاب کاربران VIP که تاریخ انقضای آن‌ها گذشته است
+        today = datetime.date.today().isoformat()
         c.execute("SELECT user_id, full_name, username FROM users WHERE vip_expiration <= ?", (today,))
-        expired_users = c.fetchall()  # حالا یک لیست از تاپل‌ها (user_id, full_name, username) داریم
-        
-        # به‌روزرسانی کاربران به حالت عادی
+        expired_users = c.fetchall()
+
         user_ids = [row[0] for row in expired_users]
         if user_ids:
-            c.execute("DELETE FROM vip_users WHERE user_id IN ({})".format(','.join('?' * len(user_ids))), user_ids)
+            c.execute(
+                f"DELETE FROM vip_users WHERE user_id IN ({','.join('?' * len(user_ids))})",
+                user_ids
+            )
             conn.commit()
-        
-        return expired_users  # بازگشت لیست کاربران منقضی شده
-    except Exception as e:
-        print(f"Error fetching expired VIP users: {e}")
-        return []
+            print(f"اطلاع: کاربران VIP با تاریخ انقضای گذشته حذف شدند: {user_ids}")
+        else:
+            print("اطلاع: هیچ کاربری با تاریخ انقضای گذشته برای حذف یافت نشد.")
 
+        return expired_users  
+    except sqlite3.Error as e:
+        print(f"خطای پایگاه داده: هنگام دریافت کاربران با تاریخ انقضا گذشته: {e}")
+        return []
+    except Exception as e:
+        print(f"خطای غیرمنتظره: {e}")
+        return []
+    
+def get_users_with_expired_vip():
+
+    try:
+
+        today = datetime.date.today().isoformat()
+        print(f"اطلاع: بررسی کاربران VIP با تاریخ انقضای قبل از {today} شروع شد.")
+
+        # انتخاب کاربران منقضی‌شده از جدول users
+        c.execute("SELECT user_id, full_name, username FROM users WHERE vip_expiration <= ?", (today,))
+        expired_users = c.fetchall()
+
+        if not expired_users:
+            print("اطلاع: هیچ کاربر منقضی‌شده‌ای یافت نشد.")
+            return []
+
+        # استخراج شناسه کاربران برای حذف از جدول vip_users
+        user_ids = [row[0] for row in expired_users]
+        print(f"اطلاع: کاربران زیر برای حذف آماده شدند: {user_ids}")
+
+        # حذف کاربران از جدول vip_users
+        c.execute(
+            f"DELETE FROM vip_users WHERE user_id IN ({','.join('?' * len(user_ids))})",
+            user_ids
+        )
+        conn.commit()
+        print(f"موفقیت: کاربران VIP زیر از جدول vip_users حذف شدند: {user_ids}")
+
+        return expired_users  # بازگشت لیست کاربران منقضی‌شده
+    except sqlite3.Error as e:
+        print(f"خطای پایگاه داده: هنگام دریافت یا حذف کاربران منقضی‌شده: {e}")
+        return []
+    except Exception as e:
+        print(f"خطای غیرمنتظره: {e}")
+        return []
 
 def grant_vip(user_id,full_name,user_name,expiry_date):
     """
