@@ -492,7 +492,8 @@ def main():
 
     scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])  
+    scheduler.add_job(scheduled_jobs, CronTrigger(minute="*", hour="*", day="*", month="*", week="*"), args=[app])
+
     scheduler.start()
 
 
