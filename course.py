@@ -50,7 +50,7 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     conn = sqlite3.connect("Database.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT description FROM courses WHERE course_type =?"('video'))
+    cursor.execute("SELECT description FROM courses WHERE course_type =?",('video',))
     describtion = cursor.fetchone()[0]
     conn.close()
     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
@@ -68,7 +68,7 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
     ]
     conn = sqlite3.connect("Database.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT description FROM courses WHERE course_type =?"('online'))
+    cursor.execute("SELECT description FROM courses WHERE course_type =?",('online',))
     describtion = cursor.fetchone()[0]
     conn.close()
     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
