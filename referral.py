@@ -144,31 +144,27 @@ def remove_points(user_id, points):
     connection.close()
 
 
-import sqlite3
-from telegram import Update
-from telegram.ext import ContextTypes
 
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # بررسی اینکه آیا پیام به صورت ریپلای ارسال شده است
-        if not update.message.reply_to_message:
-            await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
-            return
+        if update.message.reply_to_message:
+            user = update.message.reply_to_message.from_user
+            user_id = user.id
+                   
+            if context.args and context.args[0].isdigit():
+                points = int(context.args[0])
+            else:
+                points = 1 
 
-        # بررسی اینکه کاربر ادمین است
+        else:
+            await update.message.reply_text("لطفاً آیدی کاربر و تعداد روزهای VIP را وارد کنید یا روی پیام او ریپلای کنید.")
+            return
+    
+ 
         if not is_admin(update):
             await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
             return
 
-        user_id = update.message.reply_to_message.from_user.id
-
-        # بررسی اینکه آیا امتیاز وارد شده عددی است
-        if context.args and context.args[0].isdigit():
-            points = int(context.args[0])
-        else:
-            points = 1  # اگر مقدار امتیاز داده نشده یا غیر عددی است، به طور پیش‌فرض 1 است
-
-        # افزودن امتیاز به کاربر
         add_points(user_id, points)
         new_score = get_user_score(user_id)
         await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
@@ -176,15 +172,6 @@ async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     except Exception as e:
         print(f"ERROR IN ADD POINT: {e}")
         await update.message.reply_text("خطایی در افزودن امتیاز رخ داده است. لطفاً دوباره تلاش کنید.")
-
-def get_user_score(user_id: int) -> int:
-    """دریافت امتیاز کاربر از پایگاه داده."""
-    with sqlite3.connect("Database.db") as connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT score FROM points WHERE user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        return result[0] if result else 0
-
 
 
 
