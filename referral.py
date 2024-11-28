@@ -144,9 +144,6 @@ def remove_points(user_id, points):
     connection.close()
 
 
-import sqlite3
-from telegram import Update
-from telegram.ext import ContextTypes
 
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -160,7 +157,7 @@ async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 points = 1 
 
         else:
-            await update.message.reply_text("لطفاً آیدی کاربر و تعداد روزهای VIP را وارد کنید یا روی پیام او ریپلای کنید.")
+            await update.message.reply_text("روی کاربر مورد نظرت ریپلای کن !")
             return
     
         if not await is_admin(update, context):

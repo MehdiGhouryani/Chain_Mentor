@@ -466,7 +466,7 @@ def main():
     if not BOT_TOKEN:
         raise ValueError("Telegram bot token not found. Set TELEGRAM_BOT_TOKEN environment variable.")
 
-    # ایجاد اپلیکیشن تلگرام
+
     app = Application.builder().token(BOT_TOKEN).build()
 
     # # دریافت ولت‌ها از دیتابیس
