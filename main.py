@@ -138,26 +138,28 @@ async def show_welcome(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
 async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     chat_id = update.message.chat_id
 
-    c.execute("SELECT vip_expiry_date FROM vip_users WHERE user_id = ?", (user_id,))
-    result = c.fetchone()
+    try:
+        c.execute("SELECT vip_expiry_date FROM vip_users WHERE user_id = ?", (user_id,))
+        result = c.fetchone()
 
-    if result:
-        expiry_date_str = result[0]
-        expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d %H:%M:%S')
-        remaining_days = (expiry_date - datetime.now()).days
+        if result:
+            expiry_date_str = result[0]
+            expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d %H:%M:%S')
+            remaining_days = (expiry_date - datetime.now()).days
 
-        if remaining_days > 0:
-            await update.message.reply_text(f"شما عضو VIP هستید و {remaining_days} روز از عضویت شما باقی مانده.")
+            if remaining_days > 0:
+                await update.message.reply_text(f"شما عضو VIP هستید و {remaining_days} روز از عضویت شما باقی مانده.")
+            else:
+                await update.message.reply_text("عضویت VIP شما به پایان رسیده است.")
         else:
-
-            await send_invoice(update, context)
-
+            await send_invoice(update, context)  # در صورتی که کاربر عضو VIP نباشد، فاکتور ارسال می‌شود.
+    
+    except Exception as e:
+        await update.message.reply_text(f"خطا در پردازش اطلاعات: {e}")
 
 
 async def show_tools(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
