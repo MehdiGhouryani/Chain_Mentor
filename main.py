@@ -150,7 +150,7 @@ async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             expiry_date_str = result[0]
             expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d %H:%M:%S')
             remaining_days = (expiry_date - datetime.now()).days
-
+            print(remaining_days)
             if remaining_days > 0:
                 await update.message.reply_text(f"شما عضو VIP هستید و {remaining_days} روز از عضویت شما باقی مانده.")
             else:
