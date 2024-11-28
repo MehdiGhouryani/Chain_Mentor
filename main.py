@@ -147,8 +147,11 @@ async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         result = c.fetchone()
 
         if result:
+            
             expiry_date_str = result[0]
+            print(expiry_date_str)
             expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d %H:%M:%S')
+            print(expiry_date)
             remaining_days = (expiry_date - datetime.now()).days
             print(remaining_days)
             if remaining_days > 0:
