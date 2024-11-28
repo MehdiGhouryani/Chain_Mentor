@@ -144,6 +144,9 @@ def remove_points(user_id, points):
     connection.close()
 
 
+import sqlite3
+from telegram import Update
+from telegram.ext import ContextTypes
 
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -174,6 +177,13 @@ async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         print(f"ERROR IN ADD POINT: {e}")
         await update.message.reply_text("خطایی در افزودن امتیاز رخ داده است. لطفاً دوباره تلاش کنید.")
 
+def get_user_score(user_id: int) -> int:
+    """دریافت امتیاز کاربر از پایگاه داده."""
+    with sqlite3.connect("Database.db") as connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT score FROM points WHERE user_id = ?", (user_id,))
+        result = cursor.fetchone()
+        return result[0] if result else 0
 
 
 
