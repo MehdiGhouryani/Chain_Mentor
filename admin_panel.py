@@ -132,6 +132,7 @@ async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
                 f"NUM_ID : {user['id']}\n"
                 f"NAME :{user['name']}\n"
                 f"USER_NAME :@{user['username']}\n\n"
+                f"DATE : {user['Date']}"
                 )
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))

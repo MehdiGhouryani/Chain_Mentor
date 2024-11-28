@@ -200,15 +200,16 @@ def VipMembers():
     vip_user_list = []
 
     try:
-        c.execute("SELECT user_id,user_name,full_name from vip_users")
+        c.execute("SELECT user_id,user_name,full_name,vip_expiry_date from vip_users")
         vip_users = c.fetchall()
 
         for user in vip_users:
-            user_id,user_name,full_name = user
+            user_id,user_name,full_name,vip_expiry_date = user
             vip_user_list.append({
                 'id':user_id,
                 'name':full_name,
-                'username':user_name
+                'username':user_name,
+                'Date':vip_expiry_date
             })
             
     except Exception as e:
