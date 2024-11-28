@@ -143,7 +143,7 @@ def get_users_with_expiring_vip():
         next_day = now + datetime.timedelta(days=1)
 
         c.execute("""
-            SELECT user_id FROM users 
+            SELECT user_id FROM vip_users 
             WHERE vip_expiry_date > ? AND vip_expiry_date <= ?
         """, (now.isoformat(), next_day.isoformat()))
         
@@ -158,7 +158,7 @@ def get_users_with_expired_vip():
         today = datetime.date.today().isoformat()
         print(f"اطلاع: بررسی کاربران VIP با تاریخ انقضای قبل از {today} شروع شد.")
 
-        c.execute("SELECT user_id,full_name,username FROM vip_users WHERE vip_expiry_date <= ?", (today,))
+        c.execute("SELECT user_id,full_name,user_name FROM vip_users WHERE vip_expiry_date <= ?", (today,))
         expired_users = c.fetchall()
 
         if not expired_users:
