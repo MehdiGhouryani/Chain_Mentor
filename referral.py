@@ -63,13 +63,13 @@ def register_user(user_id):
 def generate_referral_link(bot_username, user_id):
     return f"https://t.me/{bot_username}?start={user_id}"
 
-# افزایش امتیاز
-def add_points(user_id, points):
-    conn = sqlite3.connect('Database.db')
-    cursor = conn.cursor()
-    cursor.execute("UPDATE points SET score = score + ? WHERE user_id = ?", (points, user_id))
-    conn.commit()
-    conn.close()
+# افز
+def add_points(user_id: int, points: int) -> None:
+    """افزودن امتیاز به کاربر در پایگاه داده."""
+    with sqlite3.connect("Database.db") as connection:
+        cursor = connection.cursor()
+        cursor.execute("INSERT OR IGNORE INTO points (user_id, score) VALUES (?, 0)", (user_id,))
+        cursor.execute("UPDATE points SET score = score + ? WHERE user_id = ?", (points, user_id))
 
 # کاهش امتیاز
 def subtract_points(user_id, points):
@@ -145,39 +145,59 @@ def remove_points(user_id, points):
 
 
 
-
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message.reply_to_message:
-        await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
-        return
+    try:
+        # بررسی اینکه آیا پیام به صورت ریپلای ارسال شده است
+        if not update.message.reply_to_message:
+            await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
+            return
 
-    if not is_admin(update):  # بررسی اینکه کاربر ادمین است
-        await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
-        return
+        # بررسی اینکه کاربر ادمین است
+        if not is_admin(update):
+            await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
+            return
 
-    user_id = update.message.reply_to_message.from_user.id
-    points = int(context.args[0]) if context.args else 1  # اگر مقدار امتیاز داده نشده، به طور پیش‌فرض 1 است
+        user_id = update.message.reply_to_message.from_user.id
 
-    add_points(user_id, points)
-    new_score = get_user_score(user_id)
-    await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
+        # بررسی اینکه آیا امتیاز وارد شده عددی است
+        if context.args and context.args[0].isdigit():
+            points = int(context.args[0])
+        else:
+            points = 1  # اگر مقدار امتیاز داده نشده یا غیر عددی است، به طور پیش‌فرض 1 است
+
+        # افزودن امتیاز به کاربر
+        add_points(user_id, points)
+        new_score = get_user_score(user_id)
+        await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
+
+    except Exception as e:
+        print(f"ERROR IN ADD POINT: {e}")
+        await update.message.reply_text("خطایی در افزودن امتیاز رخ داده است. لطفاً دوباره تلاش کنید.")
+
+
+
 
 
 async def remove_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message.reply_to_message:
-        await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
-        return
+    try:
+        if not update.message.reply_to_message:
+            await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
+            return
 
-    if not is_admin(update):
-        await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
-        return
+        if not is_admin(update):
+            await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
+            return
 
-    user_id = update.message.reply_to_message.from_user.id
-    points = int(context.args[0]) if context.args else 1  # اگر مقدار امتیاز داده نشده، به طور پیش‌فرض 1 است
+        user_id = update.message.reply_to_message.from_user.id
+        points = int(context.args[0]) if context.args else 1  # اگر مقدار امتیاز داده نشده، به طور پیش‌فرض 1 است
 
-    remove_points(user_id, points)
-    new_score = get_user_score(user_id)
-    await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
+        remove_points(user_id, points)
+        new_score = get_user_score(user_id)
+        await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
+        
+    except Exception as e:
+        print(f"ERROR IN REMOVE POINT : {e}")
+
 
 
 def is_admin(update):

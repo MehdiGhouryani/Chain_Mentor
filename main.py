@@ -271,7 +271,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "🎓 آموزش و کلاس‌های آنلاین": course.courses_menu,
         "🌟 خدمات VIP": show_vip_services,
         "🛠ابزارها": show_tools,
-        "💰 ولت‌های با Win Rate بالا": show_wallets,
         "🏆 امتیازدهی توییتر": show_twitter_rating,
         "📣 دعوت دوستان": show_invite_friends,
         "💼 مشاهده امتیاز": show_user_score,
@@ -302,7 +301,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
         await add_courses(update, context)
 
-    elif text == "دوره ها" and str(user_id) in ADMIN_CHAT_ID:
+    elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
         await list_courses(update, context)
 
     elif context.user_data.get('package'):

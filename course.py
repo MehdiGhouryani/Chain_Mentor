@@ -47,7 +47,13 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("ثبت نام", callback_data="register_video_package")],
         [InlineKeyboardButton("بازگشت", callback_data="back")]
     ]
-    await query.edit_message_text("توضیحات مربوط به پکیج ویدئویی: ...", reply_markup=InlineKeyboardMarkup(keyboard))
+
+    conn = sqlite3.connect("Database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT description FROM courses WHERE course_type =video")
+    describtion = cursor.fetchone()[0]
+    conn.close()
+    await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 
@@ -60,7 +66,12 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
         [InlineKeyboardButton("ثبت نام", callback_data="register_online_course")],
         [InlineKeyboardButton("بازگشت", callback_data="back")]
     ]
-    await query.edit_message_text("توضیحات دوره آنلاین: ...", reply_markup=InlineKeyboardMarkup(keyboard))
+    conn = sqlite3.connect("Database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT description FROM courses WHERE course_type =online")
+    describtion = cursor.fetchone()[0]
+    conn.close()
+    await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 

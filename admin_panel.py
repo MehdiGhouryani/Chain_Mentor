@@ -53,6 +53,7 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = user.id
         full_name = user.first_name
         user_name = user.username if user.username else 'None'
+        days = int(context.args[0])
     else:
 
         if len(context.args) != 2:
