@@ -29,7 +29,13 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         await context.bot.send_invoice(
-            chat_id, title, description, payload,"", currency, prices
+            chat_id=chat_id, 
+            title=title, 
+            description=description, 
+            payload=payload, 
+            provider_token="",  
+            currency=currency, 
+            prices=prices
         )
     except Exception as e:
         await update.message.reply_text(f"Error in sending invoice: {e}")
@@ -56,20 +62,21 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     currency = update.message.successful_payment.currency
     payload = update.message.successful_payment.invoice_payload
 
-    if payload == "VIP-access":
-        await upgrade_to_vip(update,context,user_id, chat_id, amount, currency,full_name,user_name)
+    try:
+        if payload == "VIP-access":
+            await upgrade_to_vip(update,context,user_id, chat_id, amount, currency,full_name,user_name)
 
-    elif payload == "onlinecourse":
-        await register_for_online_course(update,context,user_id, chat_id, amount, currency,full_name,user_name)
+        elif payload == "onlinecourse":
+            await register_for_online_course(update,context,user_id, chat_id, amount, currency,full_name,user_name)
 
-    elif payload == "videopackage":
-        await notify_admin_about_video_package(update,context,user_id, chat_id, amount, currency,full_name,user_name)
-    elif payload == "VIP-renewal":
-        await renew_vip(user_id,chat_id,amount,currency)
-    else:
-        await update.message.reply_text("پرداخت شما نامعتبر است.")
-
-
+        elif payload == "videopackage":
+            await notify_admin_about_video_package(update,context,user_id, chat_id, amount, currency,full_name,user_name)
+        elif payload == "VIP-renewal":
+            await renew_vip(user_id,chat_id,amount,currency)
+        else:
+            await update.message.reply_text("پرداخت شما نامعتبر است.")
+    except Exception as e:
+        await update.message.reply_text(f"ERROR IN PAY :  {e}")
 
 async def upgrade_to_vip(update:Update,context:ContextTypes.DEFAULT_TYPE,user_id, chat_id, amount, currency,full_name,user_name):
     expiry_date = (datetime.now() + timedelta(days=VIP_DURATION_DAYS)).strftime('%Y-%m-%d %H:%M:%S')

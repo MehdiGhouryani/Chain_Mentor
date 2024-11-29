@@ -8,7 +8,6 @@ c = conn.cursor()
 
 
 def setup_database():
-    # ایجاد جدول کاربران
     c.execute('''CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
@@ -105,8 +104,6 @@ def setup_database():
 
     conn.commit()
 
-
-# database.py
 
 DATABASE_PATH = 'Database.db'
 
