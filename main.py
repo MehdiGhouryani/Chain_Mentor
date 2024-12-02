@@ -522,10 +522,10 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
 
 
-    scheduler = AsyncIOScheduler()
+    # scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])  
-    scheduler.start()
+    # scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])  
+    # scheduler.start()
 
 
     app.run_polling()
