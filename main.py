@@ -494,7 +494,7 @@ async def scheduled_jobs(context):
 #     tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
 #     await asyncio.gather(*tasks)
 
-def main():
+async def main():
     """Main function to initialize and run the bot."""
     if not BOT_TOKEN:
         raise ValueError("Telegram bot token not found. Set TELEGRAM_BOT_TOKEN environment variable.")
@@ -528,7 +528,7 @@ def main():
     scheduler.start()
 
 
-    app.run_polling()
+    await app.run_polling()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
