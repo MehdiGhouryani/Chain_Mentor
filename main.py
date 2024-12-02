@@ -521,7 +521,6 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-    loop = asyncio.get_event_loop()
 
     scheduler = AsyncIOScheduler()
 
