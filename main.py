@@ -520,14 +520,12 @@ def main():
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
-
     scheduler = AsyncIOScheduler()
     scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])
-    loop = asyncio.get_event_loop()
-    loop.create_task(app.run_polling())
     scheduler.start()
-    loop.run_forever()
-    app.run_polling()
-
-if __name__ == '__main__':
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(app.run_polling())
+    if __name__ == '__main__':
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        main()
