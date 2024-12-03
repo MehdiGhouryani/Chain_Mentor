@@ -482,11 +482,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 
+async def daily_task_scheduler(app):
+    while True:
+        now = datetime.datetime.now()
+        # زمان هدف برای اجرای فانکشن (ساعت 24:00)
+        target_time = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time(0, 0))
+        sleep_duration = (target_time - now).total_seconds()
+        print(f"Sleeping for {sleep_duration} seconds until next execution...")
+        
+        await asyncio.sleep(sleep_duration)
+        await scheduled_jobs(app)  # اجرای فانکشن‌های زمان‌بندی شده
 
 
-async def scheduled_jobs(context):
-    await send_renewal_notification(context)
-    await send_vip_expired_notification(context)
+
+async def scheduled_jobs(app):
+    print("Scheduled job is running...")
+    # فانکشن‌هایی که باید هر روز اجرا شوند
+    await send_renewal_notification(app)
+    await send_vip_expired_notification(app)
 
 
 # async def start_wallet_monitoring(wallets, websocket_url, app):
@@ -519,12 +532,13 @@ async def main():
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(scheduled_jobs, CronTrigger(hour=0, minute=0), args=[app])
-    scheduler.start()
-    
+
+    asyncio.create_task(daily_task_scheduler(app))
     await app.run_polling()
 
 if __name__ == '__main__':
 
     asyncio.run(main())
+
+
+
