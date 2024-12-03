@@ -5,6 +5,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import asyncio
+import schedule
+import time
+from threading import Thread
 from datetime import datetime
 import sqlite3
 import random
@@ -19,7 +22,6 @@ import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from database import setup_database
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import asyncio
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
 from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
@@ -481,35 +483,35 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await handle_add_course_step(update, user_id, text)
 
 
-
-async def daily_task_scheduler(app):
-    while True:
-        now = datetime.now()
-        # زمان هدف برای اجرای فانکشن (ساعت 24:00)
-        target_time = datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time(0, 0))
-        sleep_duration = (target_time - now).total_seconds()
-        print(f"Sleeping for {sleep_duration} seconds until next execution...")
-        
-        await asyncio.sleep(sleep_duration)
-        await scheduled_jobs(app)  # اجرای فانکشن‌های زمان‌بندی شده
-
+import aioschedule as schedule 
 
 
 async def scheduled_jobs(app):
+    """وظایف زمان‌بندی‌شده async"""
     print("Scheduled job is running...")
-    # فانکشن‌هایی که باید هر روز اجرا شوند
     await send_renewal_notification(app)
     await send_vip_expired_notification(app)
-import asyncio
 
-async def main():
-    """Main function to initialize and run the bot."""
+async def schedule_tasks(app):
+    """برنامه‌ریزی و اجرای وظایف زمان‌بندی‌شده"""
+    schedule.every().day.at("00:00").do(scheduled_jobs, app=app)
+    while True:
+        await schedule.run_pending()
+        await asyncio.sleep(1)
+
+def run_schedule(app):
+    """اجرای حلقه زمان‌بندی وظایف در نخ جداگانه"""
+    asyncio.run(schedule_tasks(app))
+
+def main():
+    """راه‌اندازی و اجرای ربات تلگرام"""
     if not BOT_TOKEN:
-        raise ValueError("Telegram bot token not found. Set TELEGRAM_BOT_TOKEN environment variable.")
+        raise ValueError("Telegram bot token not found.")
 
+    # تنظیم ربات تلگرام
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # اضافه کردن هندلرهای ربات
+    # مدیریت دستورات و پیام‌ها
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
@@ -519,22 +521,19 @@ async def main():
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
-    app.add_handler(CommandHandler('list_vip', list_vip))
+    app.add_handler(CommandHandler("list_vip", list_vip))
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-    # اجرای وظایف روزانه در ساعت مشخص
-    asyncio.create_task(daily_task_scheduler(app))
+    # اجرای زمان‌بندی در یک نخ جداگانه
+    schedule_thread = Thread(target=run_schedule, args=(app,), daemon=True)
+    schedule_thread.start()
 
     # اجرای ربات تلگرام
-    await app.run_polling()
-
-if __name__ == '__main__':
-    
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    app.run_polling()
 
 
-
+if __name__ == "__main__":
+    main()
 
