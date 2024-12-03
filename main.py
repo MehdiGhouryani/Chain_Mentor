@@ -484,9 +484,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def daily_task_scheduler(app):
     while True:
-        now = datetime.datetime.now()
+        now = datetime.now()
         # زمان هدف برای اجرای فانکشن (ساعت 24:00)
-        target_time = datetime.datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time(0, 0))
+        target_time = datetime.combine(now.date() + datetime.timedelta(days=1), datetime.time(0, 0))
         sleep_duration = (target_time - now).total_seconds()
         print(f"Sleeping for {sleep_duration} seconds until next execution...")
         
@@ -500,45 +500,41 @@ async def scheduled_jobs(app):
     # فانکشن‌هایی که باید هر روز اجرا شوند
     await send_renewal_notification(app)
     await send_vip_expired_notification(app)
+import asyncio
 
-
-# async def start_wallet_monitoring(wallets, websocket_url, app):
-#     """شروع مانیتور کردن ولت‌ها به صورت همزمان"""
-#     tasks = [monitor_wallet(wallet, websocket_url, app.bot, app) for wallet in wallets]
-#     await asyncio.gather(*tasks)
 async def main():
     """Main function to initialize and run the bot."""
     if not BOT_TOKEN:
         raise ValueError("Telegram bot token not found. Set TELEGRAM_BOT_TOKEN environment variable.")
 
-
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # # دریافت ولت‌ها از دیتابیس
-    # wallets = get_wallets_from_db()  # فرض می‌شود که این تابع لیست ولت‌ها را می‌دهد
-    # websocket_url = "wss://api.mainnet-beta.solana.com"  # آدرس WebSocket سرور Solana
-
-
+    # اضافه کردن هندلرهای ربات
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet)) 
-    app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet)) 
-    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))  
+    app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
+    app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
+    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
-    app.add_handler(CommandHandler('list_vip',list_vip))
+    app.add_handler(CommandHandler('list_vip', list_vip))
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
+    # اجرای وظایف روزانه در ساعت مشخص
     asyncio.create_task(daily_task_scheduler(app))
+
+    # اجرای ربات تلگرام
     await app.run_polling()
 
 if __name__ == '__main__':
+    
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
 
-    asyncio.run(main())
 
 
 
