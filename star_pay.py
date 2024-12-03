@@ -103,6 +103,11 @@ async def upgrade_to_vip(update:Update,context:ContextTypes.DEFAULT_TYPE,user_id
                 text=admin_message)
         except Exception as e:
             print(f"ERROR SEND_ADMIN {e}")
+            for id in admin_id:
+                await context.bot.send_message(
+                    chat_id=id,
+                    text=e)
+ 
 
 
 
@@ -148,6 +153,11 @@ async def register_for_online_course(update:Update,context:ContextTypes.DEFAULT_
                 text=admin_message)
         except Exception as e:
             print(f"ERROR SEND_ADMIN {e}")
+            for id in admin_id:
+                await context.bot.send_message(
+                    chat_id=id,
+                    text=e)
+ 
 
 
 async def notify_admin_about_video_package(update:Update,context:ContextTypes.DEFAULT_TYPE,user_id, chat_id, amount, currency,full_name,user_name):
@@ -169,6 +179,7 @@ async def notify_admin_about_video_package(update:Update,context:ContextTypes.DE
 
 
 async def send_renewal_notification(context):
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
     try:
         expiring_users = get_users_with_expiring_vip()
         if not expiring_users:
@@ -202,11 +213,17 @@ async def send_renewal_notification(context):
                 print(f"Error sending renewal notification to {user_id}: {e}")
     except Exception as e:
         print(f"Error in send_renewal_notification: {e}")
+        for id in admin_id:
+            await context.bot.send_message(
+                chat_id=id,
+                text=e)
+ 
 
 
 
 
 async def send_vip_expired_notification(context):
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
     try:
         expired_users = get_users_with_expired_vip()
         if not expired_users:
@@ -230,14 +247,23 @@ async def send_vip_expired_notification(context):
                         )
                     )
             except Exception as e:
+                for id in admin_id:
+                    await context.bot.send_message(
+                        chat_id=id,
+                        text=e)
+ 
                 print(f"Error notifying user {user_id} or admins: {e}")
     except Exception as e:
-        print(f"Error in send_vip_expired_notification: {e}")
-
+        for id in admin_id:
+            await context.bot.send_message(
+                chat_id=id,
+                text=e)
+ 
 
 
 
 async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
     try:
         c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
         user_data = c.fetchone()
@@ -270,10 +296,14 @@ async def star_payment_online(update: Update, context: ContextTypes.DEFAULT_TYPE
             prices=prices
         )
     except Exception as e:
-        print(f"ERROR IN ONLINE PAY{e}")
-
+        for id in admin_id:
+            await context.bot.send_message(
+                chat_id=id,
+                text=e)
+ 
 
 async def renew_vip(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, chat_id, amount, currency, full_name, user_name):
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
     expiry_date = (datetime.now() + timedelta(days=VIP_DURATION_DAYS)).strftime('%Y-%m-%d %H:%M:%S')
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     admin_message = (
@@ -300,10 +330,16 @@ async def renew_vip(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id,
             )
         except Exception as e:
             print(f"ERROR SEND_ADMIN {e}")
+            for id in admin_id:
+                await context.bot.send_message(
+                    chat_id=id,
+                    text=e)
+ 
 
 
 
 async def star_payment_package(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
     try:
 
         c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
@@ -340,3 +376,8 @@ async def star_payment_package(update: Update, context: ContextTypes.DEFAULT_TYP
 
     except Exception as e:
         print(f"ERROR IN package PAY{e}")
+        for id in admin_id:
+            await context.bot.send_message(
+                chat_id=id,
+                text=e)
+ 
