@@ -263,7 +263,14 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     step = await get_task_step(user_id)
 
     if query.data == "check_disabled":
+
         await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
+        keyboard = [
+        [InlineKeyboardButton("لینک توییتر", url="https://twitter.com/example")],
+        [InlineKeyboardButton("چک کردن", callback_data="check_disabled")]
+    ]
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
+
     elif query.data == "check_task":
         if step == 1:
             await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
@@ -275,7 +282,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
             await add_points(user_id, 10)
             await update_task_step(user_id, 1)
-    query.answer()
+    await query.answer()
 
 
 
