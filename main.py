@@ -1,7 +1,7 @@
 
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
 from telegram.ext import (Application, CommandHandler, MessageHandler, filters, ContextTypes ,
-                           CallbackQueryHandler ,PreCheckoutQueryHandler)
+                           CallbackQueryHandler ,PreCheckoutQueryHandler,ConversationHandler)
 
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import asyncio
@@ -19,13 +19,16 @@ import course
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
-from twitter import start_twitter_task, update_task_step, handle_twitter_id,get_task_step,add_points
+from twitter import  (update_task_step,get_task_step,add_points,start_post,enter_description,
+                      enter_link,confirm_send,cancel,error_handler,ENTER_DESCRIPTION,ENTER_LINK,CONFIRM_SEND)
+
 from database import setup_database
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
 
 from star_pay import (send_invoice,precheckout_callback,successful_payment_callback,
                       send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package)
+
 
 
 
@@ -541,11 +544,24 @@ def main():
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
-    app.add_handler(CommandHandler("send_twitter", start_twitter_task))
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
+
+    post_handler = ConversationHandler(
+        entry_points=[CommandHandler('post', start_post)],
+        states={
+            ENTER_DESCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_description)],
+            ENTER_LINK: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_link)],
+            CONFIRM_SEND: [CallbackQueryHandler(confirm_send, pattern="^confirm_send$")],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+    )
+
+    # افزودن هندلرها
+    app.add_handler(post_handler)
+    app.add_error_handler(error_handler)
     # اجرای زمان‌بندی در یک نخ جداگانه
     schedule_thread = Thread(target=run_schedule, args=(app,), daemon=True)
     schedule_thread.start()
@@ -556,4 +572,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

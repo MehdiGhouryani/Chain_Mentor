@@ -127,6 +127,15 @@ def get_connection():
     return sqlite3.connect(DATABASE_PATH, check_same_thread=False)
 
 
+async def get_all_users():
+    """دریافت لیست شناسه کاربران از دیتابیس."""
+    conn = sqlite3.connect(DATABASE_PATH)
+    c = conn.cursor()
+    c.execute("SELECT chat_id FROM users")
+    users = c.fetchall()
+    conn.close()
+    return [user[0] for user in users]
+
 
 def update_user_vip_status(user_id, expiry_date=None):
     try:
