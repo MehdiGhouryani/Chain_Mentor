@@ -260,6 +260,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await none_step(update,context)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
         
+    
+    elif query.data == 'confirm_send':
+        await confirm_send(update,context)
 
         
     user_id = query.from_user.id
@@ -286,7 +289,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await add_points(user_id, 10)
             await update_task_step(user_id, 1)
     await query.answer()
-
 
 
 
@@ -410,6 +412,7 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
         await update.message.reply_text("دوره با موفقیت ثبت شد!")
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
+    
 
 
 

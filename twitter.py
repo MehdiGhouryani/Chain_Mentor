@@ -37,7 +37,7 @@ async def add_points(user_id, points):
 
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext,ConversationHandler
 
 
 
@@ -49,15 +49,11 @@ def handle_twitter_id(update: Update, context: CallbackContext):
 
    
 
-
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ContextTypes,ConversationHandler
-from database import get_all_users
+from telegram.ext import ContextTypes
 
 # مراحل مکالمه
 ENTER_DESCRIPTION, ENTER_LINK, CONFIRM_SEND = range(3)
-
-
 
 async def start_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -80,7 +76,7 @@ async def enter_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [InlineKeyboardButton("لینک توییتر", url=link)],
-        [InlineKeyboardButton("تأیید ارسال", callback_data="confirm_send")]
+        [InlineKeyboardButton("تأیید ارسال", callback_data="confirm_send")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -94,20 +90,18 @@ async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    description = context.user_data['description']
-    link = context.user_data['link']
+    description = context.user_data.get('description', 'بدون توضیحات')
+    link = context.user_data.get('link', 'بدون لینک')
 
     # ارسال پیام به همه کاربران
-    users = await get_all_users()
+    users = await context.bot_data['db'].get_all_users()  # اصلاح شده برای اتصال دیتابیس
     keyboard = [
         [InlineKeyboardButton("لینک توییتر", url=link)],
-        [InlineKeyboardButton("چک کردن", callback_data="check_disabled")]
+        [InlineKeyboardButton("چک کردن", callback_data="check_disabled")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    sent_count = 0
-    failed_count = 0
-
+    sent_count, failed_count = 0, 0
     for user in users:
         try:
             await context.bot.send_message(chat_id=user, text=description, reply_markup=reply_markup)
