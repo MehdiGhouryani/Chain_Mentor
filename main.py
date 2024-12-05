@@ -1,12 +1,11 @@
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup,Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes , CallbackQueryHandler ,PreCheckoutQueryHandler,ApplicationBuilder
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
+from telegram.ext import (Application, CommandHandler, MessageHandler, filters, ContextTypes ,
+                           CallbackQueryHandler ,PreCheckoutQueryHandler)
+
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import asyncio
 import schedule
-import time
 from threading import Thread
 from datetime import datetime
 import sqlite3
@@ -20,17 +19,24 @@ import course
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
+from twitter import start_twitter_task, update_task_step, handle_twitter_id,get_task_step,add_points
 from database import setup_database
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
-from star_pay import send_invoice,precheckout_callback,successful_payment_callback,send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package
-# from payment import check_payment_status,start_payment
 
+from star_pay import (send_invoice,precheckout_callback,successful_payment_callback,
+                      send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package)
+
+
+
+
+
+# from payment import check_payment_status,start_payment
 # from database import get_wallets_from_db
 # from wallet_tracker import monitor_wallet
 
 BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
+
 
 
 
@@ -252,19 +258,24 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_reply_markup(reply_markup=reply_markup)
         
 
-    else:
-        await query.answer("دستور نامعتبر است")
+        
+    user_id = query.from_user.id
+    step = get_task_step(user_id)
 
-    await query.answer()
-
-
-
-
-
-
-
-
-
+    if query.data == "check_disabled":
+        query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
+    elif query.data == "check_task":
+        if step == 1:
+            query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
+            update_task_step(user_id, 2)
+        elif step == 2:
+            query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
+            update_task_step(user_id, 3)
+        elif step == 3:
+            query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
+            add_points(user_id, 10)
+            update_task_step(user_id, 1)
+    query.answer()
 
 
 
@@ -504,6 +515,7 @@ def run_schedule(app):
     asyncio.run(schedule_tasks(app))
 
 def main():
+    setup_database()
     """راه‌اندازی و اجرای ربات تلگرام"""
     if not BOT_TOKEN:
         raise ValueError("Telegram bot token not found.")
@@ -522,6 +534,7 @@ def main():
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
+    app.add_handler(CommandHandler("send_twitter", start_twitter_task))
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))

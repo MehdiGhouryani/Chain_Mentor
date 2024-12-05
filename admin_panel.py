@@ -1,5 +1,7 @@
-from telegram import Update
-from telegram.ext import ContextTypes
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes,CallbackContext
 import sqlite3
 from config import ADMIN_CHAT_ID
 from database import grant_vip,revoke_vip,is_admin,VipMembers
@@ -136,3 +138,12 @@ async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
                 )
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))
+
+
+
+
+
+
+
+
+#TWITTER FUNCTIONS

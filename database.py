@@ -6,17 +6,33 @@ conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
 
 
+def get_db_connection():
+    conn = sqlite3.connect("Database.db")
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def setup_database():
+
     c.execute('''CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            chat_id INT,
-            name VARCHAR(255),
-            email VARCHAR(255),
-            phone VARCHAR(20),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        chat_id INTEGER,
+        twitter_id TEXT,
+        name VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS task_progress (
+            user_id INTEGER PRIMARY KEY,
+            task_type TEXT NOT NULL,
+            current_step INTEGER DEFAULT 1,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+        )
+    ''')
+ 
     c.execute('''
             CREATE TABLE IF NOT EXISTS vip_users (
             user_id INTEGER PRIMARY KEY,

@@ -4,7 +4,7 @@ from telegram.ext import CallbackContext,ContextTypes
 
 # تنظیمات امتیازدهی
 INITIAL_SCORE = 0
-REFERRAL_BONUS = 10
+REFERRAL_BONUS = 50
 PENALTY_POINTS = 5
 
 # اتصال به دیتابیس و ایجاد جدول برای ذخیره اطلاعات امتیازات
