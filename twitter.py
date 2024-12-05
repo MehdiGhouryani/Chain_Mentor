@@ -40,12 +40,12 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext
 
 
-def start_twitter_task(update: Update, context: CallbackContext):
+async def start_twitter_task(update: Update, context: CallbackContext):
     keyboard = [
         [InlineKeyboardButton("لینک توییتر", url="https://twitter.com/example")],
         [InlineKeyboardButton("چک کردن", callback_data="check_disabled")]
     ]
-    update.message.reply_text(
+    await update.message.reply_text(
         "برای شرکت در تسک ابتدا روی لینک کلیک کنید.",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
