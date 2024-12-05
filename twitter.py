@@ -1,6 +1,6 @@
 from database import get_db_connection
 
-def save_twitter_account(user_id, twitter_id):
+async def save_twitter_account(user_id, twitter_id):
     with get_db_connection() as conn:
         conn.execute('''
             INSERT INTO users (user_id, twitter_id)
@@ -9,14 +9,14 @@ def save_twitter_account(user_id, twitter_id):
         ''', (user_id, twitter_id, twitter_id))
         conn.commit()
 
-def get_task_step(user_id):
+async def get_task_step(user_id):
     with get_db_connection() as conn:
         step = conn.execute('''
             SELECT current_step FROM task_progress WHERE user_id = ?
         ''', (user_id,)).fetchone()
         return step["current_step"] if step else 1
 
-def update_task_step(user_id, step):
+async def update_task_step(user_id, step):
     with get_db_connection() as conn:
         conn.execute('''
             INSERT INTO task_progress (user_id, task_type, current_step)
@@ -25,7 +25,7 @@ def update_task_step(user_id, step):
         ''', (user_id, step, step))
         conn.commit()
 
-def add_points(user_id, points):
+async def add_points(user_id, points):
     with get_db_connection() as conn:
         conn.execute('''
             INSERT INTO points (user_id, score)
