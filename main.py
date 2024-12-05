@@ -532,7 +532,7 @@ def main():
 
     # تنظیم ربات تلگرام
     app = Application.builder().token(BOT_TOKEN).build()
-    app.bot_data['admins'] = ADMIN_CHAT_ID
+    app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
     # مدیریت دستورات و پیام‌ها
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
