@@ -260,21 +260,21 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         
     user_id = query.from_user.id
-    step = get_task_step(user_id)
+    step = await get_task_step(user_id)
 
     if query.data == "check_disabled":
-        query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
+        await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
     elif query.data == "check_task":
         if step == 1:
-            query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
+            await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
             update_task_step(user_id, 2)
         elif step == 2:
-            query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
+            await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
             update_task_step(user_id, 3)
         elif step == 3:
-            query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
-            add_points(user_id, 10)
-            update_task_step(user_id, 1)
+            await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
+            await add_points(user_id, 10)
+            await update_task_step(user_id, 1)
     query.answer()
 
 
