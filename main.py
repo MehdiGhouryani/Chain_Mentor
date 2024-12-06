@@ -425,17 +425,29 @@ async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     current_step[user_id] = "course_name"
     await update.message.reply_text("لطفاً نام دوره را وارد کنید:")
 
-
-
 async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # دریافت user_id با توجه به نوع پیام (message یا callback_query)
-    user_id = update.message.from_user.id if update.message else update.callback_query.from_user.id
 
-    context.user_data['online'] = None
-    context.user_data['package'] = None
-    course_data.pop(user_id, None)
-    current_step.pop(user_id, None)
+    try:
+        if update.message:
+            user_id = update.message.from_user.id
+        elif update.callback_query:
+            user_id = update.callback_query.from_user.id
+        else:
+            raise ValueError("نوع آپدیت مشخص نیست. لطفاً بررسی کنید.")
 
+        # پاک کردن داده‌های مرتبط با کاربر
+        context.user_data.pop('online', None)
+        context.user_data.pop('package', None)
+        context.user_data.pop('stage', None)
+        context.user_data.pop('description', None)
+        context.user_data.pop('link', None)
+        course_data.pop(user_id, None)
+        current_step.pop(user_id, None)
+
+        # اطلاع‌رسانی در لاگ یا با print
+        print(f"وضعیت و داده‌های کاربر {user_id} با موفقیت پاک شدند.")
+    except Exception as e:
+        print(f"خطا در پاک‌سازی داده‌های کاربر: {e}")
 
 
 
