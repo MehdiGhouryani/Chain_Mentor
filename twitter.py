@@ -159,18 +159,15 @@ async def set_task_checked(user_id, post_id, status):
         ''', (user_id, post_id, status, status))
         conn.commit()
 
-
-
 async def save_link(link):
     with get_db_connection() as conn:
-        cursor = conn.execute('''
-            INSERT INTO links (twitter_link) VALUES (?) RETURNING id
+        conn.execute('''
+            INSERT INTO links (twitter_link) VALUES (?)
         ''', (link,))
+        cursor = conn.execute('SELECT last_insert_rowid()')
         result = cursor.fetchone()
         conn.commit()
-        return result[0]  # بازگرداندن شناسه پست
-
-
+        return result[0]
 
 
 
