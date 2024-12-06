@@ -172,7 +172,9 @@ async def send_post(update: Update, context):
         link = user_state[user_id].get('link')
 
         # ارسال به تمام کاربران (در اینجا از لیست ثابت برای تست استفاده می‌شود)
-        for chat_id in get_all_users():
+
+        ids = await get_all_users()
+        for chat_id in ids:
             keyboard = [[InlineKeyboardButton("لینک توییتر", url=link)]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
