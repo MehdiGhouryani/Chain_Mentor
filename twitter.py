@@ -95,7 +95,7 @@ async def send_post(update: Update, context):
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
                 chat_id=chat_id,
-                text={description},
+                text=description,
                 reply_markup=reply_markup,
             )
 
