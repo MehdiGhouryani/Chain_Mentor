@@ -69,6 +69,36 @@ async def start_post(update: Update, context):
         await update.message.reply_text("خطا در شروع پست. لطفاً دوباره تلاش کنید.")
 
 
+async def save_link(link):
+    with get_db_connection() as conn:
+        conn.execute('''
+            INSERT INTO link (twitter_link)
+            VALUES (?)
+        ''', (link))
+        conn.commit()
+import sqlite3
+
+
+
+def get_latest_link():
+    conn = sqlite3.connect('Database.db') 
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("SELECT twitter_link FROM link ORDER BY created_at DESC LIMIT 1;")
+        result = cursor.fetchone()
+        if result:
+            return result[0] 
+        else:
+            return None  
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return None
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 # تابع برای ارسال پست به تمام کاربران
 async def send_post(update: Update, context):
@@ -83,7 +113,7 @@ async def send_post(update: Update, context):
 
         description = user_state[user_id].get('description')
         link = user_state[user_id].get('link')
-
+        await save_link(link)
         # ارسال به تمام کاربران (در اینجا از لیست ثابت برای تست استفاده می‌شود)
 
         ids = await get_all_users()

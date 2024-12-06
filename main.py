@@ -19,7 +19,7 @@ import course
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
-from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,
+from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,
                       error_handler,save_twitter_account)
 
 from database import setup_database
@@ -263,8 +263,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         user_id = query.from_user.id
         step = await get_task_step(user_id)
-        link = user_state[user_id].get('link')
-
+        link = get_latest_link()
         if query.data == "check_disabled":
             await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
             keyboard = [

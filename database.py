@@ -13,17 +13,18 @@ def get_db_connection():
 
 def setup_database():
 
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        chat_id INTEGER,
-        username VARCHAR(255),
-        twitter_id TEXT,
-        name VARCHAR(255),
-        email VARCHAR(255),
-        phone VARCHAR(20),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            chat_id INTEGER,
+            username VARCHAR(255),
+            twitter_id TEXT,
+            name VARCHAR(255),
+            email VARCHAR(255),
+            phone VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
 
     c.execute('''
         CREATE TABLE IF NOT EXISTS task_progress (
@@ -102,15 +103,22 @@ def setup_database():
             )
               
     ''')
+    c.execute('''
+            CREATE TABLE IF NOT EXISTS links (
+                id SERIAL PRIMARY KEY,
+                url TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            ''')
 
     c.execute("""
-        CREATE TABLE IF NOT EXISTS payments_stars (
-            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            amount INTEGER,
-            payment_date DATE
-        )
-        """)
+            CREATE TABLE IF NOT EXISTS payments_stars (
+                payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                amount INTEGER,
+                payment_date DATE
+            )
+            """)
 
     conn.commit()
 
