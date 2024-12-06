@@ -16,7 +16,7 @@ def setup_database():
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL PRIMARY KEY,
             chat_id INTEGER,
             username VARCHAR(255),
             twitter_id TEXT,
