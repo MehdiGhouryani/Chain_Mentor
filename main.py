@@ -271,7 +271,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  InlineKeyboardButton("✅ چک کردن", callback_data="check_task")]
             ]
             await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
-
+            context.user_data["twitter_id"] = True
         elif query.data == "check_task":
             if step == 1:
                 await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
