@@ -110,6 +110,7 @@ async def send_post(update: Update, context):
         link = user_state[user_id].get('link')
 
         post_id = await save_link(link)
+        print(f"postID is  :  {post_id}")
 
         ids = await get_all_users()
         for chat_id in ids:
