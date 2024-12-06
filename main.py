@@ -50,8 +50,6 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 token=os.getenv('Token')
 
-setup_database()
-
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
 
