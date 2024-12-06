@@ -225,71 +225,73 @@ async def generate_discount_code(update: Update, context: ContextTypes.DEFAULT_T
 async def show_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await rs.show_score(update, context)  # فراخوانی تابع نمایش امتیاز از فایل referral_system
 
+async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        query = update.callback_query
+        data = query.data
+        chat_id = update.effective_chat.id
 
-async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE): 
-    query = update.callback_query
-    data = query.data
-    chat_id = update.effective_chat.id
+        if data.startswith("reply_to_user"):
+            user_id = int(query.data.split("_")[-1])
+            print(f"STARTWITH REPLY   USER_ID   : {user_id}")
+            context.user_data["reply_to"] = user_id
+            await query.message.reply_text("لطفاً پیام خود را برای پاسخ به کاربر وارد کنید.")
 
-    if data.startswith("reply_to_user"):
-        user_id = int(query.data.split("_")[-1])
-        print(f"STARTWITH REPLY   USER_ID   : {user_id}")
-        context.user_data["reply_to"] = user_id
-        await query.message.reply_text("لطفاً پیام خود را برای پاسخ به کاربر وارد کنید.")
+        elif data == "buy_video_package":
+            await course.buy_video_package(update, context)
 
-    elif data == "buy_video_package":
-        await course.buy_video_package(update, context)
+        elif data == "online_course":
+            await course.register_online_course(update, context)
 
-    elif data == "online_course":
-        await course.register_online_course(update, context)
+        elif data == "register_video_package":
+            await course.get_user_info_package(update, context)
 
-    elif data == "register_video_package":
-        await course.get_user_info_package(update, context)
+        elif data == "register_online_course":
+            await course.get_user_info_online(update, context)
 
-    elif data == "register_online_course":
-        await course.get_user_info_online(update, context)
-    
-    elif data == "back":
-        keyboard = [
-            [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-            [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await none_step(update,context)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-        
+        elif data == "back":
+            keyboard = [
+                [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
+                [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await none_step(update, context)
+            await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data == 'send_post':
-        await send_post(update,context)
+        elif data == 'send_post':
+            await send_post(update, context)
 
+        user_id = query.from_user.id
+        step = await get_task_step(user_id)
+        link = user_state[user_id].get('link')
 
-    user_id = query.from_user.id
+        if query.data == "check_disabled":
+            await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
+            keyboard = [
+                [InlineKeyboardButton("لینک توییتر", url=link)],
+                [InlineKeyboardButton("✅ چک کردن", callback_data="check_task")]
+            ]
+            await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
 
-    step = await get_task_step(user_id)
-    link = user_state[user_id].get('link')
-    if query.data == "check_disabled":
+        elif query.data == "check_task":
+            if step == 1:
+                await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
+                context.user_data["twitter_id"] = True
+                await update_task_step(user_id, 2)
+            elif step == 2:
+                await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
+                await update_task_step(user_id, 3)
+            elif step == 3:
+                await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
+                await add_points(user_id, 100)
+                await update_task_step(user_id, 1)
 
-        await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
-        keyboard = [
-        [InlineKeyboardButton("لینک توییتر", url=link)],
-        [InlineKeyboardButton("✅ چک کردن", callback_data="check_task")]
-    ]
-        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
+        await query.answer()
 
-    elif query.data == "check_task":
-        if step == 1:
-            await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
-            context.user_data["twitter_id"] = True
-            await update_task_step(user_id, 2)
-        elif step == 2:
-            await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
-            await update_task_step(user_id, 3)
-        elif step == 3:
-            await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
-            await add_points(user_id, 100)
-            await update_task_step(user_id, 1)
-    await query.answer()
-
+    except Exception as e:
+        # مدیریت خطا
+        print(f"Error occurred: {e}")
+        await query.answer("متأسفانه خطایی رخ داده است. لطفاً دوباره تلاش کنید.")
 
 
 
