@@ -17,6 +17,7 @@ def setup_database():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         chat_id INTEGER,
+        username VARCHAR(255),
         twitter_id TEXT,
         name VARCHAR(255),
         email VARCHAR(255),
@@ -91,13 +92,6 @@ def setup_database():
                 used INTEGER DEFAULT 0
             )''')
 
-    # ایجاد جدول ذخیره اطلاعات کاربر
-    c.execute('''CREATE TABLE IF NOT EXISTS save_user (
-                      user_id INT REFERENCES users(user_id) PRIMARY KEY,
-                      username VARCHAR(255),
-                      chat_id VARCHAR(255) NOT NULL
-                  )''')
-
     # ایجاد جدول کیف پول‌ها
     c.execute('''
             CREATE TABLE IF NOT EXISTS wallets (
@@ -134,7 +128,7 @@ async def get_all_users():
     c.execute("SELECT chat_id FROM users")
     users = c.fetchall()
     conn.close()
-    return [user[0] for user in users]
+    return [int(user[0]) for user in users]
 
 
 def update_user_vip_status(user_id, expiry_date=None):

@@ -116,7 +116,7 @@ async def save_user(user_id,username,chat_id):
     connection = sqlite3.connect('Database.db')
     cursor = connection.cursor()
     
-    cursor.execute('INSERT OR REPLACE INTO save_user (user_id, username,chat_id) VALUES (?, ?,?)', (user_id, username,chat_id))
+    cursor.execute('INSERT OR REPLACE INTO ussers (user_id, username,chat_id) VALUES (?, ?,?)', (user_id, username,chat_id))
     connection.commit()
     connection.close()
 
