@@ -1,4 +1,5 @@
-from database import get_db_connection
+from database import get_db_connection,get_all_users
+from config import ADMIN_CHAT_ID
 
 async def save_twitter_account(user_id, twitter_id):
     with get_db_connection() as conn:
@@ -126,3 +127,73 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("خطایی رخ داده است. لطفاً دوباره تلاش کنید.")
         except Exception as e:
             print(f"خطا در ارسال پیام خطا: {e}")
+
+
+
+
+
+
+
+
+
+
+
+user_state = {}
+
+
+async def start_post(update: Update, context):
+    try:
+        user_id = update.effective_user.id
+        if str(user_id) not in ADMIN_CHAT_ID:
+            await update.message.reply_text("شما اجازه استفاده از این فرمان را ندارید.")
+            return
+
+
+        user_state[user_id] = {'state': 'waiting_for_description'}
+        await update.message.reply_text("لطفاً توضیحات پست را وارد کنید.")
+    except Exception as e:
+        print(f"Error in start_post: {e}")
+        await update.message.reply_text("خطا در شروع پست. لطفاً دوباره تلاش کنید.")
+
+
+
+# تابع برای ارسال پست به تمام کاربران
+async def send_post(update: Update, context):
+    try:
+        query = update.callback_query
+        await query.answer()
+
+        user_id = update.effective_user.id
+        if user_state.get(user_id, {}).get('state') != 'ready_to_send':
+            await query.edit_message_text("خطا: داده‌ای برای ارسال وجود ندارد.")
+            return
+
+        description = user_state[user_id].get('description')
+        link = user_state[user_id].get('link')
+
+        # ارسال به تمام کاربران (در اینجا از لیست ثابت برای تست استفاده می‌شود)
+        for chat_id in get_all_users():
+            keyboard = [[InlineKeyboardButton("لینک توییتر", url=link)]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=f"توضیحات: {description}",
+                reply_markup=reply_markup,
+            )
+
+        user_state[user_id] = {}  # پاک کردن وضعیت کاربر پس از ارسال پست
+        await query.edit_message_text("پست با موفقیت به همه کاربران ارسال شد.")
+    except Exception as e:
+        print(f"Error in send_post: {e}")
+        await query.edit_message_text("خطا در ارسال پست. لطفاً دوباره تلاش کنید.")
+
+# تابع مدیریت خطاها
+async def error_handler(update: object, context: object):
+    try:
+        print(f"Error occurred: {context.error}")
+        if isinstance(update, Update):
+            await update.message.reply_text("خطا رخ داده است، لطفاً بعداً تلاش کنید.")
+        else:
+            print("Error occurred in non-update context.")
+    except Exception as e:
+        print(f"Error in error_handler: {e}")

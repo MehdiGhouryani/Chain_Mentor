@@ -19,7 +19,7 @@ import course
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
-from twitter import  (update_task_step,get_task_step,add_points,start_post,enter_description,
+from twitter import (update_task_step,get_task_step,add_points,start_post,enter_description,user_state,send_post,
                       enter_link,confirm_send,cancel,error_handler,ENTER_DESCRIPTION,ENTER_LINK,CONFIRM_SEND)
 
 from database import setup_database
@@ -261,36 +261,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_reply_markup(reply_markup=reply_markup)
         
     
-    elif query.data == 'confirm_send':
-        await confirm_send(update,context)
 
-        
-    user_id = query.from_user.id
-    step = await get_task_step(user_id)
-
-    if query.data == "check_disabled":
-
-        await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
-        keyboard = [
-        [InlineKeyboardButton("لینک توییتر", url="https://twitter.com/example")],
-        [InlineKeyboardButton("چک کردن", callback_data="check_task")]
-    ]
-        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
-
-    elif query.data == "check_task":
-        if step == 1:
-            await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
-            await update_task_step(user_id, 2)
-        elif step == 2:
-            await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
-            await update_task_step(user_id, 3)
-        elif step == 3:
-            await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
-            await add_points(user_id, 10)
-            await update_task_step(user_id, 1)
-    await query.answer()
-
-
+    elif data == 'send_post':
+        await send_post(update,context)
 
 
 
@@ -446,7 +419,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     text = update.message.text
     user_id = update.message.from_user.id
     admin_id = id in ADMIN_CHAT_ID
-    # دیکشنری برای نگاشت دستورات به توابع مربوطه
+
     command_mapping = {
         "معرفی خدمات": show_welcome,
         "🎓 آموزش و کلاس‌های آنلاین": course.courses_menu,
@@ -462,49 +435,71 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "Sui":Sui_tools,
         "بازگشت به صفحه قبل ⬅️": back_main
     }
-    
-    if text in command_mapping:
-        await none_step(update, context)
-        await command_mapping[text](update, context)
+    try:
+        if text in command_mapping:
+            await none_step(update, context)
+            await command_mapping[text](update, context)
 
-    elif update.message.successful_payment:
-        await successful_payment_callback(update,context)
+        elif update.message.successful_payment:
+            await successful_payment_callback(update,context)
 
-    elif text == "مشاهده چارت":
-        await view_chart(update, context)
-    elif text == "ولت‌های پیشنهادی":
-        await recommended_wallets(update, context)
-    elif text == "ابزارهای خرید و فروش عادی":
-        await basic_trading_tools(update, context)
-    elif text == "ابزارهای خرید و فروش حرفه‌ای":
-        await advanced_trading_tools(update, context)
+        elif text == "مشاهده چارت":
+            await view_chart(update, context)
+        elif text == "ولت‌های پیشنهادی":
+            await recommended_wallets(update, context)
+        elif text == "ابزارهای خرید و فروش عادی":
+            await basic_trading_tools(update, context)
+        elif text == "ابزارهای خرید و فروش حرفه‌ای":
+            await advanced_trading_tools(update, context)
 
-    elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
-        await add_courses(update, context)
+        elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
+            await add_courses(update, context)
 
-    elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
-        await list_courses(update, context)
+        elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
+            await list_courses(update, context)
 
-    elif context.user_data.get('package'):
-        await handle_package_step(update, context)
+        elif context.user_data.get('package'):
+            await handle_package_step(update, context)
 
-    elif context.user_data.get('online'):
-        await handle_online_step(update, context)
+        elif context.user_data.get('online'):
+            await handle_online_step(update, context)
 
-    elif context.user_data.get("awaiting_message"):
-        await receive_user_message_handler(update,context)
+        elif context.user_data.get("awaiting_message"):
+            await receive_user_message_handler(update,context)
 
-    elif context.user_data.get("add_wallet"):
-        await wallet_tracker.add_wallet(update,context)
+        elif context.user_data.get("add_wallet"):
+            await wallet_tracker.add_wallet(update,context)
 
-    elif context.user_data.get("remove_wallet"):
-        await wallet_tracker.remove_wallet(update,context)
-        
-    elif "reply_to" in context.user_data:
-        await receive_admin_response_handler(update,context)
+        elif context.user_data.get("remove_wallet"):
+            await wallet_tracker.remove_wallet(update,context)
 
-    elif user_id in current_step:
-        await handle_add_course_step(update, user_id, text)
+        elif "reply_to" in context.user_data:
+            await receive_admin_response_handler(update,context)
+
+        elif user_id in current_step:
+            await handle_add_course_step(update, user_id, text)
+
+                    # بررسی وضعیت کاربر و انتقال به مرحله بعد
+        elif user_state.get(user_id, {}).get('state') == 'waiting_for_description':
+            user_state[user_id]['description'] = update.message.text
+            user_state[user_id]['state'] = 'waiting_for_link'
+            await update.message.reply_text("توضیحات ذخیره شد. لطفاً لینک توییتر را وارد کنید.")
+        elif user_state.get(user_id, {}).get('state') == 'waiting_for_link':
+            user_state[user_id]['link'] = update.message.text
+            user_state[user_id]['state'] = 'ready_to_send'
+            # نمایش دکمه برای تأیید ارسال
+            keyboard = [[InlineKeyboardButton("ارسال به کاربران", callback_data="send_post")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(
+                "توضیحات و لینک ثبت شد. آیا می‌خواهید ارسال کنید؟",
+                reply_markup=reply_markup,
+            )
+        else:
+            await update.message.reply_text("لطفاً ابتدا یک پست جدید ایجاد کنید.")
+    except Exception as e:
+        logger.error(f"Error in handle_message: {e}")
+        await update.message.reply_text("خطا در پردازش پیام. لطفاً دوباره تلاش کنید.")
+
 
 
 import aioschedule as schedule 
@@ -547,24 +542,11 @@ def main():
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
-
+    app.add_handler(CommandHandler("post", start_post))
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
-
-
-    post_handler = ConversationHandler(
-        entry_points=[CommandHandler('post', start_post)],
-        states={
-            ENTER_DESCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_description)],
-            ENTER_LINK: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_link)],
-            CONFIRM_SEND: [CallbackQueryHandler(confirm_send, pattern="^confirm_send$")],
-        },
-        fallbacks=[CommandHandler('cancel', cancel)],
-    )
-
-    # افزودن هندلرها
-    app.add_handler(post_handler)
     app.add_error_handler(error_handler)
+
     # اجرای زمان‌بندی در یک نخ جداگانه
     schedule_thread = Thread(target=run_schedule, args=(app,), daemon=True)
     schedule_thread.start()
