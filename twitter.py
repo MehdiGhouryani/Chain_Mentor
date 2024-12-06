@@ -74,7 +74,7 @@ async def save_link(link):
         conn.execute('''
             INSERT INTO links (twitter_link)
             VALUES (?)
-        ''', (link))
+        ''', (link,))
         conn.commit()
 import sqlite3
 
