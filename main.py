@@ -267,8 +267,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if query.data == "check_disabled":
             await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
             keyboard = [
-                [InlineKeyboardButton("لینک توییتر", url=link)],
-                [InlineKeyboardButton("✅ چک کردن", callback_data="check_task")]
+                [InlineKeyboardButton("لینک توییتر", url=link),
+                 InlineKeyboardButton("✅ چک کردن", callback_data="check_task")]
             ]
             await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
 
