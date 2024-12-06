@@ -72,7 +72,7 @@ async def start_post(update: Update, context):
 async def save_link(link):
     with get_db_connection() as conn:
         conn.execute('''
-            INSERT INTO link (twitter_link)
+            INSERT INTO links (twitter_link)
             VALUES (?)
         ''', (link))
         conn.commit()
@@ -85,7 +85,7 @@ def get_latest_link():
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT twitter_link FROM link ORDER BY created_at DESC LIMIT 1;")
+        cursor.execute("SELECT twitter_link FROM links ORDER BY created_at DESC LIMIT 1;")
         result = cursor.fetchone()
         if result:
             return result[0] 

@@ -106,7 +106,7 @@ def setup_database():
     c.execute('''
             CREATE TABLE IF NOT EXISTS links (
                 id SERIAL PRIMARY KEY,
-                url TEXT NOT NULL,
+                twitter_link TEXT ,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             ''')
