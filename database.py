@@ -118,6 +118,13 @@ def setup_database():
                 payment_date DATE
             )
             """)
+    c.execute("""
+            CREATE TABLE IF NOT EXISTS user_post_task(
+                user_id INTEGER,
+                post_id INTEGER,
+                task_checked BOOLEAN DEFAULT FALSE,
+                PRIMARY KEY (user_id, post_id)
+);""")
 
     conn.commit()
 

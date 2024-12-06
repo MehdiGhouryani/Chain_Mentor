@@ -71,13 +71,6 @@ async def start_post(update: Update, context):
         await update.message.reply_text("خطا در شروع پست. لطفاً دوباره تلاش کنید.")
 
 
-async def save_link(link):
-    with get_db_connection() as conn:
-        conn.execute('''
-            INSERT INTO links (twitter_link)
-            VALUES (?)
-        ''', (link,))
-        conn.commit()
 import sqlite3
 
 
@@ -102,7 +95,7 @@ def get_latest_link():
 
 
 
-# تابع برای ارسال پست به تمام کاربران
+
 async def send_post(update: Update, context):
     try:
         query = update.callback_query
@@ -115,14 +108,14 @@ async def send_post(update: Update, context):
 
         description = user_state[user_id].get('description')
         link = user_state[user_id].get('link')
-        await save_link(link)
-        # ارسال به تمام کاربران (در اینجا از لیست ثابت برای تست استفاده می‌شود)
+
+        post_id = await save_link(link)
 
         ids = await get_all_users()
         for chat_id in ids:
             keyboard = [
                 [InlineKeyboardButton("لینک توییتر", url=link),
-                InlineKeyboardButton("✅ چک کردن", callback_data="check_disabled")],
+                 InlineKeyboardButton("✅ چک کردن", callback_data=f"check_disabled:{post_id}")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
@@ -136,6 +129,51 @@ async def send_post(update: Update, context):
     except Exception as e:
         print(f"Error in send_post: {e}")
         await query.edit_message_text("خطا در ارسال پست. لطفاً دوباره تلاش کنید.")
+
+
+
+
+
+
+
+
+
+async def is_task_checked(user_id, post_id):
+    with get_db_connection() as conn:
+        cursor = conn.execute(
+            "SELECT task_checked FROM user_post_tasks WHERE user_id = ? AND post_id = ?",
+            (user_id, post_id),
+        )
+        result = cursor.fetchone()
+        return result[0] if result else False
+
+
+
+async def set_task_checked(user_id, post_id, status):
+    with get_db_connection() as conn:
+        conn.execute('''
+            INSERT INTO user_post_tasks (user_id, post_id, task_checked)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, post_id) DO UPDATE SET task_checked = ?
+        ''', (user_id, post_id, status, status))
+        conn.commit()
+
+
+
+async def save_link(link):
+    with get_db_connection() as conn:
+        cursor = conn.execute('''
+            INSERT INTO links (twitter_link) VALUES (?) RETURNING id
+        ''', (link,))
+        result = cursor.fetchone()
+        conn.commit()
+        return result[0]  # بازگرداندن شناسه پست
+
+
+
+
+
+
 
 # تابع مدیریت خطاها
 async def error_handler(update: object, context: object):
