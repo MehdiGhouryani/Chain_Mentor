@@ -20,7 +20,7 @@ from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,
-                      error_handler,ENTER_DESCRIPTION,ENTER_LINK,CONFIRM_SEND)
+                      error_handler)
 
 from database import setup_database
 from user_handler import contact_us_handler,receive_user_message_handler
