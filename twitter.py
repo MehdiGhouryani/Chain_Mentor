@@ -43,11 +43,12 @@ from telegram.ext import CallbackContext,ConversationHandler
 
 
 
-def handle_twitter_id(update: Update, context: CallbackContext,text):
+async def handle_twitter_id(update: Update, context: CallbackContext,text):
     user_id = update.message.from_user.id
     twitter_id = text
-    save_twitter_account(user_id, twitter_id)
+    await save_twitter_account(user_id, twitter_id)
     update.message.reply_text("آیدی توییتر شما ذخیره شد. دوباره روی دکمه چک کردن کلیک کنید.")
+    context.user_data["twitter_id"] = False
 
 
 
