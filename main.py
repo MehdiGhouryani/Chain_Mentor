@@ -19,8 +19,8 @@ import course
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
-from twitter import (update_task_step,get_task_step,add_points,start_post,enter_description,user_state,send_post,
-                      enter_link,confirm_send,cancel,error_handler,ENTER_DESCRIPTION,ENTER_LINK,CONFIRM_SEND)
+from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,
+                      error_handler,ENTER_DESCRIPTION,ENTER_LINK,CONFIRM_SEND)
 
 from database import setup_database
 from user_handler import contact_us_handler,receive_user_message_handler
@@ -258,10 +258,37 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await none_step(update,context)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
         
-    
 
     elif data == 'send_post':
         await send_post(update,context)
+
+
+    user_id = query.from_user.id
+    step = await get_task_step(user_id)
+
+    if query.data == "check_disabled":
+
+        await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
+        keyboard = [
+        [InlineKeyboardButton("لینک توییتر", url="https://twitter.com/example")],
+        [InlineKeyboardButton("چک کردن", callback_data="check_task")]
+    ]
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
+
+    elif query.data == "check_task":
+        if step == 1:
+            await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
+            await update_task_step(user_id, 2)
+        elif step == 2:
+            await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
+            await update_task_step(user_id, 3)
+        elif step == 3:
+            await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
+            await add_points(user_id, 100)
+            await update_task_step(user_id, 1)
+    await query.answer()
+
+
 
 
 
