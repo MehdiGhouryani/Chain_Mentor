@@ -516,7 +516,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif user_id in current_step:
             await handle_add_course_step(update, user_id, text)
 
-        elif context.user_data["twitter_id"]:
+        elif context.user_data.get("twitter_id"):
             await save_twitter_account(user_id,text)
 
                     # بررسی وضعیت کاربر و انتقال به مرحله بعد
