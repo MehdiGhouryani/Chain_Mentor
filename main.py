@@ -20,7 +20,7 @@ from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,
-                      error_handler)
+                      error_handler,save_twitter_account)
 
 from database import setup_database
 from user_handler import contact_us_handler,receive_user_message_handler
@@ -264,20 +264,22 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
     user_id = query.from_user.id
-    step = await get_task_step(user_id)
 
+    step = await get_task_step(user_id)
+    link = user_state[user_id].get('link')
     if query.data == "check_disabled":
 
         await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
         keyboard = [
-        [InlineKeyboardButton("لینک توییتر", url="https://twitter.com/example")],
-        [InlineKeyboardButton("چک کردن", callback_data="check_task")]
+        [InlineKeyboardButton("لینک توییتر", url=link)],
+        [InlineKeyboardButton("✅ چک کردن", callback_data="check_task")]
     ]
         await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
 
     elif query.data == "check_task":
         if step == 1:
             await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
+            context.user_data["twitter_id"] = True
             await update_task_step(user_id, 2)
         elif step == 2:
             await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
@@ -287,8 +289,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await add_points(user_id, 100)
             await update_task_step(user_id, 1)
     await query.answer()
-
-
 
 
 
@@ -516,6 +516,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif user_id in current_step:
             await handle_add_course_step(update, user_id, text)
 
+        elif context.user_data["twitter_id"]:
+            await save_twitter_account(user_id,text)
+
                     # بررسی وضعیت کاربر و انتقال به مرحله بعد
         elif user_state.get(user_id, {}).get('state') == 'waiting_for_description':
             user_state[user_id]['description'] = update.message.text
@@ -531,10 +534,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 "توضیحات و لینک ثبت شد. آیا می‌خواهید ارسال کنید؟",
                 reply_markup=reply_markup,
             )
-        else:
-            await update.message.reply_text("لطفاً ابتدا یک پست جدید ایجاد کنید.")
+
+
     except Exception as e:
-        logger.error(f"Error in handle_message: {e}")
+        print(f"Error in handle_message: {e}")
         await update.message.reply_text("خطا در پردازش پیام. لطفاً دوباره تلاش کنید.")
 
 
