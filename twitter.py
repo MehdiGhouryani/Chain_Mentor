@@ -9,6 +9,7 @@ async def save_twitter_account(user_id, twitter_id):
             ON CONFLICT(user_id) DO UPDATE SET twitter_id = ?
         ''', (user_id, twitter_id, twitter_id))
         conn.commit()
+    
 
 async def get_task_step(user_id):
     with get_db_connection() as conn:
@@ -42,9 +43,9 @@ from telegram.ext import CallbackContext,ConversationHandler
 
 
 
-def handle_twitter_id(update: Update, context: CallbackContext):
+def handle_twitter_id(update: Update, context: CallbackContext,text):
     user_id = update.message.from_user.id
-    twitter_id = update.message.text
+    twitter_id = text
     save_twitter_account(user_id, twitter_id)
     update.message.reply_text("آیدی توییتر شما ذخیره شد. دوباره روی دکمه چک کردن کلیک کنید.")
 

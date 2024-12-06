@@ -20,7 +20,7 @@ from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,
-                      error_handler,save_twitter_account)
+                      error_handler,handle_twitter_id)
 
 from database import setup_database
 from user_handler import contact_us_handler,receive_user_message_handler
@@ -518,7 +518,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await handle_add_course_step(update, user_id, text)
 
         elif context.user_data.get("twitter_id"):
-            await save_twitter_account(user_id,text)
+            await handle_twitter_id(update,context,text)
 
                     # بررسی وضعیت کاربر و انتقال به مرحله بعد
         elif user_state.get(user_id, {}).get('state') == 'waiting_for_description':
