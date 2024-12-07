@@ -119,7 +119,7 @@ def setup_database():
             )
             """)
     c.execute("""
-            CREATE TABLE IF NOT EXISTS user_post_task(
+            CREATE TABLE IF NOT EXISTS user_post_tasks(
                 user_id INTEGER,
                 post_id INTEGER,
                 task_checked BOOLEAN DEFAULT FALSE,

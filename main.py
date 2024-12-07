@@ -314,7 +314,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         # مدیریت خطا
         print(f"Error IN CAllBackHAndler : {e}")
-        await query.answer("مثل اینکه قبلا امتیاز این تسک و گرفتی")
+        await query.answer("مثل اینکه ی مشکلی داریم !")
 
 
 
