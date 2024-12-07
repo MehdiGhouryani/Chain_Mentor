@@ -258,7 +258,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await none_step(update, context)
             await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-        elif data == 'send_post':
+        elif data == "send_post":
             print("send_Post")
             await send_post(update, context)
 
@@ -300,12 +300,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await set_task_checked(user_id, post_id, True)
                 task_checked = await is_task_checked(user_id, post_id)
 
-            keyboard = [
-                [InlineKeyboardButton("لینک توییتر", url=link),
-                 InlineKeyboardButton("✅ چک کردن", callback_data=f"check_done:{post_id}")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_reply_markup(reply_markup=reply_markup)
+                keyboard = [
+                    [InlineKeyboardButton("لینک توییتر", url=link),
+                     InlineKeyboardButton("✅ چک کردن", callback_data=f"check_done:{post_id}")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
