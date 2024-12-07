@@ -263,7 +263,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
         user_id = query.from_user.id
-        step = await get_task_step(user_id)
+        
         link = get_latest_link()
         data_button = query.data.split(":")
         post_id = int(data_button[1])
@@ -274,17 +274,21 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  InlineKeyboardButton("✅ چک کردن", callback_data=f"check_task:{post_id}")]
             ]
             await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
-            context.user_data["twitter_id"] = True
+            await update_task_step(user_id, 1) 
 
 
         elif data_button[0] == "check_task":
+            step = await get_task_step(user_id)
             if step == 1:
+                print("STEP  1")
                 await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
-                context.user_data["twitter_id"] = True
                 await update_task_step(user_id, 2)  
+                context.user_data["twitter_id"] = True
+                print("STEP  2")
             elif step == 2:
                 await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
                 await update_task_step(user_id, 3)  
+                print("STEP  3")
             elif step == 3:
             
                 await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
@@ -299,7 +303,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_reply_markup(reply_markup=reply_markup)
-            
+
 
 
         await query.answer()
