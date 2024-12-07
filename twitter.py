@@ -164,9 +164,11 @@ async def set_task_checked(context:ContextTypes.DEFAULT_TYPE,user_id, post_id, s
 
     user = username_members(user_id)
     print(user)
-    
+    username = user[0]
+    twitterID = user[1]
+
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
-    admin_message = f"TASK  : {post_id}\n UserID  : {user_id}\n USERNAME  : @{username} \n DONE."
+    admin_message = f"TASK  : {post_id}\n UserID  : {user_id}\n USERNAME  : @{username} \n twitterID  : {twitterID}\n DONE."
     for id in admin_id:
         try:
             await context.bot.send_message(

@@ -311,7 +311,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
         elif data_button[0] == "check_done":
-            await query.answer("مثل اینکه امتیاز این نسک رو قبلا دریافت کردی !")
+            await query.answer("مثل اینکه امتیاز این تسک رو قبلا دریافت کردی !")
 
 
         await query.answer()
