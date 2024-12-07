@@ -284,13 +284,15 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
                 await update_task_step(user_id, 2)  
                 context.user_data["twitter_id"] = True
-                print("STEP  2")
+                
             elif step == 2:
+                print("STEP  2")
                 await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
                 await update_task_step(user_id, 3)  
-                print("STEP  3")
+                
             elif step == 3:
-            
+
+                print("STEP  3")
                 await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
                 await add_points(user_id, 100)  
                 await update_task_step(user_id, 1)  

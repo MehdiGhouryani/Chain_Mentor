@@ -75,25 +75,6 @@ import sqlite3
 
 
 
-def get_latest_link():
-    conn = sqlite3.connect('Database.db') 
-    cursor = conn.cursor()
-    
-    try:
-        cursor.execute("SELECT twitter_link FROM links ORDER BY created_at DESC LIMIT 1;")
-        result = cursor.fetchone()
-        if result:
-            return result[0] 
-        else:
-            return None  
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        return None
-    finally:
-        cursor.close()
-        conn.close()
-
-
 
 
 async def send_post(update: Update, context):
@@ -110,9 +91,8 @@ async def send_post(update: Update, context):
         link = user_state[user_id].get('link')
 
         post_id = await save_link(link)
-        print(type(post_id))
-        post_id=int(post_id)
-        print(f"postID is  :  {post_id}")
+ 
+        print(f"postID is  :  {post_id} {type(post_id)}")
 
         ids = await get_all_users()
         for chat_id in ids:
@@ -138,6 +118,25 @@ async def send_post(update: Update, context):
 
 
 
+
+
+def get_latest_link():
+    conn = sqlite3.connect('Database.db') 
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("SELECT twitter_link FROM links ORDER BY created_at DESC LIMIT 1;")
+        result = cursor.fetchone()
+        if result:
+            return result[0] 
+        else:
+            return None  
+    except Exception as e:
+        print(f"Error get Last LINK: {e}")
+        return None
+    finally:
+        cursor.close()
+        conn.close()
 
 
 
