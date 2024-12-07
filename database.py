@@ -282,11 +282,11 @@ def VipMembers():
 
 def username_members(user_id):
     try:
-        c.execute("SELECT username from users WHERE user_id = ?",(user_id,))
+        c.execute("SELECT username,twitter_id from users WHERE user_id = ?",(user_id,))
         
 
-        username= c.fetchone()
-        return username
+        user= c.fetchall()
+        return user
     except Exception as e:
         print(f"ERROR IN USERNAME MEMBER {e}")
 
