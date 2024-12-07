@@ -22,7 +22,7 @@ async def get_task_step(user_id):
         ''', (user_id,)).fetchone()
         return step["current_step"] if step else 1
 
-async def update_task_step(context:ContextTypes.DEFAULT_TYPE,user_id, step):
+async def update_task_step(user_id, step):
 
     with get_db_connection() as conn:
         conn.execute('''
