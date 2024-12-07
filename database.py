@@ -277,6 +277,21 @@ def VipMembers():
     return vip_user_list
 
 
+
+
+
+def username_members(user_id):
+    try:
+        c.execute("SELECT username from users WHERE user_id = ?",(user_id,))
+        
+
+        username= c.fetchone()
+        return username
+    except Exception as e:
+        print(f"ERROR IN USERNAME MEMBER {e}")
+
+
+
 def get_wallets_from_db(wallet_address: str = None):
     """دریافت لیست ولت‌ها از دیتابیس"""
     conn = sqlite3.connect('Database.db')

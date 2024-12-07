@@ -297,7 +297,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
                 await add_points(user_id, 100)  
                 await update_task_step(user_id, 1)  
-                await set_task_checked(user_id, post_id, True)
+                await set_task_checked(context,user_id, post_id, True)
                 task_checked = await is_task_checked(user_id, post_id)
 
                 keyboard = [
@@ -306,7 +306,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 await query.edit_message_reply_markup(reply_markup=reply_markup)
+                
 
+
+
+        elif data_button[0] == "check_done":
+            await query.answer("مثل اینکه امتیاز این نسک رو قبلا دریافت کردی !")
 
 
         await query.answer()

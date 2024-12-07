@@ -1,5 +1,9 @@
-from database import get_db_connection,get_all_users
+from database import get_db_connection,get_all_users,username_members
 from config import ADMIN_CHAT_ID
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackContext,ContextTypes
+
 
 async def save_twitter_account(user_id, twitter_id):
     with get_db_connection() as conn:
@@ -18,7 +22,8 @@ async def get_task_step(user_id):
         ''', (user_id,)).fetchone()
         return step["current_step"] if step else 1
 
-async def update_task_step(user_id, step):
+async def update_task_step(context:ContextTypes.DEFAULT_TYPE,user_id, step):
+
     with get_db_connection() as conn:
         conn.execute('''
             INSERT INTO task_progress (user_id, task_type, current_step)
@@ -26,6 +31,7 @@ async def update_task_step(user_id, step):
             ON CONFLICT(user_id) DO UPDATE SET current_step = ?
         ''', (user_id, step, step))
         conn.commit()
+ 
 
 async def add_points(user_id, points):
     with get_db_connection() as conn:
@@ -36,10 +42,6 @@ async def add_points(user_id, points):
         ''', (user_id, points, points))
         conn.commit()
 
-
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackContext,ConversationHandler
 
 
 
@@ -151,7 +153,7 @@ async def is_task_checked(user_id, post_id):
 
 
 
-async def set_task_checked(user_id, post_id, status):
+async def set_task_checked(context:ContextTypes.DEFAULT_TYPE,user_id, post_id, status):
     with get_db_connection() as conn:
         conn.execute('''
             INSERT INTO user_post_tasks (user_id, post_id, task_checked)
@@ -159,6 +161,29 @@ async def set_task_checked(user_id, post_id, status):
             ON CONFLICT(user_id, post_id) DO UPDATE SET task_checked = ?
         ''', (user_id, post_id, status, status))
         conn.commit()
+
+    username = username_members(user_id)
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
+    admin_message = f"TASK  : {post_id}\n UserID  : {user_id}\n USERNAME  : {username} \n DONE."
+    for id in admin_id:
+        try:
+            await context.bot.send_message(
+                chat_id=id,
+                text=admin_message)
+        except Exception as e:
+            print(f"ERROR SEND_ADMIN {e}")
+            for id in admin_id:
+                await context.bot.send_message(
+                    chat_id=id,
+                    text=e)
+
+
+        
+
+
+
+
+
 
 async def save_link(link):
     with get_db_connection() as conn:
