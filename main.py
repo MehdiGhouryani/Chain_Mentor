@@ -259,6 +259,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_reply_markup(reply_markup=reply_markup)
 
         elif data == 'send_post':
+            print("send_Post")
             await send_post(update, context)
 
 
@@ -312,7 +313,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         # مدیریت خطا
-        print(f"Error occurred: {e}")
+        print(f"Error IN CAllBackHAndler : {e}")
         await query.answer("مثل اینکه قبلا امتیاز این تسک و گرفتی")
 
 
