@@ -299,6 +299,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_reply_markup(reply_markup=reply_markup)
+            
 
 
         await query.answer()
