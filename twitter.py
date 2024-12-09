@@ -1,5 +1,5 @@
 from database import get_db_connection,get_all_users,username_members
-from config import ADMIN_CHAT_ID,none_step
+from config import ADMIN_CHAT_ID
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext,ContextTypes
