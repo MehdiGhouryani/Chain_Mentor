@@ -593,7 +593,24 @@ async def scheduled_jobs(context):
     await send_vip_expired_notification(context)
 
 
-def main():
+
+
+
+async def scheduled_jobs(context):
+    print("Scheduled job is running...")
+    await send_renewal_notification(context.application)
+    await send_vip_expired_notification(context.application)
+
+async def send_renewal_notification(app):
+    print("Sending renewal notifications...")
+
+async def send_vip_expired_notification(app):
+    print("Sending VIP expired notifications...")
+
+
+
+
+async def start_bot():
     setup_database()
     """راه‌اندازی و اجرای ربات تلگرام"""
     if not BOT_TOKEN:
@@ -631,7 +648,12 @@ def main():
     app.run_polling()
 
 
+def main():
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(start_bot())  
+    finally:
+        loop.close()
+
 if __name__ == "__main__":
     main()
-
-
