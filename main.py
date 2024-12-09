@@ -4,6 +4,9 @@ from telegram.ext import (Application, CommandHandler, MessageHandler, filters, 
                            CallbackQueryHandler ,PreCheckoutQueryHandler,ConversationHandler)
 
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 import asyncio
 import schedule
 from threading import Thread
@@ -477,6 +480,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.pop('description', None)
         context.user_data.pop('link', None)
         context.user_data.pop('twitter,none')
+        context.user_data.pop["reply_to",None] 
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
 
@@ -506,7 +510,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "Solana" :Solana_tools,
         "ETH":ETH_tools,
         "Sui":Sui_tools,
-        "بازگشت به صفحه قبل ⬅️": back_main
+        "بازگشت به صفحه قبل ⬅️": back_main,
+        "مشاهده چارت":view_chart,
+        "ابزارهای خرید و فروش عادی":basic_trading_tools,
+        "ولت‌های پیشنهادی":recommended_wallets,
+        "ابزارهای خرید و فروش حرفه‌ای":advanced_trading_tools
     }
     try:
         if text in command_mapping:
@@ -515,15 +523,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         elif update.message.successful_payment:
             await successful_payment_callback(update,context)
+        
 
-        elif text == "مشاهده چارت":
-            await view_chart(update, context)
-        elif text == "ولت‌های پیشنهادی":
-            await recommended_wallets(update, context)
-        elif text == "ابزارهای خرید و فروش عادی":
-            await basic_trading_tools(update, context)
-        elif text == "ابزارهای خرید و فروش حرفه‌ای":
-            await advanced_trading_tools(update, context)
 
         elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
             await none_step(update, context)
@@ -584,23 +585,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 import aioschedule as schedule 
 
-
-async def scheduled_jobs(app):
+async def scheduled_jobs(context):
     """وظایف زمان‌بندی‌شده async"""
     print("Scheduled job is running...")
-    await send_renewal_notification(app)
-    await send_vip_expired_notification(app)
+    await send_renewal_notification(context)
+    await send_vip_expired_notification(context)
 
-async def schedule_tasks(app):
-    """برنامه‌ریزی و اجرای وظایف زمان‌بندی‌شده"""
-    schedule.every().day.at("00:00").do(scheduled_jobs, app=app)
-    while True:
-        await schedule.run_pending()
-        await asyncio.sleep(1)
-
-def run_schedule(app):
-    """اجرای حلقه زمان‌بندی وظایف در نخ جداگانه"""
-    asyncio.run(schedule_tasks(app))
 
 def main():
     setup_database()
@@ -627,9 +617,16 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
 
-    # اجرای زمان‌بندی در یک نخ جداگانه
-    schedule_thread = Thread(target=run_schedule, args=(app,), daemon=True)
-    schedule_thread.start()
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        scheduled_jobs,
+        trigger=IntervalTrigger(hours=1),  # اجرا هر 24 ساعت
+        kwargs={"context": app},           # انتقال اپلیکیشن به تابع زمان‌بندی‌شده
+        id="daily_job",                    # ID یکتا برای این کار
+        replace_existing=True              # جایگزینی اگر موجود باشد
+    )
+    scheduler.start()  # شروع زمان‌بندی
 
     # اجرای ربات تلگرام
     app.run_polling()
