@@ -282,7 +282,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             step = await get_task_step(user_id)
             if step == 1:
                 print("STEP  1")
-                await query.message.reply_text("لطفاً آیدی توییتر خود را ارسال کنید.")
+                await query.message.reply_text("""
+آیدی توییتر خودتون رو وارد کنید.
+توجه کنید که به شکل صحیح وارد کنید که در فرایند بررسی مشکلی ایجاد نشه.
+""")
                 await update_task_step(user_id, 2)  
                 context.user_data["twitter_id"] = True
                 
@@ -470,9 +473,10 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # پاک کردن داده‌های مرتبط با کاربر
         context.user_data.pop('online', None)
         context.user_data.pop('package', None)
-        context.user_data.pop('stage', None)
+        context.user_data.pop('state', None)
         context.user_data.pop('description', None)
         context.user_data.pop('link', None)
+        context.user_data.pop('twitter,none')
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
 
@@ -522,9 +526,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await advanced_trading_tools(update, context)
 
         elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
+            await none_step(update, context)
+    
             await add_courses(update, context)
 
         elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
+            await none_step(update, context)
+            
             await list_courses(update, context)
 
         elif context.user_data.get('package'):
