@@ -619,11 +619,11 @@ def main():
 
     # تعریف JobQueue برای زمان‌بندی
     job_queue = app.job_queue
+
     job_queue.run_repeating(
         scheduled_jobs,
         interval=30,  # اجرا هر 1 ساعت
-        first=0,       # اولین اجرا بلافاصله
-        data={"app": app}  # انتقال اپلیکیشن به تابع زمان‌بندی‌شده
+        first=0,
     )
 
     app.run_polling()
