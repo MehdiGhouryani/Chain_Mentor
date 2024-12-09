@@ -3,8 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 from telegram.ext import ContextTypes,CallbackContext
 import sqlite3
-from main import none_step
-from config import ADMIN_CHAT_ID
+from config import ADMIN_CHAT_ID,none_step
 from database import grant_vip,revoke_vip,is_admin,VipMembers
 from datetime import datetime,timedelta
 conn = sqlite3.connect("Database.db")
@@ -50,7 +49,7 @@ async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+    await none_step(update, context)
     if update.message.reply_to_message:
         user = update.message.reply_to_message.from_user
         user_id = user.id

@@ -1,7 +1,7 @@
 import sqlite3
 from telegram import Update
 from telegram.ext import CallbackContext,ContextTypes
-
+from config import none_step
 # تنظیمات امتیازدهی
 INITIAL_SCORE = 0
 REFERRAL_BONUS = 50
@@ -139,6 +139,7 @@ def remove_points(user_id, points):
 
 
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await none_step(update, context)
     try:
         if update.message.reply_to_message:
             user = update.message.reply_to_message.from_user
@@ -166,6 +167,7 @@ async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("خطایی در افزودن امتیاز رخ داده است. لطفاً دوباره تلاش کنید.")
 
 async def remove_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await none_step(update, context)
     try:
         if not update.message.reply_to_message:
             await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
