@@ -3,14 +3,9 @@ from telegram import Update, ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardB
 from telegram.ext import (Application, CommandHandler, MessageHandler, filters, ContextTypes ,
                            CallbackQueryHandler ,PreCheckoutQueryHandler,ConversationHandler)
 
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, filters,CallbackContext
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-import asyncio
-import schedule
-from threading import Thread
-from datetime import datetime
+import datetime
 import sqlite3
 import random
 import os
@@ -582,8 +577,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         print(f"Error in handle_message: {e}")
         await update.message.reply_text("خطا در پردازش پیام. لطفاً دوباره تلاش کنید.")
 
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
-from telegram.ext import CallbackContext
 
 async def scheduled_jobs(context: CallbackContext):
     """وظایف زمان‌بندی‌شده async"""
@@ -617,16 +610,22 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
 
-    # تعریف JobQueue برای زمان‌بندی
     job_queue = app.job_queue
 
-    job_queue.run_repeating(
+    # زمان اجرا (ساعت 8 صبح هر روز)
+    execution_time = datetime.time(hour=8, minute=0, second=0)
+
+    # اضافه کردن Job روزانه
+    job_queue.run_daily(
         scheduled_jobs,
-        interval=30,  # اجرا هر 1 ساعت
-        first=0,
+        time=execution_time,
+        days=(0, 1, 2, 3, 4, 5, 6),  # اجرای هر روز هفته
     )
 
     app.run_polling()
 
 if __name__ == "__main__":
     main()
+
+
+
