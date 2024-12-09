@@ -584,20 +584,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 
-async def scheduled_jobs(app):
-    """وظایف زمان‌بندی‌شده async"""
-    print("Scheduled job is running...")
-    await send_renewal_notification(app)
-    await send_vip_expired_notification(app)
-
-
-async def run_scheduler(app):
-    while True:
-        await scheduled_jobs(app)  
-        await asyncio.sleep(86400)  
-
-
-
 async def scheduled_jobs(context):
     """وظایف زمان‌بندی‌شده async"""
     print("Scheduled job is running...")
@@ -630,10 +616,18 @@ async def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
 
-    asyncio.create_task(run_scheduler(app))
-    app.run_polling()
+
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        scheduled_jobs,
+        trigger=IntervalTrigger(hours=1),  # اجرا هر 24 ساعت
+        kwargs={"context": app},           # انتقال اپلیکیشن به تابع زمان‌بندی‌شده
+        id="daily_job",                    # ID یکتا برای این کار
+        replace_existing=True              # جایگزینی اگر موجود باشد
+    )
+    scheduler.start()  
+    await app.run_polling()
 
 
 if __name__ == "__main__":
-    main()
-
+    asyncio.run(main())
