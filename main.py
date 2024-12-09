@@ -582,16 +582,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         print(f"Error in handle_message: {e}")
         await update.message.reply_text("خطا در پردازش پیام. لطفاً دوباره تلاش کنید.")
 
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, PreCheckoutQueryHandler, filters
+from telegram.ext import CallbackContext
 
-
-async def scheduled_jobs(context):
+async def scheduled_jobs(context: CallbackContext):
     """وظایف زمان‌بندی‌شده async"""
     print("Scheduled job is running...")
     await send_renewal_notification(context)
     await send_vip_expired_notification(context)
 
-
-async def main():
+def main():
     setup_database()
     """راه‌اندازی و اجرای ربات تلگرام"""
     if not BOT_TOKEN:
@@ -600,6 +600,7 @@ async def main():
     # تنظیم ربات تلگرام
     app = Application.builder().token(BOT_TOKEN).build()
     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
+
     # مدیریت دستورات و پیام‌ها
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
@@ -616,18 +617,16 @@ async def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
 
-
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
+    # تعریف JobQueue برای زمان‌بندی
+    job_queue = app.job_queue
+    job_queue.run_repeating(
         scheduled_jobs,
-        trigger=IntervalTrigger(hours=1),  # اجرا هر 24 ساعت
-        kwargs={"context": app},           # انتقال اپلیکیشن به تابع زمان‌بندی‌شده
-        id="daily_job",                    # ID یکتا برای این کار
-        replace_existing=True              # جایگزینی اگر موجود باشد
+        interval=30,  # اجرا هر 1 ساعت
+        first=0,       # اولین اجرا بلافاصله
+        data={"app": app}  # انتقال اپلیکیشن به تابع زمان‌بندی‌شده
     )
-    scheduler.start()  
-    await app.run_polling()
 
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
