@@ -613,24 +613,24 @@ def main():
     job_queue = app.job_queue
 
     # # زمان اجرا (ساعت 8 صبح هر روز)
-    # execution_time = datetime.time(hour=8, minute=0, second=0)
+    execution_time = datetime.time(hour=8, minute=0, second=0)
 
-    # # اضافه کردن Job روزانه
-    # job_queue.run_daily(
-    #     scheduled_jobs,
-    #     time=execution_time,
-    #     days=(0, 1, 2, 3, 4, 5, 6),  # اجرای هر روز هفته
-    # )
+    # اضافه کردن Job روزانه
+    job_queue.run_daily(
+        scheduled_jobs,
+        time=execution_time,
+        days=(0, 1, 2, 3, 4, 5, 6),  # اجرای هر روز هفته
+    )
     
     # تعریف JobQueue
-    job_queue = app.job_queue
+    # job_queue = app.job_queue
 
-    job_queue.run_repeating(
-        scheduled_jobs,
-        interval=60,  
-        first=0,     
+    # job_queue.run_repeating(
+    #     scheduled_jobs,
+    #     interval=60,  
+    #     first=0,     
 
-    )
+    # )
 
 
     app.run_polling()
