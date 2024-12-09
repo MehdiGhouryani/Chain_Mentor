@@ -480,7 +480,8 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.pop('description', None)
         context.user_data.pop('link', None)
         context.user_data.pop('twitter,none')
-        context.user_data.pop["reply_to",None] 
+        context.user_data.pop("reply_to",None)
+        context.user_data.pop("awaiting_message",None)
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
 
@@ -626,9 +627,7 @@ def main():
         id="daily_job",                    # ID یکتا برای این کار
         replace_existing=True              # جایگزینی اگر موجود باشد
     )
-    scheduler.start()  # شروع زمان‌بندی
-
-    # اجرای ربات تلگرام
+    scheduler.start()  
     app.run_polling()
 
 
