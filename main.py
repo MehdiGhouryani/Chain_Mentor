@@ -87,9 +87,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 # بررسی اینکه آیا دعوت تکراری نیست
                 if not rs.is_already_referred(inviter_id, user_id):
-                    rs.add_points(inviter_id, 10)  # افزایش امتیاز کاربر دعوت‌کننده
+                    rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
                     rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
-                    await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 10 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
+                    await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
 
     welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
     await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
@@ -297,7 +297,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             elif step == 3:
 
                 print("STEP  3")
-                await query.message.reply_text("تسک تأیید شد. امتیاز به شما اضافه شد!")
+                await query.message.reply_text("تسک تأیید شد. 100 امتیاز به شما اضافه شد!")
                 await add_points(user_id, 100)  
                 await update_task_step(user_id, 1)  
                 await set_task_checked(context,user_id, post_id, True)

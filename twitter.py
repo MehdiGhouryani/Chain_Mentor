@@ -1,5 +1,5 @@
 from database import get_db_connection,get_all_users,username_members
-from config import ADMIN_CHAT_ID
+from config import ADMIN_CHAT_ID,none_step
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext,ContextTypes
@@ -60,6 +60,8 @@ user_state = {}
 
 async def start_post(update: Update, context):
     try:
+        await none_step(update, context)
+
         user_id = update.effective_user.id
         if str(user_id) not in ADMIN_CHAT_ID:
             await update.message.reply_text("شما اجازه استفاده از این فرمان را ندارید.")

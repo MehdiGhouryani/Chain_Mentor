@@ -63,13 +63,6 @@ def register_user(user_id):
 def generate_referral_link(bot_username, user_id):
     return f"https://t.me/{bot_username}?start={user_id}"
 
-# افز
-def add_points(user_id: int, points: int) -> None:
-    """افزودن امتیاز به کاربر در پایگاه داده."""
-    with sqlite3.connect("Database.db") as connection:
-        cursor = connection.cursor()
-        cursor.execute("INSERT OR IGNORE INTO points (user_id, score) VALUES (?, 0)", (user_id,))
-        cursor.execute("UPDATE points SET score = score + ? WHERE user_id = ?", (points, user_id))
 
 # کاهش امتیاز
 def subtract_points(user_id, points):

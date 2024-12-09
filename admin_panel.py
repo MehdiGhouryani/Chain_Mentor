@@ -3,6 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 from telegram.ext import ContextTypes,CallbackContext
 import sqlite3
+from main import none_step
 from config import ADMIN_CHAT_ID
 from database import grant_vip,revoke_vip,is_admin,VipMembers
 from datetime import datetime,timedelta
@@ -97,6 +98,8 @@ async def revoke_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     Can be executed by replying to a user's message or providing their user ID as an argument.
     """
     # Check if the command is a reply to a message
+    await none_step(update, context)
+
     if update.message.reply_to_message:
         user_id = update.message.reply_to_message.from_user.id
     else:
@@ -120,6 +123,8 @@ async def revoke_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    await none_step(update, context)
+
 
     if not is_admin(update.message.from_user.id):
         print(update.message.from_user.id)
