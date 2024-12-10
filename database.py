@@ -238,6 +238,7 @@ def grant_vip(user_id, full_name, user_name, expiry_date):
         else:
             c.execute("INSERT INTO vip_users (user_id, full_name, user_name, vip_expiry_date) VALUES (?,?,?,?)", (user_id, full_name, user_name, expiry_date))
             conn.commit()
+    
     except Exception as e:
         raise Exception(f"خطا در افزودن یا بروزرسانی کاربر به VIP: {e}")
     

@@ -85,6 +85,7 @@ async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         grant_vip(user_id, full_name, user_name, expiry_date)
         await update.message.reply_text(f"کاربر با آیدی {user_id} و نام {full_name} و آیدی @{user_name} با موفقیت عضو VIP شد و تا تاریخ {expiry_date} فعال خواهد بود.")
+        await context.bot.send_message(chat_id=user_id,text=f"عضویت VIP شما تا تاریخ {expiry_date} ثبت شد .")
     except Exception as e:
         await update.message.reply_text("خطایی رخ داد: " + str(e))
 
