@@ -67,56 +67,56 @@ main_menu = [
 
 
 
-# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     user_first_name = update.effective_user.first_name
-#     chat_id = update.effective_chat.id  
-#     user_id = update.message.from_user.id
-#     username = update.effective_user.username
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_first_name = update.effective_user.first_name
+    chat_id = update.effective_chat.id  
+    user_id = update.message.from_user.id
+    username = update.effective_user.username
 
-#     # ذخیره‌سازی کاربر
-#     await save_user(user_id, username, chat_id)
+    # ذخیره‌سازی کاربر
+    await save_user(user_id, username, chat_id)
 
-#     # بررسی وجود کاربر در دیتابیس
-#     if not rs.user_exists(user_id):
-#         rs.register_user(user_id) 
+    # بررسی وجود کاربر در دیتابیس
+    if not rs.user_exists(user_id):
+        rs.register_user(user_id) 
 
-#         args = context.args
-#         if args:
-#             inviter_id = args[0]  # آی‌دی کاربر دعوت‌کننده را از پارامتر start بگیریم
-#             if inviter_id.isdigit() and rs.user_exists(int(inviter_id)) and int(inviter_id) != user_id:
-#                 inviter_id = int(inviter_id)
+        args = context.args
+        if args:
+            inviter_id = args[0]  # آی‌دی کاربر دعوت‌کننده را از پارامتر start بگیریم
+            if inviter_id.isdigit() and rs.user_exists(int(inviter_id)) and int(inviter_id) != user_id:
+                inviter_id = int(inviter_id)
 
-#                 # بررسی اینکه آیا دعوت تکراری نیست
-#                 if not rs.is_already_referred(inviter_id, user_id):
-#                     rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
-#                     rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
-#                     await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
+                # بررسی اینکه آیا دعوت تکراری نیست
+                if not rs.is_already_referred(inviter_id, user_id):
+                    rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
+                    rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
+                    await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
 
-#     Channel = '@memeland_persia'
+    Channel = '@memeland_persia'
 
-#     try:
-#         await asyncio.sleep(0.2)
-#         member = await context.bot.get_chat_member(chat_id=Channel, user_id=user_id)
-#         print(f"user {user_id} status in group {Channel} : {member.status}")
+    try:
+        await asyncio.sleep(0.2)
+        member = await context.bot.get_chat_member(chat_id=Channel, user_id=user_id)
+        print(f"user {user_id} status in group {Channel} : {member.status}")
 
-#         if member.status not in ['member', 'administrator', 'creator']:
-#             keyboard = [
-#                 [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/{Channel[1:]}")],
-#                 [InlineKeyboardButton("عضو شدم ✅", callback_data='check_membership')]
-#             ]
-#             reply_markup = InlineKeyboardMarkup(keyboard)
-#             await update.message.reply_text('''
-# 🔔 برای استفاده از ربات، حتماً باید عضو گروه باشید!  
-# ✅ اگر عضو شدید، دوباره /start را بزنید تا از امکانات ربات استفاده کنید.
-# ''', reply_markup=reply_markup)
-#         else:
+        if member.status not in ['member', 'administrator', 'creator']:
+            keyboard = [
+                [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/{Channel[1:]}")],
+                [InlineKeyboardButton("عضو شدم ✅", callback_data='check_membership')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text('''
+🔔 برای استفاده از ربات، حتماً باید عضو گروه باشید!  
+✅ اگر عضو شدید، دوباره /start را بزنید تا از امکانات ربات استفاده کنید.
+''', reply_markup=reply_markup)
+        else:
 
-#             welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
-#             await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+            welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
+            await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
 
-#     except Exception as e:
-#         print(f"Error checking membership: {e}")
-#         await update.message.reply_text('مشکلی بوجود اومده! دوباره تلاش کن.')
+    except Exception as e:
+        print(f"Error checking membership: {e}")
+        await update.message.reply_text('مشکلی بوجود اومده! دوباره تلاش کن.')
 
 
 
@@ -152,32 +152,32 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-# تابع شروع و 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_first_name = update.effective_user.first_name
-    chat_id = update.effective_chat.id  
-    user_id = update.message.from_user.id
-    username = update.effective_user.username
-    print(f'USER : {username}    ID : {user_id}')
-    await save_user(user_id, username, chat_id)
+# # تابع شروع و 
+# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     user_first_name = update.effective_user.first_name
+#     chat_id = update.effective_chat.id  
+#     user_id = update.message.from_user.id
+#     username = update.effective_user.username
+#     print(f'USER : {username}    ID : {user_id}')
+#     await save_user(user_id, username, chat_id)
 
-    if not rs.user_exists(user_id):
-        rs.register_user(user_id) 
+#     if not rs.user_exists(user_id):
+#         rs.register_user(user_id) 
 
-        args = context.args
-        if args:
-            inviter_id = args[0]  # آی‌دی کاربر دعوت‌کننده را از پارامتر start بگیریم
-            if inviter_id.isdigit() and rs.user_exists(int(inviter_id)) and int(inviter_id) != user_id:
-                inviter_id = int(inviter_id)
+#         args = context.args
+#         if args:
+#             inviter_id = args[0]  # آی‌دی کاربر دعوت‌کننده را از پارامتر start بگیریم
+#             if inviter_id.isdigit() and rs.user_exists(int(inviter_id)) and int(inviter_id) != user_id:
+#                 inviter_id = int(inviter_id)
 
-                # بررسی اینکه آیا دعوت تکراری نیست
-                if not rs.is_already_referred(inviter_id, user_id):
-                    rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
-                    rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
-                    await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
+#                 # بررسی اینکه آیا دعوت تکراری نیست
+#                 if not rs.is_already_referred(inviter_id, user_id):
+#                     rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
+#                     rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
+#                     await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
 
-    welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
-    await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
+#     welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
+#     await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
 
 
 
