@@ -95,7 +95,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # ذخیره‌سازی کاربر
     await save_user(user_id, username, chat_id)
 
-    # بررسی وجود کاربر در دیتابیس
     if not rs.user_exists(user_id):
         rs.register_user(user_id) 
 
