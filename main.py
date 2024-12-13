@@ -58,9 +58,10 @@ main_menu = [
 
 load_dotenv()
 token=os.getenv('token')
+gen_token =os.getenv("genai")
 
 import google.generativeai as genai
-gen_token =os.getenv("genai")
+
 
 
 
@@ -694,15 +695,11 @@ async def scheduled_jobs(context: CallbackContext):
 
 def main():
     setup_database()
-    """راه‌اندازی و اجرای ربات تلگرام"""
-    if not token:
-        raise ValueError("Telegram bot token not found.")
 
-    # تنظیم ربات تلگرام
     app = Application.builder().token(token).build()
     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
 
-    # مدیریت دستورات و پیام‌ها
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
@@ -722,7 +719,7 @@ def main():
 
     execution_time = datetime.time(hour=8, minute=0, second=0)
 
-    # اضافه کردن Job روزانه
+
     job_queue.run_daily(
         scheduled_jobs,
         time=execution_time,
