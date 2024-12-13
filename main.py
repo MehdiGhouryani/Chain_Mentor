@@ -31,7 +31,6 @@ from telegram.constants import ParseMode
 
 
 
-BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
 
 
 
@@ -40,8 +39,7 @@ BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-token=os.getenv('Token')
+
 
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
@@ -58,7 +56,8 @@ main_menu = [
     [KeyboardButton("ارتباط با ما")]
 ]
 
-
+load_dotenv()
+token=os.getenv('Token')
 
 import google.generativeai as genai
 gen_token =os.getenv("genai")
@@ -696,11 +695,11 @@ async def scheduled_jobs(context: CallbackContext):
 def main():
     setup_database()
     """راه‌اندازی و اجرای ربات تلگرام"""
-    if not BOT_TOKEN:
+    if not token:
         raise ValueError("Telegram bot token not found.")
 
     # تنظیم ربات تلگرام
-    app = Application.builder().token(BOT_TOKEN).build()
+    app = Application.builder().token(token).build()
     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
 
     # مدیریت دستورات و پیام‌ها
