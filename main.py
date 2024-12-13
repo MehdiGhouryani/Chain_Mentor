@@ -57,7 +57,7 @@ main_menu = [
 ]
 
 load_dotenv()
-token=os.getenv('Token')
+token=os.getenv('token')
 
 import google.generativeai as genai
 gen_token =os.getenv("genai")
