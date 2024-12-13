@@ -693,6 +693,8 @@ async def scheduled_jobs(context: CallbackContext):
     await send_renewal_notification(context)
     await send_vip_expired_notification(context)
 
+
+
 def main():
     setup_database()
 
