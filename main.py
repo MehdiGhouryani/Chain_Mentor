@@ -724,7 +724,7 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
-    app.add_handler(CommandHandler("ai",ai_command))
+    app.add_handler(CommandHandler("AI",ai_command))
     job_queue = app.job_queue
 
     # # زمان اجرا (ساعت 8 صبح هر روز)
