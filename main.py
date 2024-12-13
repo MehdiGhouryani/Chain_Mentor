@@ -70,6 +70,7 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 async def ai_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    await none_step(update,context)
     if not is_admin(update.message.from_user.id):
         return
     try:
