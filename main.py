@@ -31,11 +31,6 @@ from telegram.constants import ParseMode
 
 
 
-
-# from payment import check_payment_status,start_payment
-# from database import get_wallets_from_db
-# from wallet_tracker import monitor_wallet
-
 BOT_TOKEN = '7378110308:AAFZiP9M5VDiTG5nOqfpgSq3wlrli1bw6NI'
 
 
@@ -727,7 +722,6 @@ def main():
     app.add_handler(CommandHandler("AI",ai_command))
     job_queue = app.job_queue
 
-    # # زمان اجرا (ساعت 8 صبح هر روز)
     execution_time = datetime.time(hour=8, minute=0, second=0)
 
     # اضافه کردن Job روزانه
