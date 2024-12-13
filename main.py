@@ -20,14 +20,14 @@ from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,
                       error_handler,handle_twitter_id,set_task_checked,is_task_checked)
 
-from database import setup_database
+from database import setup_database,is_admin
 from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip
 
 from star_pay import (send_invoice,precheckout_callback,successful_payment_callback,
                       send_renewal_notification, send_vip_expired_notification,star_payment_online,star_payment_package)
 
-
+from telegram.constants import ParseMode
 
 
 
@@ -63,6 +63,30 @@ main_menu = [
     [KeyboardButton("ارتباط با ما")]
 ]
 
+
+
+import google.generativeai as genai
+gen_token =os.getenv("genai")
+
+
+
+genai.configure(api_key=gen_token)
+model = genai.GenerativeModel("gemini-1.5-flash")
+
+
+async def ai_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.message.from_user.id):
+        return
+    try:
+        if update.message.reply_to_message:
+            replyText =update.message.reply_to_message.text
+            response = model.generate_content(f"""سلام.
+
+سوال زیر مربوط به یک کاربر است در حوزه کریپتو و رمزارز ها و بازار میم کوین ها.
+ لطفاً پاسخ را به صورت تخصصی و در عین حال به زبان عامیانه و روان فارسی ارائه دهید و از نوشتن مطالب اضافی خودداری کن .\n\n{replyText}""")
+            await update.message.reply_text(response.text,parse_mode=ParseMode.MARKDOWN)
+    except Exception as e:
+        await context.bot.send_message(text=e,chat_id=1717599240)
 
 
 
@@ -700,7 +724,7 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
-
+    app.add_handler(CommandHandler("ai",ai_command))
     job_queue = app.job_queue
 
     # # زمان اجرا (ساعت 8 صبح هر روز)

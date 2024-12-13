@@ -126,11 +126,6 @@ async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
     await none_step(update, context)
 
 
-    if not is_admin(update.message.from_user.id):
-        print(update.message.from_user.id)
-        await update.message.reply_text("شما دسترسی لازم برای این عملیات را ندارید.")
-        return
-
     try:
         vip_users = VipMembers()
 
