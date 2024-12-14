@@ -4,6 +4,9 @@ import sqlite3
 from datetime import datetime, timedelta
 from database import update_user_vip_status, log_transaction,get_users_with_expired_vip,get_users_with_expiring_vip
 from config import ADMIN_CHAT_ID
+from telegram.constants import ParseMode
+
+
 
 conn = sqlite3.connect('Database.db', check_same_thread=False)
 c = conn.cursor()
@@ -44,7 +47,7 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prices = [LabeledPrice("VIP Access", price * 1)]
 
     try:
-        await context.bot.send_message(chat_id=chat_id,text=)
+        await context.bot.send_message(chat_id=chat_id,text=text_main,parse_mode=ParseMode.MARKDOWN)
         await context.bot.send_invoice(
             chat_id=chat_id, 
             title=title, 
