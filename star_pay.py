@@ -11,7 +11,7 @@ VIP_DURATION_DAYS = 30
 
 
 async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text ="""
+    text_invoice ="""
 ✨ دسترسی VIP:  
 1️⃣ تحلیل‌های دقیق ارزهای نوظهور  
 2️⃣ اطلاعات زودهنگام آلفاها  
@@ -19,15 +19,32 @@ async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🚀 فرصت برای پیشی گرفتن از بازار."""
 
 
+    text_main="""
+
+واریز سولانا یا تتر بر بستر سولانا به آدرس زیر
+`8euh6GfY2tW885ZHMiALfn8yzFYaTz54TssJHzqgx51g`
+
+--
+
+واریز روی شبکه های base/arb/op/polygon/linea به آدرس زیر
+`0xd9D9bf6337dD4A304B4545D06b85c970CD1F98A4`
+
+
+هزینه ۶۰$
+لطفا پس از واریز فیش خود را در بخش ارتباط با ما ارسال کنید.
+
+"""
+
     chat_id = update.message.chat_id
     title = "VIP Membership"
-    description = text
+    description = text_invoice
     payload = "VIP-access"
     currency = "XTR"
     price = 1
     prices = [LabeledPrice("VIP Access", price * 1)]
 
     try:
+        await context.bot.send_message(chat_id=chat_id,text=)
         await context.bot.send_invoice(
             chat_id=chat_id, 
             title=title, 
