@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 import sqlite3
-
+from telegram.constants import ParseMode
 # سایر مراحل گفتگو
 CHOOSE_ACTION, BUY_VIDEO_PACKAGE, REGISTER_ONLINE_COURSE, GET_NAME, GET_EMAIL, GET_PHONE, SEND_PAYMENT_LINK, CONFIRM_PAYMENT, FINALIZE_PAYMENT, CHECK_THRESHOLD, CONFIRMATION_REQUEST = range(11)
 
@@ -21,6 +21,8 @@ def increase_registrants_count():
 
 
 async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    chat_id = update.effective_chat.id
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
         # [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
@@ -41,6 +43,7 @@ def add_score(user_id):
 # پردازش خرید پکیج ویدئویی
 async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("-- buy_video_package --")
+    chat_id=update.effective_chat.id
     query = update.callback_query
     await query.answer()
     keyboard = [
@@ -53,6 +56,40 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cursor.execute("SELECT description FROM courses WHERE course_type =?",('video',))
     describtion = cursor.fetchone()[0]
     conn.close()
+    text_main="""
+۱-درخواست برگزاری دوره رایگان
+
+توضیح: دوره رایگان با درخواست افراد زیاد بصورت رایگان هر هفته برگزار میشود
+
+۲-درخواست برگزاری دوره پیشرفته
+
+توضیح: دوره پیشرفته شامل ۱۰-۱۲ ساعت کلاس آموزش آنلاین و صفر تا صد دکس است
+
+هزینه این دوره ۶۰$ تعیین شده ک‌ در صورت رزرو از قبل تخفیف ۲۰٪ شامل شما میشود
+
+بجای خرید پکیج ویدیویی: بسته آموزشی صفر تا صد دکس
+
+توضیح: این بسته برای اشخاصی تدارک دیده شده که وقت کافی برای شرکت در دوره های آموزشی آنلاین ندارند و میخواهند در زمان خالی فایل آموزش آنلاین دوره های قبلی را ملاحظه بکنند
+هزینه:۳۰$
+
+
+واریز سولانا یا تتر بر بستر سولانا به آدرس زیر
+`8euh6GfY2tW885ZHMiALfn8yzFYaTz54TssJHzqgx51g`
+
+--
+
+واریز روی شبکه های base/arb/op/polygon/linea به آدرس زیر
+`0xd9D9bf6337dD4A304B4545D06b85c970CD1F98A4`
+
+
+
+لطفا پس از واریز فیش خود را در بخش ارتباط با ما ارسال کنید.
+
+"""
+
+
+    await context.bot.send_message(chat_id=chat_id,text=text_main,parse_mode=ParseMode.MARKDOWN)
+
     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
