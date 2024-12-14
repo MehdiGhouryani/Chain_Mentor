@@ -91,6 +91,8 @@ async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_T
 
 1. **Bullx**
    - [ورود به پلتفرم Bullx](https://t.me/BullxBetaBot?start=access_UFOOULM6THN)
+
+
 با بولیکس خیالتُ از بابت اوردر و ستاپ معاملاتی راحت کن
 
 ✅این بار می‌خوایم در مورد یکی از قابلیت‌های جذاب بولیکس، یعنی Auto Sell صحبت کنیم.
@@ -102,6 +104,7 @@ async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_T
 روی QGG تارگت‌هام رو روی +30% و +60% تنظیم کرده بودم. با رسیدن به این اهداف، سیو سود به صورت کامل انجام شد و معامله به طور خودکار بسته شد.
 
 ✅این ابزار برای مدیریت بهتر معاملات و جلوگیری از ضررهای ناگهانی، بسیار کاربردیه!
+
 
 
 2. **Photon**
