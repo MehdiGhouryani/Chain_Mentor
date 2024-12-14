@@ -50,6 +50,7 @@ async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def grant_vip_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await none_step(update, context)
+    
     if update.message.reply_to_message:
         user = update.message.reply_to_message.from_user
         user_id = user.id

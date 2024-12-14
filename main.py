@@ -329,6 +329,10 @@ async def generate_discount_code(update: Update, context: ContextTypes.DEFAULT_T
 async def show_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await rs.show_score(update, context)  # فراخوانی تابع نمایش امتیاز از فایل referral_system
 
+
+
+
+
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         query = update.callback_query
@@ -336,6 +340,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id = update.effective_chat.id
 
         if data.startswith("reply_to_user"):
+
+            await none_step(update,context)
             user_id = int(query.data.split("_")[-1])
             print(f"STARTWITH REPLY   USER_ID   : {user_id}")
             context.user_data["reply_to"] = user_id
@@ -344,14 +350,14 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "buy_video_package":
             await course.buy_video_package(update, context)
 
-        elif data == "online_course":
-            await course.register_online_course(update, context)
+        # elif data == "online_course":
+        #     await course.register_online_course(update, context)
 
         elif data == "register_video_package":
             await course.get_user_info_package(update, context)
 
-        elif data == "register_online_course":
-            await course.get_user_info_online(update, context)
+        # elif data == "register_online_course":
+        #     await course.get_user_info_online(update, context)
                
         elif data == 'check_membership':
             await check_membership(update,context)
@@ -360,7 +366,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "back":
             keyboard = [
                 [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-                [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+                # [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await none_step(update, context)
@@ -704,7 +710,8 @@ def main():
 
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
+
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))

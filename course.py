@@ -23,7 +23,7 @@ def increase_registrants_count():
 async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+        # [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
     ]
     await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
     return CHOOSE_ACTION
@@ -58,20 +58,20 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # تابع ثبت‌نام دوره آنلاین
-async def register_online_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("-- register_online_course --")
-    query = update.callback_query
-    await query.answer()
-    keyboard = [
-        [InlineKeyboardButton("ثبت نام", callback_data="register_online_course")],
-        [InlineKeyboardButton("بازگشت", callback_data="back")]
-    ]
-    conn = sqlite3.connect("Database.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT description FROM courses WHERE course_type =?",('online',))
-    describtion = cursor.fetchone()[0]
-    conn.close()
-    await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
+# async def register_online_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     print("-- register_online_course --")
+#     query = update.callback_query
+#     await query.answer()
+#     keyboard = [
+#         [InlineKeyboardButton("ثبت نام", callback_data="register_online_course")],
+#         [InlineKeyboardButton("بازگشت", callback_data="back")]
+#     ]
+#     conn = sqlite3.connect("Database.db")
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT description FROM courses WHERE course_type =?",('online',))
+#     describtion = cursor.fetchone()[0]
+#     conn.close()
+#     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 
