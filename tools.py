@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram import ReplyKeyboardMarkup, KeyboardButton,InlineKeyboardButton,InlineKeyboardMarkup
-
+from telegram.constants import ParseMode
 def tools_keyboard():
     keyboard = [
         [KeyboardButton("مشاهده چارت"),KeyboardButton("ولت‌های پیشنهادی")],
@@ -34,7 +34,7 @@ async def view_chart(update: Update, context: ContextTypes.DEFAULT_TYPE):
 - برای تحلیل دقیق‌تر می‌توانید از اندیکاتورهای موجود در TradingView مانند MACD و RSI استفاده کنید.
 - برای آگاهی از آخرین تراکنش‌های شبکه سولانا و بررسی وضعیت تراکنش‌ها، SolScan گزینه مناسبی است.
     """
-    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
 async def recommended_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -57,7 +57,7 @@ async def recommended_wallets(update: Update, context: ContextTypes.DEFAULT_TYPE
 📹 **آموزش ویدئویی نصب و استفاده از ولت‌های سولانا:**
 - می‌توانید ویدئوی آموزشی را از اینجا مشاهده کنید: [آموزش ویدئویی](https://t.me/memeland_persia/2171)
     """
-    await update.message.reply_text(text, parse_mode='Markdown')
+    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
 
 
@@ -75,7 +75,7 @@ async def basic_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 📹 **لینک‌های آموزشی و توضیحات بیشتر**: [لینک‌های مربوطه](https://t.me/memeland_persia/2173)
     """
-    await update.message.reply_text(text, parse_mode='Markdown')
+    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
 
 async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -89,16 +89,28 @@ async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_T
 
 اگر به ابزارهای حرفه‌ای برای معاملات پیشرفته در شبکه سولانا نیاز دارید، این موارد را بررسی کنید:
 
-1. **Orca**
-   - پلتفرم معاملاتی غیرمتمرکز با سرعت بالا و رابط کاربری پیشرفته. مناسب برای کاربران حرفه‌ای و افرادی که به دنبال بهینه‌سازی معاملات هستند.
+1. **Bullx**
+   - [ورود به پلتفرم Bullx](https://t.me/BullxBetaBot?start=access_UFOOULM6THN)
+با بولیکس خیالتُ از بابت اوردر و ستاپ معاملاتی راحت کن
 
-2. **Serum**
+✅این بار می‌خوایم در مورد یکی از قابلیت‌های جذاب بولیکس، یعنی Auto Sell صحبت کنیم.
+
+✅با استفاده از این ابزار، می‌تونید به راحتی برای معاملات خودتون تارگت (هدف سود) و استاپ‌لاس (حد ضرر) تنظیم کنید.
+سیستم به صورت اتوماتیک، بعد از رسیدن به تارگت سود یا حد ضرر تعیین‌شده، معامله رو می‌بنده. این یعنی دیگه نیازی نیست مدام بازار رو رصد کنید؛ بولیکس این کار رو برای شما انجام می‌ده.
+
+✅برای مثال، یکی از استفاده‌های خودم رو اینجا به اشتراک می‌ذارم:
+روی QGG تارگت‌هام رو روی +30% و +60% تنظیم کرده بودم. با رسیدن به این اهداف، سیو سود به صورت کامل انجام شد و معامله به طور خودکار بسته شد.
+
+✅این ابزار برای مدیریت بهتر معاملات و جلوگیری از ضررهای ناگهانی، بسیار کاربردیه!
+
+
+2. **Photon**
    - پروتکل دیفای برای مبادله غیرمتمرکز توکن‌های سولانا. مناسب برای کاربران حرفه‌ای که به دنبال کنترل بیشتری در معاملات و بهینه‌سازی کارمزد هستند.
 
 💼 **نکات مهم برای استفاده از ابزارهای حرفه‌ای در شبکه سولانا:**
 - قبل از شروع معاملات حرفه‌ای، توصیه می‌شود با مدیریت ریسک‌ها و استفاده از ابزارهای تحلیلی، برنامه‌ریزی دقیق‌تری انجام دهید.
     """
-    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 
 async def Solana_tools(update:Update,context:ContextTypes.DEFAULT_TYPE):
