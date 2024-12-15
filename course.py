@@ -266,7 +266,7 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
         print("No course found with the given course_type.")
 
 
-async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def get_user_info_advanced(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     print(chat_id)
 
