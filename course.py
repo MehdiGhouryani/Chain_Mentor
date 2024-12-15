@@ -197,7 +197,7 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
     full_name =user.full_name
     user_id =user.id
     user_name =user.username
-    
+    print(chat_id)
 
     conn = sqlite3.connect('Database.db', check_same_thread=False)
     c = conn.cursor()
@@ -209,6 +209,13 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
         f"نام کاربری: @{user_name}\n"
         f"آیدی کاربر: {user_id}\n"
         )
+    for id in admin_id:
+        try:
+            await context.bot.send_message(
+                chat_id=id,
+                text=admin_message)
+        except Exception as e:
+            print(f"ERROR SEND_ADMIN {e}")
 
     course_type="online"
     c.execute("""
