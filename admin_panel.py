@@ -146,7 +146,7 @@ async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 def get_db_connection():
-    conn = sqlite3.connect('your_database.db')
+    conn = sqlite3.connect('Database.db')
     return conn
 
 # تابع برای حذف دوره
