@@ -195,10 +195,9 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
     chat_id = update.effective_chat.id
     print(chat_id)
 
-    user =update.message.from_user
-    user_id = user.id
-    full_name=user.full_name
-    user_name =user.username
+    user_name =update.effective_chat.username
+    full_name=update.effective_chat.full_name
+
 
 
     conn = sqlite3.connect('Database.db', check_same_thread=False)
@@ -209,7 +208,7 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
     admin_message = (
         f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
         f"نام کاربری: @{user_name}\n"
-        f"آیدی کاربر: {user_id}\n"
+        # f"آیدی کاربر: {user_id}\n"
         )
     for id in admin_id:
         try:
