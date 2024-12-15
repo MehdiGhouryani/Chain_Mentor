@@ -80,7 +80,7 @@ async def basic_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def advanced_trading_tools(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
-        [InlineKeyboardButton("لینک ثبت نام در صرافی سولانا", url="https://example.com")],
+        [InlineKeyboardButton("لینک ثبت نام در بولیکس", url="https://t.me/BullxBetaBot?start=access_UFOOULM6THN")],
         [InlineKeyboardButton("راهنمای پیشرفته برای کاربران حرفه‌ای سولانا", url="https://t.me/memeland_persia/2190")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
