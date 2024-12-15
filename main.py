@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 import logging
 import referral as rs
 import course
+from course import save_user_info
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
@@ -472,7 +473,7 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     elif package_step == "GET_PHONE":
         context.user_data['phone_pack'] = update.message.text
-        await course.save_user_info(
+        await save_user_info(
             update.effective_user.id,
             update.effective_chat.id,
             context.user_data['name_pack'],
