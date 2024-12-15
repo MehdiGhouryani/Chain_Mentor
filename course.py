@@ -193,11 +193,12 @@ async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
+    print(chat_id)
     user = update.message.from_user
     full_name =user.full_name
     user_id =user.id
     user_name =user.username
-    print(chat_id)
+
 
     conn = sqlite3.connect('Database.db', check_same_thread=False)
     c = conn.cursor()
