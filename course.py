@@ -281,7 +281,7 @@ async def get_user_info_advanced(update: Update, context: ContextTypes.DEFAULT_T
 
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     admin_message = (
-        f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
+        f"ثبت نام دوره پیشرفته توسط {full_name} ثبت شد!\n"
         f"نام کاربری: @{user_name}\n"
         # f"آیدی کاربر: {user_id}\n"
         )
