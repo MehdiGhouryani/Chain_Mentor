@@ -350,14 +350,14 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "buy_video_package":
             await course.buy_video_package(update, context)
 
-        # elif data == "online_course":
-        #     await course.register_online_course(update, context)
+        elif data == "online_course":
+            await course.register_online_course(update, context)
 
         elif data == "register_video_package":
             await course.get_user_info_package(update, context)
 
-        # elif data == "register_online_course":
-        #     await course.get_user_info_online(update, context)
+        elif data == "register_online_course":
+            await course.get_user_info_online(update, context)
                
         elif data == 'check_membership':
             await check_membership(update,context)
@@ -366,7 +366,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "back":
             keyboard = [
                 [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-                # [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+                [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await none_step(update, context)

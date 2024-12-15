@@ -1,8 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, ConversationHandler
+from telegram.ext import ContextTypes
 import sqlite3
 from telegram.constants import ParseMode
-# سایر مراحل گفتگو
+from config import ADMIN_CHAT_ID
 CHOOSE_ACTION, BUY_VIDEO_PACKAGE, REGISTER_ONLINE_COURSE, GET_NAME, GET_EMAIL, GET_PHONE, SEND_PAYMENT_LINK, CONFIRM_PAYMENT, FINALIZE_PAYMENT, CHECK_THRESHOLD, CONFIRMATION_REQUEST = range(11)
 
 
@@ -25,7 +25,7 @@ async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-        # [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
+        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
     ]
     await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
     return CHOOSE_ACTION
@@ -88,27 +88,27 @@ async def buy_video_package(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
 
 
-    await context.bot.send_message(chat_id=chat_id,text=text_main,parse_mode=ParseMode.MARKDOWN)
+    # await context.bot.send_message(chat_id=chat_id,text=text_main,parse_mode=ParseMode.MARKDOWN)
 
     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 
 # تابع ثبت‌نام دوره آنلاین
-# async def register_online_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     print("-- register_online_course --")
-#     query = update.callback_query
-#     await query.answer()
-#     keyboard = [
-#         [InlineKeyboardButton("ثبت نام", callback_data="register_online_course")],
-#         [InlineKeyboardButton("بازگشت", callback_data="back")]
-#     ]
-#     conn = sqlite3.connect("Database.db")
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT description FROM courses WHERE course_type =?",('online',))
-#     describtion = cursor.fetchone()[0]
-#     conn.close()
-#     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
+async def register_online_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("-- register_online_course --")
+    query = update.callback_query
+    await query.answer()
+    keyboard = [
+        [InlineKeyboardButton("ثبت نام", callback_data="register_online_course")],
+        [InlineKeyboardButton("بازگشت", callback_data="back")]
+    ]
+    conn = sqlite3.connect("Database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT description FROM courses WHERE course_type =?",('online',))
+    describtion = cursor.fetchone()[0]
+    conn.close()
+    await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 
@@ -193,9 +193,46 @@ async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
+    user = update.message.from_user
+    full_name =user.full_name
+    user_id =user.id
+    user_name =user.username
+    
+
+    conn = sqlite3.connect('Database.db', check_same_thread=False)
+    c = conn.cursor()
     print("Current user_data:", context.user_data)
 
-    if not context.user_data.get('online'):
-        print("-- online initialized --")
-        context.user_data['online'] = "GET_NAME"
-        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
+    admin_message = (
+        f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
+        f"نام کاربری: @{user_name}\n"
+        f"آیدی کاربر: {user_id}\n"
+        )
+
+    course_type="online"
+    c.execute("""
+        SELECT course_id, registrants_count
+        FROM courses
+        WHERE course_type = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (course_type,))
+    
+    course = c.fetchone()
+    
+    if course:
+        course_id, registrants_count = course
+        # افزایش تعداد ثبت‌نام‌کنندگان
+        new_count = registrants_count + 1
+        c.execute("""
+            UPDATE courses
+            SET registrants_count = ?
+            WHERE course_id = ?
+        """, (new_count, course_id))
+        
+        conn.commit()
+        print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
+    else:
+        print("No course found with the given course_type.")
+
