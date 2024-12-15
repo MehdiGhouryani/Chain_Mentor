@@ -202,7 +202,7 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
 
     conn = sqlite3.connect('Database.db', check_same_thread=False)
     c = conn.cursor()
-    print("Current user_data:", context.user_data)
+    # print("Current user_data:", context.user_data)
 
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     admin_message = (

@@ -343,46 +343,46 @@ async def renew_vip(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id,
 
 
 
-async def star_payment_package(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
-    admin_id = [int(id) for id in ADMIN_CHAT_ID]
-    try:
+# async def star_payment_package(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, course_id):
+#     admin_id = [int(id) for id in ADMIN_CHAT_ID]
+#     try:
 
-        c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
-        user_data = c.fetchone()
+#         c.execute("SELECT name, email, phone FROM users WHERE user_id = ?", (user_id,))
+#         user_data = c.fetchone()
         
-        c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
-        course_data = c.fetchone()
+#         c.execute("SELECT course_name, price FROM courses WHERE course_id = ?", (course_id,))
+#         course_data = c.fetchone()
 
-        # print(f"USER ID is   :  {user_id}")
-        print(f"-----  {user_data} in start_payment  for course  :  {course_data}  -----")
-        if not user_data or not course_data:
-            await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
-            return
+#         # print(f"USER ID is   :  {user_id}")
+#         print(f"-----  {user_data} in start_payment  for course  :  {course_data}  -----")
+#         if not user_data or not course_data:
+#             await update.message.reply_text("اطلاعات کاربر یا دوره پیدا نشد.")
+#             return
 
 
-        amount = course_data[1]  # مبلغ تراکنش
+#         amount = course_data[1]  # مبلغ تراکنش
 
-        title = "package COURSE PAYMENT"
-        description = "ثبت نام برای پکیج های ویدیویی "
-        payload = "videopackage"
-        currency = "XTR"
-        price = int(amount)
-        prices = [LabeledPrice("OnlineCourse", price)]
+#         title = "package COURSE PAYMENT"
+#         description = "ثبت نام برای پکیج های ویدیویی "
+#         payload = "videopackage"
+#         currency = "XTR"
+#         price = int(amount)
+#         prices = [LabeledPrice("OnlineCourse", price)]
         
-        await context.bot.send_invoice(
-            chat_id=user_id, 
-            title=title, 
-            description=description, 
-            payload=payload, 
-            provider_token="",  
-            currency=currency, 
-            prices=prices
-        )
+#         await context.bot.send_invoice(
+#             chat_id=user_id, 
+#             title=title, 
+#             description=description, 
+#             payload=payload, 
+#             provider_token="",  
+#             currency=currency, 
+#             prices=prices
+#         )
 
-    except Exception as e:
-        print(f"ERROR IN package PAY{e}")
-        for id in admin_id:
-            await context.bot.send_message(
-                chat_id=id,
-                text=e)
+#     except Exception as e:
+#         print(f"ERROR IN package PAY{e}")
+#         for id in admin_id:
+#             await context.bot.send_message(
+#                 chat_id=id,
+#                 text=e)
  

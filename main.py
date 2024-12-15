@@ -436,7 +436,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         # مدیریت خطا
         print(f"Error IN CAllBackHAndler : {e}")
-        await query.answer("مثل اینکه ی مشکلی داریم !")
+        # await query.answer("مثل اینکه ی مشکلی داریم !")
 
 
 
@@ -477,9 +477,9 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
             context.user_data['phone_pack']
         )
 
-        # await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         
-        await star_payment_package(update,context,user_id,course_id)
+        # await star_payment_package(update,context,user_id,course_id)
         context.user_data['package'] = None
 
 
