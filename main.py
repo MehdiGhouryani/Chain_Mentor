@@ -353,6 +353,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         elif data == "online_course":
             await course.register_online_course(update, context)
+        elif data == "advanced_course":
+            await course.register_advanced_course(update, context)
 
         elif data == "register_video_package":
             await course.get_user_info_package(update, context)
@@ -360,6 +362,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "register_online_course":
             await course.get_user_info_online(update, context)
                
+
+               
+        elif data == "register_advanced_course":
+            await course.get_user_info_advanced(update, context)
+   
         elif data == 'check_membership':
             await check_membership(update,context)
 
@@ -586,7 +593,7 @@ async def handle_add_course_step(update: Update, user_id: int, text: str):
         try:
             course_data[user_id]["price"] = float(text)
             current_step[user_id] = "type"
-            await update.message.reply_text("لطفاً نوع دوره را وارد کنید:\n\nonline یا video")
+            await update.message.reply_text("لطفاً نوع دوره را وارد کنید:\n\nonline یا video یا advanced")
         except ValueError:
             await update.message.reply_text("قیمت نامعتبر است! لطفاً یک مقدار عددی وارد کنید:")
 
@@ -620,6 +627,13 @@ async def add_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     current_step[user_id] = "course_name"
     await update.message.reply_text("لطفاً نام دوره را وارد کنید:")
 
+
+
+
+
+
+
+
 async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
@@ -646,6 +660,9 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print(f"وضعیت و داده‌های کاربر {user_id} با موفقیت پاک شدند.")
     except Exception as e:
         print(f"خطا در پاک‌سازی داده‌های کاربر: {e}")
+
+
+
 
 
 

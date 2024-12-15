@@ -25,8 +25,9 @@ async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     keyboard = [
         [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
-        [InlineKeyboardButton("ثبت‌نام دوره آنلاین", callback_data="online_course")],
-    ]
+        [InlineKeyboardButton(" ثبت‌نام دوره آنلاین رایگان", callback_data="online_course")],
+        [InlineKeyboardButton("ثبت نام دوره پیشرفته ", callback_data="advanced_course")],
+]
     await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
     return CHOOSE_ACTION
 
@@ -111,6 +112,22 @@ async def register_online_course(update: Update, context: ContextTypes.DEFAULT_T
     await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
+# تابع ثبت‌نام دوره پیشرقته
+async def register_advanced_course(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("-- register_online_course --")
+    query = update.callback_query
+    await query.answer()
+    keyboard = [
+        [InlineKeyboardButton("ثبت نام", callback_data="register_advanced_course")],
+        [InlineKeyboardButton("بازگشت", callback_data="back")]
+    ]
+    conn = sqlite3.connect("Database.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT description FROM courses WHERE course_type =?",('advanced',))
+    describtion = cursor.fetchone()[0]
+    conn.close()
+    await query.edit_message_text(text=describtion, reply_markup=InlineKeyboardMarkup(keyboard))
+
 
 
 async def save_user_info(user_id, chat_id, name, email, phone):
@@ -191,6 +208,64 @@ async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TY
         await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
 
 
+
+
+
+
+async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    print(chat_id)
+
+    user_name =update.effective_chat.username
+    full_name=update.effective_chat.full_name
+
+
+
+    conn = sqlite3.connect('Database.db', check_same_thread=False)
+    c = conn.cursor()
+    # print("Current user_data:", context.user_data)
+
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
+    admin_message = (
+        f"ثبت نام دوره پیشرفته توسط {full_name} ثبت شد!\n"
+        f"نام کاربری: @{user_name}\n"
+        # f"آیدی کاربر: {user_id}\n"
+        )
+    for id in admin_id:
+        try:
+            await context.bot.send_message(
+                chat_id=id,
+                text=admin_message)
+        except Exception as e:
+            print(f"ERROR SEND_ADMIN {e}")
+
+    course_type="advanced"
+    c.execute("""
+        SELECT course_id, registrants_count
+        FROM courses
+        WHERE course_type = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (course_type,))
+    
+    course = c.fetchone()
+    
+    if course:
+        course_id, registrants_count = course
+        # افزایش تعداد ثبت‌نام‌کنندگان
+        new_count = registrants_count + 1
+        c.execute("""
+            UPDATE courses
+            SET registrants_count = ?
+            WHERE course_id = ?
+        """, (new_count, course_id))
+        
+        conn.commit()
+        print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
+    else:
+        print("No course found with the given course_type.")
+
+
 async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     print(chat_id)
@@ -243,4 +318,3 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
         print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
     else:
         print("No course found with the given course_type.")
-
