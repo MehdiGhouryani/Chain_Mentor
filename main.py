@@ -445,15 +445,18 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat_id =update.effective_chat.id
-    course_type = 'video'
+    user_name =update.effective_chat.username
+    full_name=update.effective_chat.full_name
 
-    c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
-    last_course = c.fetchone()
-    print(f"LAST COURSE   :{last_course}")
-    if last_course:
-        course_id =last_course[0]
-    else:
-        print("دوره انلاینی موجود نیست فعلا")
+
+    course_type = 'video'
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
+    admin_message = (
+        f"ثبت نام پکیج ویديویی توسط {full_name} ثبت شد!\n"
+        f"نام کاربری: @{user_name}\n"
+        f"آیدی کاربر: {user_id}\n"
+        )
+
 
 
     package_step = context.user_data.get('package')
@@ -478,9 +481,51 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
-        
-        # await star_payment_package(update,context,user_id,course_id)
-        context.user_data['package'] = None
+
+
+        c.execute("""
+            SELECT course_id, registrants_count
+            FROM courses
+            WHERE course_type = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (course_type,))
+
+        course = c.fetchone()
+
+        if course:
+            course_id, registrants_count = course
+
+            new_count = registrants_count + 1
+            c.execute("""
+                UPDATE courses
+                SET registrants_count = ?
+                WHERE course_id = ?
+            """, (new_count, course_id))
+
+            conn.commit()
+            print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
+        else:
+            print("No course found with the given course_type.")
+
+
+        c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
+        last_course = c.fetchone()
+        print(f"LAST COURSE   :{last_course}")
+        if last_course:
+            course_id =last_course[0]
+        else:
+            print("دوره انلاینی موجود نیست فعلا")
+
+        for id in admin_id:
+            try:
+                await context.bot.send_message(
+                    chat_id=id,
+                    text=admin_message)
+            except Exception as e:
+                print(f"ERROR SEND_ADMIN {e}")
+            # await star_payment_package(update,context,user_id,course_id)
+            context.user_data['package'] = None
 
 
 
