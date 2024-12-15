@@ -145,6 +145,36 @@ async def list_vip(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 
+def get_db_connection():
+    conn = sqlite3.connect('your_database.db')
+    return conn
 
+# تابع برای حذف دوره
+async def delete_course(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not is_admin(update.message.from_user.id):
+        await update.message.reply_text("شما دسترسی لازم برای این عملیات را ندارید.")
+        return
+    elif len(context.args) != 1:
+        await update.message.reply_text("لطفاً شناسه دوره را وارد کنید.")
+        return
 
-#TWITTER FUNCTIONS
+    course_id = context.args[0]
+
+    # حذف دوره از دیتابیس
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM courses WHERE course_id = ?", (course_id,))
+        conn.commit()
+
+        if cursor.rowcount > 0:
+            await update.message.reply_text(f"دوره با شناسه {course_id} با موفقیت حذف شد.")
+        else:
+            await update.message.reply_text(f"هیچ دوره‌ای با شناسه {course_id} پیدا نشد.")
+
+    except sqlite3.Error as e:
+        await update.message.reply_text(f"خطا در حذف دوره: {str(e)}")
+    finally:
+        if conn:
+            conn.close()

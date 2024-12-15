@@ -21,6 +21,26 @@ def increase_registrants_count():
 
 
 async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = """"
+**1. بسته آموزشی صفر تا صد دکس**
+توضیح : این دوره مخصوص افرادی است که وقت کافی برای حضور در کلاس آنلاین ندارند و قصد دارند در زمان خالی فایل‌های آموزشی دوره‌های قبلی رو آموزش ببینند .
+
+__هزینه : ۳۰$__
+
+
+
+**2- درخواست برگزاری دوره رایگان**
+
+توضیح: در صورتی که تعداد درخواست شما دوستان عزیز به حد نصاب برسد این دوره بصورت رایگان هر هفته برگزار میشود.
+
+
+
+**3- درخواست برگزاری دوره پیشرفته**
+
+توضیح: دوره پیشرفته شامل ۱۰-۱۲ ساعت کلاس آموزش آنلاین و صفر تا صد دکس است .
+
+__هزینه این دوره ۶۰$ تعیین شده ک‌ در صورت رزرو از قبل تخفیف ۲۰٪ شامل شما میشود__
+"""
 
     chat_id = update.effective_chat.id
     keyboard = [
@@ -28,7 +48,7 @@ async def courses_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton(" ثبت‌نام دوره آنلاین رایگان", callback_data="online_course")],
         [InlineKeyboardButton("ثبت نام دوره پیشرفته ", callback_data="advanced_course")],
 ]
-    await update.message.reply_text("لطفاً یکی از گزینه‌های زیر را انتخاب کنید:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text(text=text, reply_markup=InlineKeyboardMarkup(keyboard),parse_mode=ParseMode.MARKDOWN)
     return CHOOSE_ACTION
 
 
