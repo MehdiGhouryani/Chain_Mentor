@@ -99,9 +99,13 @@ def setup_database():
                 wallet_address VARCHAR(255),
                 last_transaction_id VARCHAR(255),
                 PRIMARY KEY (user_id, wallet_address)
-            )
-              
-    ''')
+            );
+        ''')
+    
+    c.execute('''
+            CREATE INDEX IF NOT EXISTS idx_wallet_address ON wallets(wallet_address);
+''')
+    
     c.execute('''
             CREATE TABLE IF NOT EXISTS links (
                 id SERIAL PRIMARY KEY,

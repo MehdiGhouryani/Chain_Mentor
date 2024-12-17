@@ -1,20 +1,28 @@
 import sqlite3
-
+import logging
+import sqlite3
+import websockets
+from telegram import Bot
+from datetime import datetime
 from telegram import Update
 from telegram.ext import ContextTypes
 import os
 from dotenv import load_dotenv
 import asyncio
-import json
-# import websockets
 from database import get_wallets_from_db
 import logging
-import time
+
 
 load_dotenv()
 
 API_KEY = os.getenv("apiKey_solscan")
-CHECK_INTERVAL = 1  # فاصله زمانی برای پایش تراکنش‌ها به دقیقه
+CHECK_INTERVAL = 1  
+
+
+
+
+QUICKNODE_WSS = 'wss://crimson-summer-lambo.solana-mainnet.quiknode.pro/cbf2ed09272440f3ae0c66090615118537e41bc9'
+DB_PATH = "Database.db"
 
 
 conn = sqlite3.connect("Database.db", check_same_thread=False)
@@ -82,41 +90,82 @@ async def wait_remove_wallet(update:Update,context:ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
 
 
-# # تنظیمات گزارش‌گیری برای ردیابی وضعیت اتصال
-# logging.basicConfig(level=logging.INFO)
-# async def monitor_wallet(wallet_address, websocket_url, bot, app):
-#     """
-#     مانیتورینگ ولت یک کاربر از طریق WebSocket و ارسال پیام به تلگرام
-#     """
-#     while True:
-#         try:
-#             # اتصال به WebSocket با پینگ برای حفظ اتصال
-#             async with websockets.connect(websocket_url, ping_interval=60, ping_timeout=30) as websocket:
-#                 logging.info(f"Connected to WebSocket for wallet {wallet_address}")
 
-#                 # ارسال درخواست برای مانیتور کردن ولت
-#                 await websocket.send(f"monitor {wallet_address}")
 
-#                 # دریافت تراکنش‌ها
-#                 while True:
-#                     try:
-#                         response = await websocket.recv()
-#                         logging.info(f"New transaction for wallet {wallet_address}: {response}")
-                        
-#                         # ارسال پیام به تلگرام
-#                         # اطمینان حاصل کنید که chat_id یک شناسه کاربری واقعی است
-#                         chat_id = 123456789  # شناسه کاربری واقعی را وارد کنید
-#                         await bot.send_message(chat_id=chat_id, text=f"New transaction detected for wallet {wallet_address}: {response}")
-#                     except websockets.exceptions.ConnectionClosedError as e:
-#                         logging.error(f"Connection closed unexpectedly for wallet {wallet_address}: {e}")
-#                         break
-#         except websockets.exceptions.ConnectionClosedError as e:
-#             logging.error(f"Connection closed for wallet {wallet_address}: {e}")
-#             logging.info(f"Retrying connection for wallet {wallet_address}...")
-#             await asyncio.sleep(5)  # صبر و تلاش مجدد
-#             continue
-#         except Exception as e:
-#             logging.error(f"Error occurred for wallet {wallet_address}: {e}")
-#             logging.info(f"Retrying connection for wallet {wallet_address}...")
-#             await asyncio.sleep(5)  # صبر و تلاش مجدد
-#             continue
+
+
+# Cache برای جلوگیری از اعلان‌های تکراری
+transaction_cache = set()
+
+def get_wallets():
+    """دریافت آدرس‌های ولت از دیتابیس."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id, wallet_address, last_transaction_id FROM wallets;")
+    wallets = cursor.fetchall()
+    conn.close()
+    return wallets
+
+def update_last_transaction(user_id, wallet_address, transaction_id):
+    """به‌روزرسانی آخرین تراکنش در دیتابیس."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE wallets SET last_transaction_id = ? 
+            WHERE user_id = ? AND wallet_address = ?;
+        """, (transaction_id, user_id, wallet_address))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logging.error(f"Error updating transaction for {wallet_address}: {e}")
+
+async def send_transaction_alert(user_id, wallet_address, transaction_details):
+    """ارسال پیام تراکنش به کاربر تلگرام."""
+    message = f"""
+🟢 تراکنش جدید شناسایی شد!
+💼 آدرس: `{wallet_address}`
+💰 مقدار: {transaction_details.get('amount', 0)} SOL
+🔗 Signature: {transaction_details['signature']}
+📅 زمان: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+"""
+    try:
+        await Bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
+    except Exception as e:
+        logging.error(f"Failed to send alert to user {user_id}: {e}")
+
+async def process_wallets():
+    """بررسی تراکنش‌ها برای همه کیف پول‌ها به‌صورت همزمان."""
+    wallets = get_wallets()
+    tasks = [check_wallet_transactions(user_id, wallet_address, last_tx_id)
+             for user_id, wallet_address, last_tx_id in wallets]
+    await asyncio.gather(*tasks)
+
+async def check_wallet_transactions(user_id, wallet_address, last_tx_id):
+    """بررسی تراکنش‌های جدید برای یک کیف پول."""
+    try:
+        async with websockets.connect(QUICKNODE_WSS) as ws:
+            # درخواست برای بررسی تراکنش‌های کیف پول
+            request = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "getConfirmedSignaturesForAddress2",
+                "params": [wallet_address, {"limit": 5}]
+            }
+            await ws.send(str(request))
+            response = await ws.recv()
+
+            # پردازش پاسخ WebSocket
+            result = eval(response).get("result", [])
+            for tx in result:
+                signature = tx["signature"]
+                if signature not in transaction_cache and signature != last_tx_id:
+                    transaction_details = {
+                        "amount": "N/A",  # جزئیات تراکنش را می‌توان گسترش داد
+                        "signature": signature
+                    }
+                    await send_transaction_alert(user_id, wallet_address, transaction_details)
+                    transaction_cache.add(signature)
+                    update_last_transaction(user_id, wallet_address, signature)
+    except Exception as e:
+        logging.error(f"Error processing wallet {wallet_address}: {e}")
