@@ -765,72 +765,21 @@ async def scheduled_jobs(context: CallbackContext):
 
 
 
-# def main():
-#     setup_database()
-
-#     app = Application.builder().token(token).build()
-#     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
-
-
-#     app.add_handler(CommandHandler("start", start))
-#     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
-
-#     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
-#     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
-#     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
-#     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
-#     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
-#     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
-#     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
-#     app.add_handler(CommandHandler("list_vip", list_vip))
-#     app.add_handler(CommandHandler("post", start_post))
-#     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-#     app.add_handler(CallbackQueryHandler(callback_handler))
-#     app.add_error_handler(error_handler)
-#     app.add_handler(CommandHandler("delete_course", delete_course))
-#     app.add_handler(CommandHandler("AI",ai_command))
-#     job_queue = app.job_queue
-
-#     execution_time = datetime.time(hour=8, minute=0, second=0)
-
-
-#     job_queue.run_daily(
-#         scheduled_jobs,
-#         time=execution_time,
-#         days=(0, 1, 2, 3, 4, 5, 6),  
-#     )
-    
-
-
-#     app.run_polling()
-
-# if __name__ == "__main__":
-#     main()
-
-
-async def process_wallets():
-    """بررسی تراکنش‌های کیف پول‌ها."""
-    while True:
-        try:
-            await wallet_tracker.check_wallet_transactions_job()
-            await asyncio.sleep(10)  # وقفه ۱۰ ثانیه بین بررسی‌ها
-        except Exception as e:
-            logging.error(f"Error in wallet processing: {e}")
-            await asyncio.sleep(5)  # تلاش مجدد در صورت بروز خطا
-
-async def telegram_bot():
-    """اجرای ربات تلگرام و هندلرها."""
+def main():
     setup_database()
 
     app = Application.builder().token(token).build()
     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
 
-    # افزودن هندلرها
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
+
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
+    app.add_handler(CommandHandler("add_points", rs.add_points_handler))
+    app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
@@ -839,8 +788,7 @@ async def telegram_bot():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
     app.add_handler(CommandHandler("delete_course", delete_course))
-    app.add_handler(CommandHandler("AI", ai_command))
-
+    app.add_handler(CommandHandler("AI",ai_command))
     job_queue = app.job_queue
 
     execution_time = datetime.time(hour=8, minute=0, second=0)
@@ -851,28 +799,80 @@ async def telegram_bot():
         time=execution_time,
         days=(0, 1, 2, 3, 4, 5, 6),  
     )
+    
 
 
-    # اجرای ربات به صورت asynchronous
-    await app.start()
-    await app.updater.start_polling()
-    logging.info("Telegram bot is running...")
-
-    try:
-        await asyncio.Event().wait()  # نگه داشتن برنامه
-    finally:
-        await app.updater.stop()
-        await app.stop()
-
-
-async def main():
-    """مدیریت وظایف کیف پول و ربات تلگرام."""
-    logging.basicConfig(level=logging.INFO)
-    tasks = [
-        asyncio.create_task(process_wallets()),  # وظیفه بررسی تراکنش‌ها
-        asyncio.create_task(telegram_bot()),  # اجرای ربات تلگرام
-    ]
-    await asyncio.gather(*tasks)  # اجرای همزمان وظایف
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
+
+
+# async def process_wallets():
+#     """بررسی تراکنش‌های کیف پول‌ها."""
+#     while True:
+#         try:
+#             await wallet_tracker.check_wallet_transactions_job()
+#             await asyncio.sleep(10)  # وقفه ۱۰ ثانیه بین بررسی‌ها
+#         except Exception as e:
+#             logging.error(f"Error in wallet processing: {e}")
+#             await asyncio.sleep(5)  # تلاش مجدد در صورت بروز خطا
+
+# async def telegram_bot():
+#     """اجرای ربات تلگرام و هندلرها."""
+#     setup_database()
+
+#     app = Application.builder().token(token).build()
+#     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
+
+#     # افزودن هندلرها
+#     app.add_handler(CommandHandler("start", start))
+#     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
+#     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
+#     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
+#     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
+#     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
+#     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
+#     app.add_handler(CommandHandler("list_vip", list_vip))
+#     app.add_handler(CommandHandler("post", start_post))
+#     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+#     app.add_handler(CallbackQueryHandler(callback_handler))
+#     app.add_error_handler(error_handler)
+#     app.add_handler(CommandHandler("delete_course", delete_course))
+#     app.add_handler(CommandHandler("AI", ai_command))
+
+#     job_queue = app.job_queue
+
+#     execution_time = datetime.time(hour=8, minute=0, second=0)
+
+
+#     job_queue.run_daily(
+#         scheduled_jobs,
+#         time=execution_time,
+#         days=(0, 1, 2, 3, 4, 5, 6),  
+#     )
+
+
+#     # اجرای ربات به صورت asynchronous
+#     await app.start()
+#     await app.updater.start_polling()
+#     logging.info("Telegram bot is running...")
+
+#     try:
+#         await asyncio.Event().wait()  # نگه داشتن برنامه
+#     finally:
+#         await app.updater.stop()
+#         await app.stop()
+
+
+# async def main():
+#     """مدیریت وظایف کیف پول و ربات تلگرام."""
+#     logging.basicConfig(level=logging.INFO)
+#     tasks = [
+#         asyncio.create_task(process_wallets()),  # وظیفه بررسی تراکنش‌ها
+#         asyncio.create_task(telegram_bot()),  # اجرای ربات تلگرام
+#     ]
+#     await asyncio.gather(*tasks)  # اجرای همزمان وظایف
+
+# if __name__ == "__main__":
+#     asyncio.run(main())
