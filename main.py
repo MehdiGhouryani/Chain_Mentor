@@ -841,17 +841,6 @@ async def telegram_bot():
     app.add_handler(CommandHandler("delete_course", delete_course))
     app.add_handler(CommandHandler("AI", ai_command))
 
-    # اجرای ربات به صورت asynchronous
-    await app.start()
-    await app.updater.start_polling()
-    logging.info("Telegram bot is running...")
-
-    try:
-        await asyncio.Event().wait()  # نگه داشتن برنامه
-    finally:
-        await app.stop()
-        await app.updater.stop()
-
     job_queue = app.job_queue
 
     execution_time = datetime.time(hour=8, minute=0, second=0)
@@ -862,6 +851,18 @@ async def telegram_bot():
         time=execution_time,
         days=(0, 1, 2, 3, 4, 5, 6),  
     )
+
+
+    # اجرای ربات به صورت asynchronous
+    await app.start()
+    await app.updater.start_polling()
+    logging.info("Telegram bot is running...")
+
+    try:
+        await asyncio.Event().wait()  # نگه داشتن برنامه
+    finally:
+        await app.updater.stop()
+        await app.stop()
 
 
 async def main():
