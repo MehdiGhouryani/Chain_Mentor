@@ -131,6 +131,7 @@ async def check_wallet_transactions(user_id, wallet_address, last_tx_id):
             }
             await ws.send(str(request))
             response = await ws.recv()
+            print(" -- Response  Recevied   -------      ",response)
 
             # پردازش پاسخ WebSocket
             result = eval(response).get("result", [])
