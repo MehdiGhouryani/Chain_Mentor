@@ -765,6 +765,20 @@ async def scheduled_jobs(context: CallbackContext):
 
 
 
+
+async def process_wallets():
+
+    while True:
+        try:
+            await wallet_tracker.check_wallet_transactions()
+            await asyncio.sleep(30)  # وقفه ۱۰ ثانیه بین بررسی‌ها
+        except Exception as e:
+            logging.error(f"Error in wallet processing: {e}")
+            await asyncio.sleep(10)  # تلاش مجدد در صورت بروز خطا
+
+
+
+
 def main():
     setup_database()
 
@@ -800,23 +814,14 @@ def main():
         days=(0, 1, 2, 3, 4, 5, 6),  
     )
     
-
+    loop = asyncio.get_event_loop()
+    loop.create_task(process_wallets())
 
     app.run_polling()
 
 if __name__ == "__main__":
     main()
 
-
-# async def process_wallets():
-#     """بررسی تراکنش‌های کیف پول‌ها."""
-#     while True:
-#         try:
-#             await wallet_tracker.check_wallet_transactions_job()
-#             await asyncio.sleep(10)  # وقفه ۱۰ ثانیه بین بررسی‌ها
-#         except Exception as e:
-#             logging.error(f"Error in wallet processing: {e}")
-#             await asyncio.sleep(5)  # تلاش مجدد در صورت بروز خطا
 
 # async def telegram_bot():
 #     """اجرای ربات تلگرام و هندلرها."""
