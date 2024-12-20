@@ -126,8 +126,8 @@ async def check_wallet_transactions(user_id, wallet_address, last_tx_id):
             request = {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "method": "getConfirmedSignaturesForAddress2",
-                "params": [wallet_address, {"limit": 5}]
+                "method": "getSignaturesForAddress",
+                "params": [wallet_address, {"limit": 1}]
             }
             await ws.send(str(request))
             response = await ws.recv()
