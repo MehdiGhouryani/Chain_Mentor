@@ -770,7 +770,7 @@ async def process_wallets():
 
     while True:
         try:
-            await wallet_tracker.check_wallet_transactions()
+            await wallet_tracker.process_wallets()
             await asyncio.sleep(30)  # وقفه ۱۰ ثانیه بین بررسی‌ها
         except Exception as e:
             logging.error(f"Error in wallet processing: {e}")
@@ -813,8 +813,12 @@ def main():
         time=execution_time,
         days=(0, 1, 2, 3, 4, 5, 6),  
     )
-    
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     loop.create_task(process_wallets())
 
     app.run_polling()
