@@ -797,7 +797,7 @@ def main():
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
-    app.add_handler(CommandHandler("post", start_post))
+    app.add_handler(CommandHandler("post_twitter", start_post))
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
