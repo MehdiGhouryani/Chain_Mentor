@@ -233,6 +233,7 @@ async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
     chat_id = update.effective_chat.id
     print(chat_id)
 
@@ -247,17 +248,10 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
 
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     admin_message = (
-        f"ثبت نام دوره پیشرفته توسط {full_name} ثبت شد!\n"
+        f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
         f"نام کاربری: @{user_name}\n"
         # f"آیدی کاربر: {user_id}\n"
         )
-    for id in admin_id:
-        try:
-            await context.bot.send_message(
-                chat_id=id,
-                text=admin_message)
-        except Exception as e:
-            print(f"ERROR SEND_ADMIN {e}")
 
     course_type="advanced"
     c.execute("""
@@ -284,6 +278,20 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
         print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
     else:
         print("No course found with the given course_type.")
+
+    for id in admin_id:
+        try:
+            await context.bot.send_message(
+                chat_id=id,
+                text=admin_message)
+        except Exception as e:
+            print(f"ERROR SEND_ADMIN {e}")
+
+    await context.bot.send_message(chat_id=chat_id,text="ثبت نام شما در دوره انلاین ثبت گردید.")
+    await query.delete_message()
+
+
+
 
 
 async def get_user_info_advanced(update: Update, context: ContextTypes.DEFAULT_TYPE):
