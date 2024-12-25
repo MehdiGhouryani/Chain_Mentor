@@ -274,6 +274,11 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
             WHERE course_id = ?
         """, (new_count, course_id))
         
+        c.execute("""
+            INSERT INTO course_registrations (course_id, user_id, username, full_name)
+            VALUES (?, ?, ?, ?)
+        """, (course_id, chat_id, user_name, full_name))
+        
         conn.commit()
         print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
     else:
@@ -289,6 +294,8 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
 
     await context.bot.send_message(chat_id=chat_id,text="ثبت نام شما در دوره انلاین ثبت گردید.")
     await query.delete_message()
+
+
 
 
 
@@ -342,6 +349,11 @@ async def get_user_info_advanced(update: Update, context: ContextTypes.DEFAULT_T
             SET registrants_count = ?
             WHERE course_id = ?
         """, (new_count, course_id))
+        
+        c.execute("""
+            INSERT INTO course_registrations (course_id, user_id, username, full_name)
+            VALUES (?, ?, ?, ?)
+        """, (course_id, chat_id, user_name, full_name))
         
         conn.commit()
         print(f"Course ID {course_id} updated with new registrants_count: {new_count}")

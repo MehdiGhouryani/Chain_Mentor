@@ -106,6 +106,17 @@ def setup_database():
             CREATE INDEX IF NOT EXISTS idx_wallet_address ON wallets(wallet_address);
 ''')
     
+
+    c.execute('''
+            CREATE TABLE IF NOT EXISTS course_registrations (
+                registration_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                course_id INTEGER,
+                user_id INTEGER,
+                username TEXT,
+                full_name TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+''')
     c.execute('''
             CREATE TABLE IF NOT EXISTS links (
                 id SERIAL PRIMARY KEY,
