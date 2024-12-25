@@ -295,6 +295,7 @@ async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def get_user_info_advanced(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
     chat_id = update.effective_chat.id
     print(chat_id)
 
@@ -346,3 +347,5 @@ async def get_user_info_advanced(update: Update, context: ContextTypes.DEFAULT_T
         print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
     else:
         print("No course found with the given course_type.")
+    await context.bot.send_message(chat_id=chat_id,text="ثبت نام شما در دوره پیشرفته ثبت گردید.")
+    await query.delete_message()
