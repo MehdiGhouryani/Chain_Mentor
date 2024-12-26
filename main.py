@@ -569,9 +569,14 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if last_course:
         course_id =last_course[0]
     else:
-        print("دوره انلاینی موجود نیست فعلا")
+        await update.message.reply_text("دوره انلاینی موجود نیست فعلا")
     print(f"COURSE ID   :{course_id}")
+
+
+
     online_step = context.user_data.get('online')
+
+
     if online_step == "GET_NAME":
         context.user_data['name_online'] = update.message.text
         context.user_data['online'] = "GET_EMAIL"
@@ -595,40 +600,40 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
-    c.execute("""
-        SELECT course_id, registrants_count
-        FROM courses
-        WHERE course_type = ?
-        ORDER BY created_at DESC
-        LIMIT 1
-    """, (course_type,))
-    
-    course = c.fetchone()
-    
-    if course:
-        course_id, registrants_count = course
-
-        new_count = registrants_count + 1
         c.execute("""
-            UPDATE courses
-            SET registrants_count = ?
-            WHERE course_id = ?
-        """, (new_count, course_id))
+            SELECT course_id, registrants_count
+            FROM courses
+            WHERE course_type = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (course_type,))
         
-        c.execute("""
-            INSERT INTO course_registrations (course_id, user_id, username, full_name)
-            VALUES (?, ?, ?, ?)
-        """, (course_id, chat_id, user_name, full_name))
+        course = c.fetchone()
         
-        conn.commit()
-        
-    for id in admin_id:
-        try:
-            await context.bot.send_message(
-                chat_id=id,
-                text=admin_message)
-        except Exception as e:
-            print(f"ERROR SEND_ADMIN {e}")
+        if course:
+            course_id, registrants_count = course
+    
+            new_count = registrants_count + 1
+            c.execute("""
+                UPDATE courses
+                SET registrants_count = ?
+                WHERE course_id = ?
+            """, (new_count, course_id))
+            
+            c.execute("""
+                INSERT INTO course_registrations (course_id, user_id, username, full_name)
+                VALUES (?, ?, ?, ?)
+            """, (course_id, chat_id, user_name, full_name))
+            
+            conn.commit()
+            
+        for id in admin_id:
+            try:
+                await context.bot.send_message(
+                    chat_id=id,
+                    text=admin_message)
+            except Exception as e:
+                print(f"ERROR SEND_ADMIN {e}")
 
         # await star_payment_online(update,context,user_id,course_id)
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
