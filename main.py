@@ -573,6 +573,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
 
     elif online_step == "GET_PHONE":
+        print("get phone -------")
         context.user_data['phone_online'] = update.message.text
         await course.save_user_info(
             user_id,
@@ -581,7 +582,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
-        await star_payment_online(update,context,user_id,course_id)
+        # await star_payment_online(update,context,user_id,course_id)
         # await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
         
