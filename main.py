@@ -742,6 +742,12 @@ async def handle_advanced_step(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data['advanced'] = None
         # await query.delete_message()
 
+
+
+
+
+
+
 async def handle_messageToAll_step(update:Update,context:ContextTypes.DEFAULT_TYPE):
     
 
@@ -762,7 +768,7 @@ async def handle_messageToAll_step(update:Update,context:ContextTypes.DEFAULT_TY
             except Exception as e:
                 print(f"ERROR IN MESSAGE TO ALL {e}")
         await update.message.reply_text("👍")
-        
+        context.user_data['messageToAll'] = None
 
 
 
@@ -843,6 +849,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.pop('twitter,none')
         context.user_data.pop("reply_to",None)
         context.user_data.pop("awaiting_message",None)
+        context.user_data.pop("messageToAll",None)
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
 
