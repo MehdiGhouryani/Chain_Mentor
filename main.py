@@ -450,6 +450,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+
+
+
+
 async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat_id =update.effective_chat.id
@@ -534,6 +538,13 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
                 print(f"ERROR SEND_ADMIN {e}")
             # await star_payment_package(update,context,user_id,course_id)
             context.user_data['package'] = None
+
+
+
+
+
+
+
 
 
 

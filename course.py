@@ -230,70 +230,79 @@ async def get_user_info_package(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 
-
-
 async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
     chat_id = update.effective_chat.id
-    print(chat_id)
+    print("Current user_data:", context.user_data)
 
-    user_name =update.effective_chat.username
-    full_name=update.effective_chat.full_name
+    if not context.user_data.get('online'):
+        print("-- online initialized --")
+        context.user_data['online'] = "GET_NAME"
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً نام خود را وارد کنید:")
 
 
 
-    conn = sqlite3.connect('Database.db', check_same_thread=False)
-    c = conn.cursor()
-    # print("Current user_data:", context.user_data)
+# async def get_user_info_online(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     query = update.callback_query
+#     chat_id = update.effective_chat.id
+#     print(chat_id)
 
-    admin_id = [int(id) for id in ADMIN_CHAT_ID]
-    admin_message = (
-        f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
-        f"نام کاربری: @{user_name}\n"
-        # f"آیدی کاربر: {user_id}\n"
-        )
+#     user_name =update.effective_chat.username
+#     full_name=update.effective_chat.full_name
 
-    course_type="advanced"
-    c.execute("""
-        SELECT course_id, registrants_count
-        FROM courses
-        WHERE course_type = ?
-        ORDER BY created_at DESC
-        LIMIT 1
-    """, (course_type,))
+
+
+#     conn = sqlite3.connect('Database.db', check_same_thread=False)
+#     c = conn.cursor()
+#     # print("Current user_data:", context.user_data)
+
+#     admin_id = [int(id) for id in ADMIN_CHAT_ID]
+#     admin_message = (
+#         f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
+#         f"نام کاربری: @{user_name}\n"
+#         # f"آیدی کاربر: {user_id}\n"
+#         )
+
+#     course_type="advanced"
+#     c.execute("""
+#         SELECT course_id, registrants_count
+#         FROM courses
+#         WHERE course_type = ?
+#         ORDER BY created_at DESC
+#         LIMIT 1
+#     """, (course_type,))
     
-    course = c.fetchone()
+#     course = c.fetchone()
     
-    if course:
-        course_id, registrants_count = course
-        # افزایش تعداد ثبت‌نام‌کنندگان
-        new_count = registrants_count + 1
-        c.execute("""
-            UPDATE courses
-            SET registrants_count = ?
-            WHERE course_id = ?
-        """, (new_count, course_id))
+#     if course:
+#         course_id, registrants_count = course
+#         # افزایش تعداد ثبت‌نام‌کنندگان
+#         new_count = registrants_count + 1
+#         c.execute("""
+#             UPDATE courses
+#             SET registrants_count = ?
+#             WHERE course_id = ?
+#         """, (new_count, course_id))
         
-        c.execute("""
-            INSERT INTO course_registrations (course_id, user_id, username, full_name)
-            VALUES (?, ?, ?, ?)
-        """, (course_id, chat_id, user_name, full_name))
+#         c.execute("""
+#             INSERT INTO course_registrations (course_id, user_id, username, full_name)
+#             VALUES (?, ?, ?, ?)
+#         """, (course_id, chat_id, user_name, full_name))
         
-        conn.commit()
-        print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
-    else:
-        print("No course found with the given course_type.")
+#         conn.commit()
+#         print(f"Course ID {course_id} updated with new registrants_count: {new_count}")
+#     else:
+#         print("No course found with the given course_type.")
 
-    for id in admin_id:
-        try:
-            await context.bot.send_message(
-                chat_id=id,
-                text=admin_message)
-        except Exception as e:
-            print(f"ERROR SEND_ADMIN {e}")
+#     for id in admin_id:
+#         try:
+#             await context.bot.send_message(
+#                 chat_id=id,
+#                 text=admin_message)
+#         except Exception as e:
+#             print(f"ERROR SEND_ADMIN {e}")
 
-    await context.bot.send_message(chat_id=chat_id,text="ثبت نام شما در دوره انلاین ثبت گردید.")
-    await query.delete_message()
+#     await context.bot.send_message(chat_id=chat_id,text="ثبت نام شما در دوره انلاین ثبت گردید.")
+#     await query.delete_message()
 
 
 
