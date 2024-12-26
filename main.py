@@ -761,7 +761,7 @@ async def handle_messageToAll_step(update:Update,context:ContextTypes.DEFAULT_TY
                 await context.bot.send_message(chat_id=user_chat_id,text=message_admin)
             except Exception as e:
                 print(f"ERROR IN MESSAGE TO ALL {e}")
-
+        await update.message.reply_text("👍")
         
 
 
