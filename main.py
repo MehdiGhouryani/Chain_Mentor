@@ -552,10 +552,20 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_id = update.message.from_user.id
     chat_id =update.effective_chat.id
     course_type = 'online'
+    query = update.callback_query
+    user_name =update.effective_chat.username
+    full_name=update.effective_chat.full_name
+
+    admin_id = [int(id) for id in ADMIN_CHAT_ID]
+    admin_message = (
+        f"ثبت نام دوره انلاین توسط {full_name} ثبت شد!\n"
+        f"نام کاربری: @{user_name}\n"
+        # f"آیدی کاربر: {user_id}\n"
+        )
 
     c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
     last_course = c.fetchone()
-    print(f"LAST COURSE   :{last_course}")
+
     if last_course:
         course_id =last_course[0]
     else:
@@ -572,6 +582,9 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
         context.user_data['online'] = "GET_PHONE"
         await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
 
+
+
+
     elif online_step == "GET_PHONE":
         print("get phone -------")
         context.user_data['phone_online'] = update.message.text
@@ -582,9 +595,102 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             context.user_data['email_online'],
             context.user_data['phone_online']
         )
+    c.execute("""
+        SELECT course_id, registrants_count
+        FROM courses
+        WHERE course_type = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (course_type,))
+    
+    course = c.fetchone()
+    
+    if course:
+        course_id, registrants_count = course
+
+        new_count = registrants_count + 1
+        c.execute("""
+            UPDATE courses
+            SET registrants_count = ?
+            WHERE course_id = ?
+        """, (new_count, course_id))
+        
+        c.execute("""
+            INSERT INTO course_registrations (course_id, user_id, username, full_name)
+            VALUES (?, ?, ?, ?)
+        """, (course_id, chat_id, user_name, full_name))
+        
+        conn.commit()
+        
+    for id in admin_id:
+        try:
+            await context.bot.send_message(
+                chat_id=id,
+                text=admin_message)
+        except Exception as e:
+            print(f"ERROR SEND_ADMIN {e}")
+
         # await star_payment_online(update,context,user_id,course_id)
-        # await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
+        await query.delete_message()
+
+
+
+        
+async def handle_advanced_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    chat_id =update.effective_chat.id
+
+    user_name =update.effective_chat.username
+    full_name=update.effective_chat.full_name
+
+
+    
+    course_type = 'advanced'
+
+    c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
+    last_course = c.fetchone()
+    print(f"LAST COURSE   :{last_course}")
+    if last_course:
+        course_id =last_course[0]
+    else:
+        await update.message.reply_text("دوره انلاینی موجود نیست فعلا")
+
+    print(f"COURSE ID   :{course_id}")
+
+    advanced_step = context.user_data.get('advanced')
+    if advanced_step == "GET_NAME":
+        context.user_data['name_advanced'] = update.message.text
+        context.user_data['advanced'] = "GET_EMAIL"
+        await update.message.reply_text("لطفاً ایمیل خود را وارد کنید:")
+
+    elif advanced_step == "GET_EMAIL":
+        context.user_data['email_advanced'] = update.message.text
+        context.user_data['advanced'] = "GET_PHONE"
+        await update.message.reply_text("لطفاً شماره تلفن خود را وارد کنید:")
+
+    elif advanced_step == "GET_PHONE":
+        print("get phone -------")
+        context.user_data['phone_advanced'] = update.message.text
+        await course.save_user_info(
+            user_id,
+            chat_id,
+            context.user_data['name_advanced'],
+            context.user_data['email_advanced'],
+            context.user_data['phone_advanced']
+        )
+                
+        c.execute("""
+            INSERT INTO course_registrations (course_id, user_id, username, full_name)
+            VALUES (?, ?, ?, ?)
+        """, (course_id, chat_id, user_name, full_name))
+
+        conn.commit()
+
+        # await star_payment_advanced(update,context,user_id,course_id)
+        await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
+        context.user_data['advanced'] = None
         
 
 
@@ -659,6 +765,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # پاک کردن داده‌های مرتبط با کاربر
         context.user_data.pop('online', None)
         context.user_data.pop('package', None)
+        context.user_data.pop('advanced', None)
         context.user_data.pop('state', None)
         context.user_data.pop('description', None)
         context.user_data.pop('link', None)
@@ -729,6 +836,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif context.user_data.get('online'):
             await handle_online_step(update, context)
 
+        elif context.user_data.get('advanced'):
+            await handle_advanced_step(update, context)
+
         elif context.user_data.get("awaiting_message"):
             await receive_user_message_handler(update,context)
 
@@ -767,6 +877,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     except Exception as e:
         print(f"Error in handle_message: {e}")
         await update.message.reply_text("خطا در پردازش پیام. لطفاً دوباره تلاش کنید.")
+
+
 
 
 async def scheduled_jobs(context: CallbackContext):
