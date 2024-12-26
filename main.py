@@ -640,7 +640,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # await star_payment_online(update,context,user_id,course_id)
         await update.message.reply_text("اطلاعات شما با موفقیت ذخیره شد.")
         context.user_data['online'] = None
-        await query.delete_message()
+        # await query.delete_message()
 
 
 
