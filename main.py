@@ -551,7 +551,6 @@ async def handle_package_step(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     chat_id =update.effective_chat.id
-    course_type = 'online'
     query = update.callback_query
     user_name =update.effective_chat.username
     full_name=update.effective_chat.full_name
@@ -562,7 +561,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"نام کاربری: @{user_name}\n"
         # f"آیدی کاربر: {user_id}\n"
         )
-
+    course_type = 'online'
     c.execute("SELECT course_id from courses WHERE course_type = ? ORDER BY created_at DESC LIMIT 1",(course_type,))
     last_course = c.fetchone()
 
@@ -570,6 +569,9 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
         course_id =last_course[0]
     else:
         await update.message.reply_text("دوره انلاینی موجود نیست فعلا")
+
+
+
     print(f"COURSE ID   :{course_id}")
 
 
@@ -593,7 +595,7 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif online_step == "GET_PHONE":
         print("get phone -------")
         context.user_data['phone_online'] = update.message.text
-        await course.save_user_info(
+        await save_user_info(
             user_id,
             chat_id,
             context.user_data['name_online'],
@@ -607,26 +609,26 @@ async def handle_online_step(update: Update, context: ContextTypes.DEFAULT_TYPE)
             ORDER BY created_at DESC
             LIMIT 1
         """, (course_type,))
-        
+
         course = c.fetchone()
-        
+
         if course:
             course_id, registrants_count = course
-    
+
             new_count = registrants_count + 1
             c.execute("""
                 UPDATE courses
                 SET registrants_count = ?
                 WHERE course_id = ?
             """, (new_count, course_id))
-            
+
             c.execute("""
                 INSERT INTO course_registrations (course_id, user_id, username, full_name)
                 VALUES (?, ?, ?, ?)
             """, (course_id, chat_id, user_name, full_name))
-            
+
             conn.commit()
-            
+
         for id in admin_id:
             try:
                 await context.bot.send_message(
