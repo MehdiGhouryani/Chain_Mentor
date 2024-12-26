@@ -12,6 +12,20 @@ cursor = conn.cursor()
 
 
 
+async def send_message_to_all(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    chat_id=update.effective_chat.id
+    if not is_admin(update.message.from_user.id):
+        await update.message.reply_text("شما دسترسی لازم برای این عملیات را ندارید.")
+        return
+    if not context.user_data.get('messageToAll'):
+
+        context.user_data['messageToAll'] = "GET_MESSAGE"
+        await context.bot.send_message(chat_id=chat_id, text="لطفاً پیام خود را وارد کنید:")
+
+
+
+
+
 
 
 async def reply_to_user_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):

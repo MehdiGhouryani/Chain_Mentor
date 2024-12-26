@@ -23,7 +23,8 @@ from twitter import (update_task_step,get_task_step,add_points,start_post,user_s
 
 from database import setup_database,is_admin
 from user_handler import contact_us_handler,receive_user_message_handler
-from admin_panel import list_courses,receive_admin_response_handler,grant_vip_command,revoke_vip_command,list_vip,delete_course
+from admin_panel import (list_courses,receive_admin_response_handler,
+                         grant_vip_command,revoke_vip_command,list_vip,delete_course,send_message_to_all)
 
 from star_pay import (send_invoice,precheckout_callback,successful_payment_callback,
                       send_renewal_notification, send_vip_expired_notification,star_payment_online)
@@ -741,9 +742,29 @@ async def handle_advanced_step(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data['advanced'] = None
         # await query.delete_message()
 
+async def handle_messageToAll_step(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    
 
+    message_step = context.user_data.get('messageToAll')
+
+
+    if message_step == "GET_MESSAGE":
+        message_admin = update.message.text
+        c.execute("SELECT chat_id from users")
+        chat_ids=c.fetchall()
+
+        for user in chat_ids:
+            id = user[0]
+            user_chat_id = int(id)
+
+            try:
+                await context.bot.send_message(chat_id=user_chat_id,text=message_admin)
+            except Exception as e:
+                print(f"ERROR IN MESSAGE TO ALL {e}")
 
         
+
+
 
 
 async def handle_add_course_step(update: Update, user_id: int, text: str):
@@ -889,6 +910,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif context.user_data.get('advanced'):
             await handle_advanced_step(update, context)
 
+        elif context.user_data.get('messageToAll'):
+            await handle_messageToAll_step(update, context)
+
         elif context.user_data.get("awaiting_message"):
             await receive_user_message_handler(update,context)
 
@@ -975,6 +999,7 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
+    app.add_handler(CommandHandler("send_message",send_message_to_all))
     app.add_handler(CommandHandler("delete_course", delete_course))
     app.add_handler(CommandHandler("AI",ai_command))
     job_queue = app.job_queue
