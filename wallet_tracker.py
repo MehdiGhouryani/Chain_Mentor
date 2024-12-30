@@ -7,7 +7,9 @@ import logging
 from datetime import datetime
 from telegram import Update,Bot
 from telegram.ext import ContextTypes
-# تنظیمات
+import json
+
+
 QUICKNODE_WSS = 'wss://crimson-summer-lambo.solana-mainnet.quiknode.pro/cbf2ed09272440f3ae0c66090615118537e41bc9'
 DB_PATH = "Database.db"
 
@@ -17,14 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 
-
-
-
-
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
 
-# Cache برای جلوگیری از اعلان‌های تکراری
+
 transaction_cache = set()
 
 
@@ -80,8 +78,9 @@ async def track_wallet(wallet_address, user_id):
             # پردازش اعلان‌ها
             while True:
                 notification = await websocket.recv()
-                data = eval(notification)
-                logger.info(f"Notification received: {data}")
+                data = json.loads(notification)
+                print(f"DATA IN TRACK WAlLET _____________________ {data}")
+                # logger.info(f"Notification received: {data}")
                 
                 account_info = data.get("params", {}).get("result", {}).get("value", {})
                 lamports = account_info.get("lamports", 0)
