@@ -101,21 +101,21 @@ async def process_wallets():
 
 
 
-def get_wallets():
-    """دریافت آدرس‌های ولت از دیتابیس."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id, wallet_address, last_transaction_id FROM wallets;")
-        wallets = cursor.fetchall()
-        conn.close()
-        return wallets
-    except sqlite3.Error as e:
-        logger.error(f"Database error while fetching wallets: {e}")
-        return []
-    except Exception as e:
-        logger.error(f"Unexpected error while fetching wallets: {e}")
-        return []
+# def get_wallets():
+#     """دریافت آدرس‌های ولت از دیتابیس."""
+#     try:
+#         conn = sqlite3.connect(DB_PATH)
+#         cursor = conn.cursor()
+#         cursor.execute("SELECT user_id, wallet_address, last_transaction_id FROM wallets;")
+#         wallets = cursor.fetchall()
+#         conn.close()
+#         return wallets
+#     except sqlite3.Error as e:
+#         logger.error(f"Database error while fetching wallets: {e}")
+#         return []
+#     except Exception as e:
+#         logger.error(f"Unexpected error while fetching wallets: {e}")
+#         return []
 
 
 
