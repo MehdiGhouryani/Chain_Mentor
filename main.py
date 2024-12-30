@@ -274,7 +274,30 @@ async def show_vip_services(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             else:
                 await update.message.reply_text("عضویت VIP شما به پایان رسیده است.")
         else:
-            await send_invoice(update, context)  # در صورتی که کاربر عضو VIP نباشد، فاکتور ارسال می‌شود.
+
+            text_vip="""
+🌟 معرفی کانال‌های VIP ما 🌟
+
+🔹 کانال آلفا کال  
+📈 ارائه تحلیل‌های دقیق و معرفی کم‌ریسک‌ترین ارزهای DEX  
+⏱️ تایم فریم‌های: 15، 30، 60 دقیقه / 1 و 4 ساعته  
+
+
+
+🔸 کانال پلاس (-1h)  
+🚀 ارائه آلفاها و معرفی ارزهای جدید (پرریسک)  
+⚠️ توصیه: برای استفاده، مدیریت سرمایه، سیو سود، و رعایت حد ضرر ضروری است.  
+
+برای پرداخت روی دکمه زیر کلیک کن :
+"""
+
+
+            key_vip=[
+                [InlineKeyboardButton("✅ پرداخت",callback_data="vip_pay_text")]
+                ]
+            reply_markup = InlineKeyboardMarkup(key_vip)
+            await context.bot.send_message(chat_id=chat_id,text=text_vip,reply_markup=reply_markup)
+            # await send_invoice(update, context)  # در صورتی که کاربر عضو VIP نباشد، فاکتور ارسال می‌شود.
     
     except Exception as e:
         await update.message.reply_text(f"خطا در پردازش اطلاعات: {e}")

@@ -13,36 +13,36 @@ c = conn.cursor()
 VIP_DURATION_DAYS = 30
 
 
-async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text_invoice ="""
-✨ دسترسی VIP:  
-1️⃣ تحلیل‌های دقیق ارزهای نوظهور  
-2️⃣ اطلاعات زودهنگام آلفاها  
-💎 ویژه سرمایه‌گذاران حرفه‌ای و آگاه!  
-🚀 فرصت برای پیشی گرفتن از بازار."""
+# async def send_invoice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     text_invoice ="""
+# ✨ دسترسی VIP:  
+# 1️⃣ تحلیل‌های دقیق ارزهای نوظهور  
+# 2️⃣ اطلاعات زودهنگام آلفاها  
+# 💎 ویژه سرمایه‌گذاران حرفه‌ای و آگاه!  
+# 🚀 فرصت برای پیشی گرفتن از بازار."""
 
 
-    chat_id = update.message.chat_id
-    title = "VIP Membership"
-    description = text_invoice
-    payload = "VIP-access"
-    currency = "XTR"
-    price = 1
-    prices = [LabeledPrice("VIP Access", price * 1)]
+#     chat_id = update.message.chat_id
+#     title = "VIP Membership"
+#     description = text_invoice
+#     payload = "VIP-access"
+#     currency = "XTR"
+#     price = 1
+#     prices = [LabeledPrice("VIP Access", price * 1)]
 
-    try:
+#     try:
 
-        await context.bot.send_invoice(
-            chat_id=chat_id, 
-            title=title, 
-            description=description, 
-            payload=payload, 
-            provider_token="",  
-            currency=currency, 
-            prices=prices
-        )
-    except Exception as e:
-        await update.message.reply_text(f"Error in sending invoice: {e}")
+#         await context.bot.send_invoice(
+#             chat_id=chat_id, 
+#             title=title, 
+#             description=description, 
+#             payload=payload, 
+#             provider_token="",  
+#             currency=currency, 
+#             prices=prices
+#         )
+#     except Exception as e:
+#         await update.message.reply_text(f"Error in sending invoice: {e}")
 
 
 
