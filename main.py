@@ -394,7 +394,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await check_membership(update,context)
 
         elif data == 'vip_pay_text':
-            context.bot.send_message(chat_id=chat_id,text="""
+            text_vip="""
 💰 هزینه عضویت ماهیانه: 50 دلار  
 
 🔗 آدرس پرداخت:  
@@ -404,7 +404,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ( میتونید از بخش ارتباط با ما ارسال کنید یا با ادمین ها مستقیم ارتباط بگیرید )
 
 ✨ به جمع اعضای ویژه ما بپیوندید و از فرصت‌های بی‌نظیر سرمایه‌گذاری بهره‌مند شوید! ✨
-""")
+"""
+
+            context.bot.send_message(chat_id=chat_id,text=text_vip)
 
         elif data == "back":
             keyboard = [
