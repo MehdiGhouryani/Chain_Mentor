@@ -355,6 +355,21 @@ async def show_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await rs.show_score(update, context)  # فراخوانی تابع نمایش امتیاز از فایل referral_system
 
 
+async def vip_pay_text(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    chat_id=update.effective_chat.id
+    text_vip="""
+💰 هزینه عضویت ماهیانه: 50 دلار  
+
+🔗 آدرس پرداخت:  
+8euh6GfY2tW885ZHMiALfn8yzFYaTz54TssJHzqgx51g  
+
+📩 پس از واریز، لطفاً فیش تراکنش خود را ارسال کنید تا دسترسی به VIP فعال شود.  
+( میتونید از بخش ارتباط با ما ارسال کنید یا با ادمین ها مستقیم ارتباط بگیرید )
+
+✨ به جمع اعضای ویژه ما بپیوندید و از فرصت‌های بی‌نظیر سرمایه‌گذاری بهره‌مند شوید! ✨
+"""
+
+    context.bot.send_message(chat_id=chat_id,text=text_vip)
 
 
 
@@ -394,20 +409,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await check_membership(update,context)
 
         elif data == 'vip_pay_text':
-            text_vip="""
-💰 هزینه عضویت ماهیانه: 50 دلار  
-
-🔗 آدرس پرداخت:  
-8euh6GfY2tW885ZHMiALfn8yzFYaTz54TssJHzqgx51g  
-
-📩 پس از واریز، لطفاً فیش تراکنش خود را ارسال کنید تا دسترسی به VIP فعال شود.  
-( میتونید از بخش ارتباط با ما ارسال کنید یا با ادمین ها مستقیم ارتباط بگیرید )
-
-✨ به جمع اعضای ویژه ما بپیوندید و از فرصت‌های بی‌نظیر سرمایه‌گذاری بهره‌مند شوید! ✨
-"""
-
-            context.bot.send_message(chat_id=chat_id,text=text_vip)
-
+            await vip_pay_text(update,context)
         elif data == "back":
             keyboard = [
                 [InlineKeyboardButton("خرید پکیج ویدئویی", callback_data="buy_video_package")],
