@@ -9,7 +9,6 @@ from telegram import Update,Bot
 from telegram.ext import ContextTypes
 import json
 
-
 QUICKNODE_WSS = 'wss://crimson-summer-lambo.solana-mainnet.quiknode.pro/cbf2ed09272440f3ae0c66090615118537e41bc9'
 DB_PATH = "Database.db"
 
@@ -19,30 +18,18 @@ logger = logging.getLogger(__name__)
 
 
 
-conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-cursor = conn.cursor()
-
-
-transaction_cache = set()
-
-
-
-
-
-
-
 def get_wallets():
     """دریافت لیست ولت‌ها از دیتابیس."""
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id, wallet_address FROM wallets;")
-        wallets = cursor.fetchall()
-        conn.close()
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT user_id, wallet_address FROM wallets;")
+            wallets = cursor.fetchall()
         return wallets
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
         return []
+
 
 async def send_alert(user_id, wallet_address, lamports):
     """ارسال پیام تغییرات به کاربر."""
@@ -59,44 +46,64 @@ async def send_alert(user_id, wallet_address, lamports):
         logger.error(f"Failed to send alert to user {user_id}: {e}")
 
 
-
-
-
 async def track_wallet(wallet_address, user_id):
-
+    """ردیابی تغییرات در ولت."""
     try:
         async with connect(QUICKNODE_WSS) as websocket:
-            # اشتراک در تغییرات ولت
             await websocket.account_subscribe(Pubkey.from_string(wallet_address))
             logger.info(f"Subscribed to wallet: {wallet_address}")
-            
-            # دریافت پاسخ اولیه
             first_resp = await websocket.recv()
-            print(f"FIRST RESP   ________ {first_resp}")
-            logger.info(f"Initial response: {first_resp}")
-            
-            # پردازش اعلان‌ها
+            logger.info(f"Initial response for {wallet_address}: {first_resp}")
+
             while True:
                 notification = await websocket.recv()
                 data = json.loads(notification)
-                print(f"DATA IN TRACK WAlLET _____________________ {data}")
-                # logger.info(f"Notification received: {data}")
-                
                 account_info = data.get("params", {}).get("result", {}).get("value", {})
                 lamports = account_info.get("lamports", 0)
                 await send_alert(user_id, wallet_address, lamports)
+
     except Exception as e:
         logger.error(f"Error tracking wallet {wallet_address}: {e}")
 
 
-
-
 async def process_wallets():
-    """بررسی تراکنش‌ها برای همه کیف پول‌ها به‌صورت همزمان."""
+    """بررسی ولت‌ها و اجرای ردیابی با مدیریت تعداد کانکشن‌ها."""
     wallets = get_wallets()
-    tasks = [track_wallet(wallet_address, user_id)
-             for user_id, wallet_address in wallets]
-    await asyncio.gather(*tasks)
+    for i in range(0, len(wallets), 2):  # تقسیم به گروه‌های دو تایی
+        group = wallets[i:i + 2]
+        tasks = [track_wallet(wallet_address, user_id) for user_id, wallet_address in group]
+        await asyncio.gather(*tasks)
+        await asyncio.sleep(10)  # توقف کوتاه بین هر گروه برای مدیریت کانکشن
+
+
+
+
+conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+cursor = conn.cursor()
+
+
+transaction_cache = set()
+
+
+
+def update_last_transaction(user_id, wallet_address, transaction_id):
+    """به‌روزرسانی آخرین تراکنش در دیتابیس."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE wallets SET last_transaction_id = ? 
+            WHERE user_id = ? AND wallet_address = ?;
+        """, (transaction_id, user_id, wallet_address))
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as e:
+        logger.error(f"Database error while updating transaction for {wallet_address}: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error while updating transaction for {wallet_address}: {e}")
+
+
+
 
 
 
@@ -116,25 +123,6 @@ async def process_wallets():
 #         logger.error(f"Unexpected error while fetching wallets: {e}")
 #         return []
 
-
-
-
-
-def update_last_transaction(user_id, wallet_address, transaction_id):
-    """به‌روزرسانی آخرین تراکنش در دیتابیس."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE wallets SET last_transaction_id = ? 
-            WHERE user_id = ? AND wallet_address = ?;
-        """, (transaction_id, user_id, wallet_address))
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as e:
-        logger.error(f"Database error while updating transaction for {wallet_address}: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error while updating transaction for {wallet_address}: {e}")
 
 
 
