@@ -26,7 +26,7 @@ from user_handler import contact_us_handler,receive_user_message_handler
 from admin_panel import (list_courses,receive_admin_response_handler,
                          grant_vip_command,revoke_vip_command,list_vip,delete_course,send_message_to_all)
 
-from star_pay import (send_invoice,precheckout_callback,successful_payment_callback,
+from star_pay import (precheckout_callback,successful_payment_callback,
                       send_renewal_notification, send_vip_expired_notification,star_payment_online)
 
 from telegram.constants import ParseMode
