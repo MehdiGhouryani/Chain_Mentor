@@ -369,7 +369,7 @@ async def vip_pay_text(update:Update,context:ContextTypes.DEFAULT_TYPE):
 ✨ به جمع اعضای ویژه ما بپیوندید و از فرصت‌های بی‌نظیر سرمایه‌گذاری بهره‌مند شوید! ✨
 """
 
-    context.bot.send_message(chat_id=chat_id,text=text_vip)
+    await context.bot.send_message(chat_id=chat_id,text=text_vip)
 
 
 
