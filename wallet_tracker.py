@@ -1,7 +1,7 @@
 
 import asyncio
 from solana.rpc.websocket_api import connect
-from solana.publickey import PublicKey
+from solders.pubkey import pubkey
 import sqlite3
 import logging
 from datetime import datetime
@@ -69,11 +69,12 @@ async def track_wallet(wallet_address, user_id):
     try:
         async with connect(QUICKNODE_WSS) as websocket:
             # اشتراک در تغییرات ولت
-            await websocket.account_subscribe(PublicKey(wallet_address))
+            await websocket.account_subscribe(pubkey.from_string(wallet_address))
             logger.info(f"Subscribed to wallet: {wallet_address}")
             
             # دریافت پاسخ اولیه
             first_resp = await websocket.recv()
+            print(f"FIRST RESP   ________ {first_resp}")
             logger.info(f"Initial response: {first_resp}")
             
             # پردازش اعلان‌ها
