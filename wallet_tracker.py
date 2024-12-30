@@ -1,37 +1,21 @@
+
+import asyncio
+from solana.rpc.websocket_api import connect
+from solana.publickey import PublicKey
 import sqlite3
 import logging
-import websockets
-from telegram import Bot
 from datetime import datetime
-from telegram import Update
+from telegram import Update,Bot
 from telegram.ext import ContextTypes
-import os
-from dotenv import load_dotenv
-import asyncio
-from database import get_wallets_from_db
-
-
-
-
-load_dotenv()
-
-
-
-
-API_KEY = os.getenv("apiKey_solscan")
-CHECK_INTERVAL = 1  
-
-
-
+# تنظیمات
 QUICKNODE_WSS = 'wss://crimson-summer-lambo.solana-mainnet.quiknode.pro/cbf2ed09272440f3ae0c66090615118537e41bc9'
 DB_PATH = "Database.db"
 
 
-
-
-# تنظیمات لاگینگ
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
 
 
 
@@ -46,6 +30,73 @@ transaction_cache = set()
 
 
 
+
+
+
+def get_wallets():
+    """دریافت لیست ولت‌ها از دیتابیس."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id, wallet_address FROM wallets;")
+        wallets = cursor.fetchall()
+        conn.close()
+        return wallets
+    except sqlite3.Error as e:
+        logger.error(f"Database error: {e}")
+        return []
+
+async def send_alert(user_id, wallet_address, lamports):
+    """ارسال پیام تغییرات به کاربر."""
+    message = f"""
+🟢 تغییر جدید در ولت شناسایی شد!
+💼 آدرس ولت: {wallet_address}
+💰 موجودی جدید: {lamports / 10**9} SOL
+📅 زمان: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+"""
+    logger.info(f"Alert sent to user {user_id}: {message}")
+    try:
+        await Bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
+    except Exception as e:
+        logger.error(f"Failed to send alert to user {user_id}: {e}")
+
+
+
+
+
+async def track_wallet(wallet_address, user_id):
+
+    try:
+        async with connect(QUICKNODE_WSS) as websocket:
+            # اشتراک در تغییرات ولت
+            await websocket.account_subscribe(PublicKey(wallet_address))
+            logger.info(f"Subscribed to wallet: {wallet_address}")
+            
+            # دریافت پاسخ اولیه
+            first_resp = await websocket.recv()
+            logger.info(f"Initial response: {first_resp}")
+            
+            # پردازش اعلان‌ها
+            while True:
+                notification = await websocket.recv()
+                data = eval(notification)
+                logger.info(f"Notification received: {data}")
+                
+                account_info = data.get("params", {}).get("result", {}).get("value", {})
+                lamports = account_info.get("lamports", 0)
+                await send_alert(user_id, wallet_address, lamports)
+    except Exception as e:
+        logger.error(f"Error tracking wallet {wallet_address}: {e}")
+
+
+
+
+async def process_wallets():
+    """بررسی تراکنش‌ها برای همه کیف پول‌ها به‌صورت همزمان."""
+    wallets = get_wallets()
+    tasks = [track_wallet(wallet_address, user_id)
+             for user_id, wallet_address in wallets]
+    await asyncio.gather(*tasks)
 
 
 
@@ -88,69 +139,60 @@ def update_last_transaction(user_id, wallet_address, transaction_id):
 
 
 
+# async def check_wallet_transactions(user_id, wallet_address, last_tx_id):
+#     """بررسی تراکنش‌های جدید برای یک کیف پول."""
+#     try:
+#         async with websockets.connect(QUICKNODE_WSS) as ws:
+#             # درخواست برای بررسی تراکنش‌های کیف پول
+#             request = {
+#                 "jsonrpc": "2.0",
+#                 "id": 1,
+#                 "method": "getSignaturesForAddress",
+#                 "params": [wallet_address, {"limit": 1}]
+#             }
+#             await ws.send(str(request))
+#             response = await ws.recv()
+#             print(" -- Response  Recevied   -------      ",response)
 
-async def send_transaction_alert(user_id, wallet_address, transaction_details):
-    """ارسال پیام تراکنش به کاربر تلگرام."""
-    message = f"""
-🟢 تراکنش جدید شناسایی شد!
-💼 آدرس: {wallet_address}
-💰 مقدار: {transaction_details.get('amount', 0)} SOL
-🔗 Signature: {transaction_details['signature']}
-📅 زمان: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-"""
-    try:
-        await Bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
-    except Exception as e:
-        logger.error(f"Failed to send alert to user {user_id}: {e}")
-
-
-
-
-
-async def process_wallets():
-    """بررسی تراکنش‌ها برای همه کیف پول‌ها به‌صورت همزمان."""
-    wallets = get_wallets()
-    tasks = [check_wallet_transactions(user_id, wallet_address, last_tx_id)
-             for user_id, wallet_address, last_tx_id in wallets]
-    await asyncio.gather(*tasks)
-
-
+#             # پردازش پاسخ WebSocket
+#             result = eval(response).get("result", [])
+#             for tx in result:
+#                 signature = tx["signature"]
+#                 if signature not in transaction_cache and signature != last_tx_id:
+#                     transaction_details = {
+#                         "amount": "N/A",  # جزئیات تراکنش را می‌توان گسترش داد
+#                         "signature": signature
+#                     }
+#                     await send_transaction_alert(user_id, wallet_address, transaction_details)
 
 
-
-async def check_wallet_transactions(user_id, wallet_address, last_tx_id):
-    """بررسی تراکنش‌های جدید برای یک کیف پول."""
-    try:
-        async with websockets.connect(QUICKNODE_WSS) as ws:
-            # درخواست برای بررسی تراکنش‌های کیف پول
-            request = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "getSignaturesForAddress",
-                "params": [wallet_address, {"limit": 1}]
-            }
-            await ws.send(str(request))
-            response = await ws.recv()
-            print(" -- Response  Recevied   -------      ",response)
-
-            # پردازش پاسخ WebSocket
-            result = eval(response).get("result", [])
-            for tx in result:
-                signature = tx["signature"]
-                if signature not in transaction_cache and signature != last_tx_id:
-                    transaction_details = {
-                        "amount": "N/A",  # جزئیات تراکنش را می‌توان گسترش داد
-                        "signature": signature
-                    }
-                    await send_transaction_alert(user_id, wallet_address, transaction_details)
+#                     transaction_cache.add(signature)
+#                     update_last_transaction(user_id, wallet_address, signature)
+#     except websockets.exceptions.WebSocketException as e:
+#         logger.error(f"WebSocket error while processing wallet {wallet_address}: {e}")
+#     except Exception as e:
+#         logger.error(f"Unexpected error while processing wallet {wallet_address}: {e}")
 
 
-                    transaction_cache.add(signature)
-                    update_last_transaction(user_id, wallet_address, signature)
-    except websockets.exceptions.WebSocketException as e:
-        logger.error(f"WebSocket error while processing wallet {wallet_address}: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error while processing wallet {wallet_address}: {e}")
+
+
+# async def send_transaction_alert(user_id, wallet_address, transaction_details):
+#     """ارسال پیام تراکنش به کاربر تلگرام."""
+#     message = f"""
+# 🟢 تراکنش جدید شناسایی شد!
+# 💼 آدرس: {wallet_address}
+# 💰 مقدار: {transaction_details.get('amount', 0)} SOL
+# 🔗 Signature: {transaction_details['signature']}
+# 📅 زمان: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# """
+#     try:
+#         await Bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
+#     except Exception as e:
+#         logger.error(f"Failed to send alert to user {user_id}: {e}")
+
+
+
+
 
 
 

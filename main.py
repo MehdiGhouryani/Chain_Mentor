@@ -1017,10 +1017,11 @@ async def process_wallets():
     while True:
         try:
             await wallet_tracker.process_wallets()
-            await asyncio.sleep(30)  # وقفه ۱۰ ثانیه بین بررسی‌ها
+            await asyncio.sleep(30)  
         except Exception as e:
             logging.error(f"Error in wallet processing: {e}")
-            await asyncio.sleep(10)  # تلاش مجدد در صورت بروز خطا
+            await asyncio.sleep(10)  
+
 
 
 
@@ -1030,6 +1031,7 @@ def main():
 
     app = Application.builder().token(token).build()
     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
+
 
 
     app.add_handler(CommandHandler("start", start))
