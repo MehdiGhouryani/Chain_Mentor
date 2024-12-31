@@ -893,6 +893,8 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.pop("messageToAll",None)
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
+        user_state.pop(user_id,None)
+
 
         # اطلاع‌رسانی در لاگ یا با print
         print(f"وضعیت و داده‌های کاربر {user_id} با موفقیت پاک شدند.")
@@ -1034,23 +1036,23 @@ def main():
 
 
 
-    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("start", start, filters=filters.ChatType.PRIVATE))
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
 
-    app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
-    app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
-    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
+    app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet, filters=filters.ChatType.PRIVATE))
+    app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet, filters=filters.ChatType.PRIVATE))
+    app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("add_points", rs.add_points_handler))
     app.add_handler(CommandHandler("remove_points", rs.remove_points_handler))
     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
-    app.add_handler(CommandHandler("post_twitter", start_post))
+    app.add_handler(CommandHandler("post_twitter", start_post, filters=filters.ChatType.PRIVATE))
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
-    app.add_handler(CommandHandler("send_message",send_message_to_all))
-    app.add_handler(CommandHandler("delete_course", delete_course))
+    app.add_handler(CommandHandler("send_message",send_message_to_all, filters=filters.ChatType.PRIVATE))
+    app.add_handler(CommandHandler("delete_course", delete_course, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("AI",ai_command))
     job_queue = app.job_queue
 
