@@ -2,7 +2,10 @@ import sqlite3
 from telegram import Update
 from telegram.ext import CallbackContext,ContextTypes
 from config import none_step
-# تنظیمات امتیازدهی
+from config import ADMIN_CHAT_ID
+
+
+
 INITIAL_SCORE = 0
 REFERRAL_BONUS = 50
 PENALTY_POINTS = 5
@@ -186,32 +189,52 @@ async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
 
 
-
 async def remove_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await none_step(update, context)
     try:
-        if not update.message.reply_to_message:
-            await update.message.reply_text("لطفاً دستور را به عنوان ریپلای به پیام کاربر ارسال کنید.")
-            return
-
+        # بررسی اینکه آیا کاربر ادمین است
         if not await is_admin(update, context):
             await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
             return
 
-        user_id = update.message.reply_to_message.from_user.id
-        points = int(context.args[0]) if context.args and context.args[0].isdigit() else 1  # اگر مقدار امتیاز داده نشده، به طور پیش‌فرض 1 است
+        # تعیین user_id از پیام ریپلای یا آرگومان
+        if update.message.reply_to_message:
+            user_id = update.message.reply_to_message.from_user.id
+        elif context.args and context.args[0].isdigit():
+            user_id = int(context.args[0])
+        else:
+            await update.message.reply_text("لطفاً دستور را روی پیام کاربر ریپلای کنید یا آیدی کاربر را وارد کنید.")
+            return
 
+        # بررسی و تبدیل امتیاز به عدد صحیح، در صورت نبود مقدار پیش‌فرض 1
+        try:
+            points = int(context.args[1]) if len(context.args) > 1 and context.args[1].isdigit() else 1
+        except ValueError:
+            await update.message.reply_text("لطفاً یک عدد معتبر برای امتیاز وارد کنید.")
+            return
+
+        # بررسی اینکه امتیاز قابل حذف منفی نیست
+        if points <= 0:
+            await update.message.reply_text("مقدار امتیاز باید بیشتر از صفر باشد.")
+            return
+
+        # حذف امتیاز کاربر
         remove_points(user_id, points)
+
+        # گرفتن امتیاز جدید کاربر و ارسال پیام به ادمین
         new_score = get_user_score(user_id)
         await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
-        
+
+
+
     except Exception as e:
+        # مدیریت خطا و ارسال پیام در صورت بروز مشکل
         print(f"ERROR IN REMOVE POINT: {e}")
         await update.message.reply_text("خطایی در حذف امتیاز رخ داده است. لطفاً دوباره تلاش کنید.")
 
-async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    user = update.message.from_user
-    chat_id = update.message.chat.id
-    member = await context.bot.get_chat_member(chat_id, user.id)
-    return member.status in ['administrator', 'creator']
 
+
+
+
+def is_admin(user_id):
+    return str(user_id) in ADMIN_CHAT_ID
