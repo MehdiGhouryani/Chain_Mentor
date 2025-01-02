@@ -13,67 +13,67 @@ QUICKNODE_WSS = 'wss://crimson-summer-lambo.solana-mainnet.quiknode.pro/cbf2ed09
 DB_PATH = "Database.db"
 
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 
-def get_wallets():
-    """دریافت لیست ولت‌ها از دیتابیس."""
-    try:
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT user_id, wallet_address FROM wallets;")
-            wallets = cursor.fetchall()
-        return wallets
-    except sqlite3.Error as e:
-        logger.error(f"Database error: {e}")
-        return []
+# def get_wallets():
+#     """دریافت لیست ولت‌ها از دیتابیس."""
+#     try:
+#         with sqlite3.connect(DB_PATH) as conn:
+#             cursor = conn.cursor()
+#             cursor.execute("SELECT user_id, wallet_address FROM wallets;")
+#             wallets = cursor.fetchall()
+#         return wallets
+#     except sqlite3.Error as e:
+#         logger.error(f"Database error: {e}")
+#         return []
 
 
-async def send_alert(user_id, wallet_address, lamports):
-    """ارسال پیام تغییرات به کاربر."""
-    message = f"""
-🟢 تغییر جدید در ولت شناسایی شد!
-💼 آدرس ولت: {wallet_address}
-💰 موجودی جدید: {lamports / 10**9} SOL
-📅 زمان: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-"""
-    logger.info(f"Alert sent to user {user_id}: {message}")
-    try:
-        await Bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
-    except Exception as e:
-        logger.error(f"Failed to send alert to user {user_id}: {e}")
+# async def send_alert(user_id, wallet_address, lamports):
+#     """ارسال پیام تغییرات به کاربر."""
+#     message = f"""
+# 🟢 تغییر جدید در ولت شناسایی شد!
+# 💼 آدرس ولت: {wallet_address}
+# 💰 موجودی جدید: {lamports / 10**9} SOL
+# 📅 زمان: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# """
+#     logger.info(f"Alert sent to user {user_id}: {message}")
+#     try:
+#         await Bot.send_message(chat_id=user_id, text=message, parse_mode="Markdown")
+#     except Exception as e:
+#         logger.error(f"Failed to send alert to user {user_id}: {e}")
 
 
-async def track_wallet(wallet_address, user_id):
-    """ردیابی تغییرات در ولت."""
-    try:
-        async with connect(QUICKNODE_WSS) as websocket:
-            await websocket.account_subscribe(Pubkey.from_string(wallet_address))
-            logger.info(f"Subscribed to wallet: {wallet_address}")
-            first_resp = await websocket.recv()
-            logger.info(f"Initial response for {wallet_address}: {first_resp}")
+# async def track_wallet(wallet_address, user_id):
+#     """ردیابی تغییرات در ولت."""
+#     try:
+#         async with connect(QUICKNODE_WSS) as websocket:
+#             await websocket.account_subscribe(Pubkey.from_string(wallet_address))
+#             logger.info(f"Subscribed to wallet: {wallet_address}")
+#             first_resp = await websocket.recv()
+#             logger.info(f"Initial response for {wallet_address}: {first_resp}")
 
-            while True:
-                notification = await websocket.recv()
-                data = json.loads(notification)
-                account_info = data.get("params", {}).get("result", {}).get("value", {})
-                lamports = account_info.get("lamports", 0)
-                await send_alert(user_id, wallet_address, lamports)
+#             while True:
+#                 notification = await websocket.recv()
+#                 data = json.loads(notification)
+#                 account_info = data.get("params", {}).get("result", {}).get("value", {})
+#                 lamports = account_info.get("lamports", 0)
+#                 await send_alert(user_id, wallet_address, lamports)
 
-    except Exception as e:
-        logger.error(f"Error tracking wallet {wallet_address}: {e}")
+#     except Exception as e:
+#         logger.error(f"Error tracking wallet {wallet_address}: {e}")
 
 
-async def process_wallets():
-    """بررسی ولت‌ها و اجرای ردیابی با مدیریت تعداد کانکشن‌ها."""
-    wallets = get_wallets()
-    for i in range(0, len(wallets), 2):  # تقسیم به گروه‌های دو تایی
-        group = wallets[i:i + 2]
-        tasks = [track_wallet(wallet_address, user_id) for user_id, wallet_address in group]
-        await asyncio.gather(*tasks)
-        await asyncio.sleep(10)  # توقف کوتاه بین هر گروه برای مدیریت کانکشن
+# async def process_wallets():
+#     """بررسی ولت‌ها و اجرای ردیابی با مدیریت تعداد کانکشن‌ها."""
+#     wallets = get_wallets()
+#     for i in range(0, len(wallets), 2):  # تقسیم به گروه‌های دو تایی
+#         group = wallets[i:i + 2]
+#         tasks = [track_wallet(wallet_address, user_id) for user_id, wallet_address in group]
+#         await asyncio.gather(*tasks)
+#         await asyncio.sleep(10)  # توقف کوتاه بین هر گروه برای مدیریت کانکشن
 
 
 
@@ -82,25 +82,25 @@ conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
 
 
-transaction_cache = set()
+# transaction_cache = set()
 
 
 
-def update_last_transaction(user_id, wallet_address, transaction_id):
-    """به‌روزرسانی آخرین تراکنش در دیتابیس."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE wallets SET last_transaction_id = ? 
-            WHERE user_id = ? AND wallet_address = ?;
-        """, (transaction_id, user_id, wallet_address))
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as e:
-        logger.error(f"Database error while updating transaction for {wallet_address}: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error while updating transaction for {wallet_address}: {e}")
+# def update_last_transaction(user_id, wallet_address, transaction_id):
+#     """به‌روزرسانی آخرین تراکنش در دیتابیس."""
+#     try:
+#         conn = sqlite3.connect(DB_PATH)
+#         cursor = conn.cursor()
+#         cursor.execute("""
+#             UPDATE wallets SET last_transaction_id = ? 
+#             WHERE user_id = ? AND wallet_address = ?;
+#         """, (transaction_id, user_id, wallet_address))
+#         conn.commit()
+#         conn.close()
+#     except sqlite3.Error as e:
+#         logger.error(f"Database error while updating transaction for {wallet_address}: {e}")
+#     except Exception as e:
+#         logger.error(f"Unexpected error while updating transaction for {wallet_address}: {e}")
 
 
 
