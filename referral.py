@@ -143,10 +143,11 @@ def remove_points(user_id, points):
 
 
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
+    id_user = update.effective_user.id
+    
     try:
         # بررسی دسترسی ادمین
-        if not await is_admin(update, context):
+        if not await is_admin(id_user):
             await update.message.reply_text("⛔ فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
             return
 
@@ -190,10 +191,11 @@ async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def remove_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id_user = update.effective_user.id
     await none_step(update, context)
     try:
         # بررسی اینکه آیا کاربر ادمین است
-        if not await is_admin(update, context):
+        if not await is_admin(id_user):
             await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
             return
 
