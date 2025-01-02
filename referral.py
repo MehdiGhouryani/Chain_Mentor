@@ -139,41 +139,51 @@ def remove_points(user_id, points):
 
 
 
-
 async def add_points_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await none_step(update, context)
+
     try:
-        # بررسی اینکه آیا کاربر ریپلای کرده است یا نه
+        # بررسی دسترسی ادمین
+        if not await is_admin(update, context):
+            await update.message.reply_text("⛔ فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
+            return
+
+        # دریافت user_id از ریپلای یا آرگومان
         if update.message.reply_to_message:
             user = update.message.reply_to_message.from_user
             user_id = user.id
         elif context.args and context.args[0].isdigit():
-            # اگر ریپلای نشده باشد، بررسی می‌کنیم که user_id مستقیماً ارسال شده است یا خیر
             user_id = int(context.args[0])
         else:
-            await update.message.reply_text("لطفاً روی پیام کاربر ریپلای کنید یا آیدی کاربر را به همراه دستور وارد کنید!")
+            await update.message.reply_text(
+                "⚠️ لطفاً روی پیام کاربر ریپلای کنید یا آیدی کاربر را همراه با دستور ارسال کنید.\n"
+                "📌 مثال: /addpoints 123456789 10",
+                parse_mode="Markdown",
+            )
             return
 
-        # بررسی اینکه آیا امتیاز مشخص شده یا مقدار پیش‌فرض 1 باشد
+        # دریافت امتیاز از آرگومان یا تنظیم مقدار پیش‌فرض 1
         if len(context.args) > 1 and context.args[1].isdigit():
             points = int(context.args[1])
         else:
             points = 1
 
-        # بررسی اینکه فقط ادمین‌ها بتوانند از دستور استفاده کنند
-        if not await is_admin(update, context):
-            await update.message.reply_text("فقط ادمین‌ها می‌توانند از این دستور استفاده کنند.")
-            return
-
-        # افزودن امتیاز به کاربر
+        # افزودن امتیاز
         add_points(user_id, points)
-        new_score = get_user_score(user_id)
-        await update.message.reply_text(f"امتیاز کاربر {user_id} به {new_score} تغییر یافت.")
 
+        # دریافت امتیاز جدید کاربر
+        new_score = get_user_score(user_id)
+        await update.message.reply_text(
+            f"✅ امتیاز کاربر با آیدی {user_id} به {new_score} تغییر یافت.",
+            parse_mode="Markdown",
+        )
+
+    except ValueError as ve:
+        await update.message.reply_text(f"⚠️ خطا در مقدار امتیاز: {ve}")
     except Exception as e:
         print(f"ERROR IN ADD POINT: {e}")
-        await update.message.reply_text("خطایی در افزودن امتیاز رخ داده است. لطفاً دوباره تلاش کنید.")
-
+        await update.message.reply_text(
+            "❌ خطایی در افزودن امتیاز رخ داده است. لطفاً دوباره تلاش کنید."
+        )
 
 
 
