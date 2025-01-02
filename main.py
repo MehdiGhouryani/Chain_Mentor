@@ -1064,13 +1064,13 @@ def main():
         time=execution_time,
         days=(0, 1, 2, 3, 4, 5, 6),  
     )
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    # try:
+    #     loop = asyncio.get_running_loop()
+    # except RuntimeError:
+    #     loop = asyncio.new_event_loop()
+    #     asyncio.set_event_loop(loop)
 
-    loop.create_task(process_wallets())
+    # loop.create_task(process_wallets())
 
     app.run_polling()
 
