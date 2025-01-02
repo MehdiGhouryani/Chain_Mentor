@@ -1037,10 +1037,10 @@ def main():
 
 
     app.add_handler(CommandHandler("start", start, filters=filters.ChatType.PRIVATE))
-    # app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_handler(
-        MessageHandler(filters.ChatType.PRIVATE & (filters.TEXT | filters.PHOTO | filters.DOCUMENT), handle_message)
-)
+    app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
+#     app.add_handler(
+#         MessageHandler(filters.ChatType.PRIVATE & (filters.TEXT | filters.PHOTO | filters.DOCUMENT), handle_message)
+# )
     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets, filters=filters.ChatType.PRIVATE))
