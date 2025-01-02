@@ -108,7 +108,7 @@ async def send_post(update: Update, context:ContextTypes.DEFAULT_TYPE):
                 reply_markup = InlineKeyboardMarkup(keyboard)
             
                 chat = context.bot.get_chat(chat_id)
-                if chat.type =="private"
+                if chat.type =="private":
                     await context.bot.send_message(
                         chat_id=chat_id,
                         text=description,
