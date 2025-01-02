@@ -81,7 +81,7 @@ import sqlite3
 
 
 
-async def send_post(update: Update, context):
+async def send_post(update: Update, context:ContextTypes.DEFAULT_TYPE):
     try:
         query = update.callback_query
         await query.answer()
@@ -100,17 +100,20 @@ async def send_post(update: Update, context):
 
         ids = await get_all_users()
         for chat_id in ids:
-            keyboard = [
-                [InlineKeyboardButton("لینک توییتر", url=link),
-                 InlineKeyboardButton("✅ چک کردن", callback_data=f"check_disabled:{post_id}")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             try:
-                await context.bot.send_message(
-                    chat_id=chat_id,
-                    text=description,
-                    reply_markup=reply_markup,
-                )
+                keyboard = [
+                    [InlineKeyboardButton("لینک توییتر", url=link),
+                     InlineKeyboardButton("✅ چک کردن", callback_data=f"check_disabled:{post_id}")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+            
+                chat = context.bot.get_chat(chat_id)
+                if chat.type =="private"
+                    await context.bot.send_message(
+                        chat_id=chat_id,
+                        text=description,
+                        reply_markup=reply_markup,
+                    )
             except Exception as e:
                 print(f'ERROR IN SEND TWITTER : {e}')
         user_state[user_id] = {}  # پاک کردن وضعیت کاربر پس از ارسال پست
