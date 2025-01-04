@@ -5,15 +5,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext,ContextTypes
 
 
-async def save_twitter_account(user_id, twitter_id):
-    with get_db_connection() as conn:
-        conn.execute('''
-            INSERT INTO users (user_id, twitter_id)
-            VALUES (?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET twitter_id = ?
-        ''', (user_id, twitter_id, twitter_id))
-        conn.commit()
-    
+
 
 async def get_task_step(user_id):
     with get_db_connection() as conn:
@@ -279,7 +271,7 @@ async def save_twitter_id_handler(update: Update, context: ContextTypes.DEFAULT_
         user_id = update.message.from_user.id
 
         # ذخیره آیدی در پایگاه داده
-        was_updated = save_twitter_id_to_db(user_id, twitter_id)  # تابع ذخیره در پایگاه داده
+        was_updated = save_twitter_account(user_id, twitter_id)  # تابع ذخیره در پایگاه داده
 
         # امتیازدهی در صورت ثبت آیدی جدید
         if was_updated:
@@ -294,17 +286,12 @@ async def save_twitter_id_handler(update: Update, context: ContextTypes.DEFAULT_
         await update.message.reply_text("ابتدا دستور /twitter را ارسال کنید.")
 
 
-
-def save_twitter_id_to_db(user_id, twitter_id):
+async def save_twitter_account(user_id, twitter_id):
     with get_db_connection() as conn:
-        cursor = conn.execute(
-            '''
+        conn.execute('''
             INSERT INTO users (user_id, twitter_id)
             VALUES (?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET twitter_id = excluded.twitter_id
-            RETURNING (xmax = 0) AS is_new
-            ''', (user_id, twitter_id)
-        )
-        is_new = cursor.fetchone()["is_new"]
+            ON CONFLICT(user_id) DO UPDATE SET twitter_id = ?
+        ''', (user_id, twitter_id, twitter_id))
         conn.commit()
-        return is_new
+    
