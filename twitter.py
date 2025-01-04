@@ -296,10 +296,9 @@ def save_twitter_account(user_id, twitter_id):
 
 async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_link):
     user_id = update.message.from_user.id
-    query = update.callback_query
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     try:
-        await query.message.reply_text("""
+        await update.message.reply_text("""
 لینک شما برای بررسی ارسال شد.
         """)
 
