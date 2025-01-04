@@ -19,7 +19,7 @@ from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,
-                      error_handler,handle_twitter_id,set_task_checked,is_task_checked)
+                      error_handler,handle_twitter_id,set_task_checked,is_task_checked,twitter_start_handler,save_twitter_id_handler)
 
 from database import setup_database,is_admin
 from user_handler import contact_us_handler,receive_user_message_handler
@@ -432,8 +432,15 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         link = get_latest_link()
         data_button = query.data.split(":")
         post_id = int(data_button[1])
+
         if data_button[0] == "check_disabled":
-            await query.answer("ابتدا روی لینک توییتر کلیک کنید!", show_alert=True)
+            await query.message.reply_text("""
+آیدی توییتر خودتون رو وارد کنید.
+توجه کنید که به شکل صحیح وارد کنید که در فرایند بررسی مشکلی ایجاد نشه.
+""")
+            await update_task_step(user_id, 2)  
+            context.user_data["twitter_id"] = True
+
             keyboard = [
                 [InlineKeyboardButton("لینک توییتر", url=link),
                  InlineKeyboardButton("✅ چک کردن", callback_data=f"check_task:{post_id}")]
@@ -447,12 +454,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if step == 1:
                 print("STEP  1")
                 await query.message.reply_text("""
-آیدی توییتر خودتون رو وارد کنید.
+لینک توییتر خودتون رو وارد کنید.
 توجه کنید که به شکل صحیح وارد کنید که در فرایند بررسی مشکلی ایجاد نشه.
 """)
                 await update_task_step(user_id, 2)  
                 context.user_data["twitter_id"] = True
-                
+
             elif step == 2:
                 print("STEP  2")
                 await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
@@ -953,6 +960,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         elif context.user_data.get('package'):
             await handle_package_step(update, context)
+        elif context.user_data.get("awaiting_twitter_id"):
+            await save_twitter_id_handler(update,context)
 
         elif context.user_data.get('online'):
             await handle_online_step(update, context)
@@ -1050,12 +1059,14 @@ def main():
     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
     app.add_handler(CommandHandler("list_vip", list_vip))
     app.add_handler(CommandHandler("post_twitter", start_post, filters=filters.ChatType.PRIVATE))
-    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-    app.add_handler(CallbackQueryHandler(callback_handler))
-    app.add_error_handler(error_handler)
     app.add_handler(CommandHandler("send_message",send_message_to_all, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("delete_course", delete_course, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("AI",ai_command))
+    app.add_handler(CommandHandler("twitter", twitter_start_handler))
+    
+    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    app.add_handler(CallbackQueryHandler(callback_handler))
+    app.add_error_handler(error_handler)
     job_queue = app.job_queue
 
     execution_time = datetime.time(hour=8, minute=0, second=0)
