@@ -265,17 +265,13 @@ async def twitter_start_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 # ذخیره آیدی توییتر و ثبت در بخش توییتری
-async def save_twitter_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def save_twitter_id_handler(update: Update, context: ContextTypes.DEFAULT_TYPE,twitter_id):
     if context.user_data.get("awaiting_twitter_id"):
-        twitter_id = update.message.text
         user_id = update.message.from_user.id
 
-        # ذخیره آیدی در پایگاه داده
         was_updated = save_twitter_account(user_id, twitter_id)  # تابع ذخیره در پایگاه داده
-
-        # امتیازدهی در صورت ثبت آیدی جدید
         if was_updated:
-            add_points(user_id, 100)  # افزودن 10 امتیاز برای ثبت آیدی جدید
+            add_points(user_id, 50)  # افزودن 10 امتیاز برای ثبت آیدی جدید
 
         context.user_data["awaiting_twitter_id"] = False
         await update.message.reply_text(
@@ -296,3 +292,57 @@ def save_twitter_account(user_id, twitter_id):
         ''', (user_id, twitter_id, twitter_id))
         conn.commit()
     
+
+
+async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_link):
+    user_id = update.message.from_user.id
+    query = update.callback_query
+    
+    try:
+        await query.message.reply_text("""
+لینک شما برای بررسی ارسال شد.
+        """)
+
+        with get_db_connection() as conn:
+            cursor = conn.execute(
+                '''
+                SELECT user_id, chat_id, username, twitter_id, name, email, phone 
+                FROM users WHERE user_id = ?
+                ''',
+                (user_id,)
+            )
+            user_info = cursor.fetchone()
+
+            if user_info is None:
+                raise ValueError("کاربر یافت نشد.")
+
+        user_data_text = "✅ اطلاعات کاربر:\n\n"
+        user_data_mapping = {
+            "آیدی کاربر": user_info["user_id"],
+            "آیدی چت": user_info["chat_id"],
+            "نام کاربری": user_info["username"],
+            "آیدی توییتر": user_info["twitter_id"],
+            "نام": user_info["name"],
+            "ایمیل": user_info["email"],
+            "شماره تلفن": user_info["phone"],
+        }
+
+        for key, value in user_data_mapping.items():
+            if value: 
+                user_data_text += f"🔹 {key}: {value}\n"
+
+        admin_id = [int(id) for id in ADMIN_CHAT_ID]
+        for id in admin_id:
+            await context.bot.send_message(
+                chat_id=id,
+                text=user_data_text
+            )
+    
+    except Exception as e:
+        # ارسال ارور به ادمین
+        error_message = f"خطا در ارسال اطلاعات کاربر {user_id}:\n{str(e)}"
+        for id in admin_id:
+            await context.bot.send_message(
+                chat_id=id,
+                text=error_message
+            )

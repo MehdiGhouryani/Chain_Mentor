@@ -19,7 +19,7 @@ from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,
-                      error_handler,handle_twitter_id,set_task_checked,is_task_checked,twitter_start_handler,save_twitter_id_handler)
+                      error_handler,handle_twitter_id,set_task_checked,is_task_checked,twitter_start_handler,save_twitter_id_handler,send_proof)
 
 from database import setup_database,is_admin
 from user_handler import contact_us_handler,receive_user_message_handler
@@ -427,6 +427,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await send_post(update, context)
 
 
+
+
+
         user_id = query.from_user.id
         
         link = get_latest_link()
@@ -435,57 +438,57 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if data_button[0] == "check_disabled":
             await query.message.reply_text("""
-آیدی توییتر خودتون رو وارد کنید.
-توجه کنید که به شکل صحیح وارد کنید که در فرایند بررسی مشکلی ایجاد نشه.
-""")
-            await update_task_step(user_id, 2)  
-            context.user_data["twitter_id"] = True
+لینک توییت خودتون که تسک رو انجام دادید ارسال کنید.
+توجه داشته باشید که لینک به درستی ارسال بشه.
+        """)
+            await update_task_step(user_id, 2) 
+            context.user_data["awaiting_proof"] = True
 
             keyboard = [
                 [InlineKeyboardButton("لینک توییتر", url=link),
-                 InlineKeyboardButton("✅ چک کردن", callback_data=f"check_task:{post_id}")]
+                 InlineKeyboardButton("✅ چک کردن", callback_data=f"check_done:{post_id}")]
             ]
             await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(keyboard))
             await update_task_step(user_id, 1) 
 
 
-        elif data_button[0] == "check_task":
-            step = await get_task_step(user_id)
-            if step == 1:
-                print("STEP  1")
-                await query.message.reply_text("""
-لینک توییتر خودتون رو وارد کنید.
-توجه کنید که به شکل صحیح وارد کنید که در فرایند بررسی مشکلی ایجاد نشه.
-""")
-                await update_task_step(user_id, 2)  
-                context.user_data["twitter_id"] = True
+#         elif data_button[0] == "check_task":
+#             step = await get_task_step(user_id)
+#             if step == 1:
+#                 print("STEP  1")
+#                 await query.message.reply_text("""
+# لینک توییتر خودتون رو وارد کنید.
+# توجه کنید که به شکل صحیح وارد کنید که در فرایند بررسی مشکلی ایجاد نشه.
+# """)
+#                 await update_task_step(user_id, 2)  
+#                 context.user_data["twitter_id"] = True
 
-            elif step == 2:
-                print("STEP  2")
-                await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
-                await update_task_step(user_id, 3)  
+#             elif step == 2:
+#                 print("STEP  2")
+#                 await query.message.reply_text("هنوز تسک انجام نشده است. دوباره تلاش کنید.")
+#                 await update_task_step(user_id, 3)  
                 
-            elif step == 3:
+#             elif step == 3:
 
-                print("STEP  3")
-                await query.message.reply_text("تسک تأیید شد. 100 امتیاز به شما اضافه شد!")
-                await add_points(user_id, 100)  
-                await update_task_step(user_id, 1)  
-                await set_task_checked(context,user_id, post_id, True)
-                task_checked = await is_task_checked(user_id, post_id)
+#                 print("STEP  3")
+#                 await query.message.reply_text("تسک تأیید شد. 100 امتیاز به شما اضافه شد!")
+#                 await add_points(user_id, 100)  
+#                 await update_task_step(user_id, 1)  
+#                 await set_task_checked(context,user_id, post_id, True)
+#                 task_checked = await is_task_checked(user_id, post_id)
 
-                keyboard = [
-                    [InlineKeyboardButton("لینک توییتر", url=link),
-                     InlineKeyboardButton("✅ چک کردن", callback_data=f"check_done:{post_id}")]
-                ]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                await query.edit_message_reply_markup(reply_markup=reply_markup)
+#                 keyboard = [
+#                     [InlineKeyboardButton("لینک توییتر", url=link),
+#                      InlineKeyboardButton("✅ چک کردن", callback_data=f"check_done:{post_id}")]
+#                 ]
+#                 reply_markup = InlineKeyboardMarkup(keyboard)
+#                 await query.edit_message_reply_markup(reply_markup=reply_markup)
                 
 
 
 
         elif data_button[0] == "check_done":
-            await query.answer("مثل اینکه امتیاز این تسک رو قبلا دریافت کردی !")
+            await query.answer("قبلا لینک خودت و یبار ثبت کردی !!")
 
 
         await query.answer()
@@ -960,8 +963,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         elif context.user_data.get('package'):
             await handle_package_step(update, context)
+            
         elif context.user_data.get("awaiting_twitter_id"):
-            await save_twitter_id_handler(update,context)
+            await save_twitter_id_handler(update,context,text)
+
+        elif context.user_data.get("awaiting_proof"):
+            await send_proof(update,context,text)
 
         elif context.user_data.get('online'):
             await handle_online_step(update, context)
