@@ -319,10 +319,12 @@ async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_l
         user_data_mapping = {
             "آیدی کاربر": user_info["user_id"],
             "نام کاربری": user_info["username"],
+            'لینک حمایت':proof_link, 
             "آیدی توییتر": user_info["twitter_id"],
             "نام": user_info["name"],
             "ایمیل": user_info["email"],
             "شماره تلفن": user_info["phone"],
+
         }
 
         for key, value in user_data_mapping.items():
