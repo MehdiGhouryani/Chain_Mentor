@@ -286,7 +286,8 @@ async def save_twitter_id_handler(update: Update, context: ContextTypes.DEFAULT_
         await update.message.reply_text("ابتدا دستور /twitter را ارسال کنید.")
 
 
-async def save_twitter_account(user_id, twitter_id):
+
+def save_twitter_account(user_id, twitter_id):
     with get_db_connection() as conn:
         conn.execute('''
             INSERT INTO users (user_id, twitter_id)
