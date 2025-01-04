@@ -305,7 +305,7 @@ async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_l
         with get_db_connection() as conn:
             cursor = conn.execute(
                 '''
-                SELECT user_id, chat_id, username, twitter_id, name, email, phone 
+                SELECT user_id, username, twitter_id, name, email, phone 
                 FROM users WHERE user_id = ?
                 ''',
                 (user_id,)
@@ -318,7 +318,6 @@ async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_l
         user_data_text = "✅ اطلاعات کاربر:\n\n"
         user_data_mapping = {
             "آیدی کاربر": user_info["user_id"],
-            "آیدی چت": user_info["chat_id"],
             "نام کاربری": user_info["username"],
             "آیدی توییتر": user_info["twitter_id"],
             "نام": user_info["name"],
