@@ -109,7 +109,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 # بررسی اینکه آیا دعوت تکراری نیست
                 if not rs.is_already_referred(inviter_id, user_id):
-                    rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
+                    rs.add_points(inviter_id, 80)  # افزایش امتیاز کاربر دعوت‌کننده
                     rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
                     await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
 
@@ -1006,7 +1006,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif user_state.get(user_id, {}).get('state') == 'waiting_for_link':
             user_state[user_id]['link'] = update.message.text
             user_state[user_id]['state'] = 'ready_to_send'
-            # نمایش دکمه برای تأیید ارسال
+            await update.message.reply_text("چند امتیاز به کا")
+
             keyboard = [[InlineKeyboardButton("ارسال به کاربران", callback_data="send_post")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(
