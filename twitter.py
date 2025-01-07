@@ -90,9 +90,9 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         post_id = await save_link(link)
         print(f"postID is: {post_id} ({type(post_id)})")
-        ADMIN_CHAT_ID=['1717599240','182054074']
-        # ids = await get_all_users()
-        for chat_id in ADMIN_CHAT_ID:
+        # ADMIN_CHAT_ID=['1717599240','182054074']
+        ids = get_all_users()
+        for chat_id in ids:
             try:
                 keyboard = [
                     [
@@ -110,7 +110,7 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         reply_markup=reply_markup,
                     )
                 await query.edit_message_text("پست با موفقیت به همه کاربران ارسال شد.")
-                user_state[user_id] = {}  # پاک کردن وضعیت کاربر پس از ارسال پست
+                user_state[user_id] = {}
             except Exception as e:
                 print(f'ERROR IN SEND TWITTER: {e}')
         
@@ -120,6 +120,18 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("خطا در ارسال پست. لطفاً دوباره تلاش کنید.")
 
 
+
+
+
+
+def get_all_users_twitter():
+    """دریافت لیست شناسه کاربران از دیتابیس."""
+    conn = sqlite3.connect('Database.db')
+    c = conn.cursor()
+    c.execute("SELECT chat_id FROM users WHILE is_active = 1")
+    users = c.fetchall()
+    conn.close()
+    return [int(user[0]) for user in users]
 
 
 
@@ -350,3 +362,38 @@ async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_l
                 chat_id=id,
                 text=error_message
             )
+
+
+
+
+def update_user_status(user_id, is_active):
+    conn = sqlite3.connect('user_status.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO users (user_id, is_active)
+        VALUES (?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET is_active=?
+    ''', (user_id, is_active, is_active))
+    conn.commit()
+    conn.close()
+
+
+def get_user_status(user_id):
+    conn = sqlite3.connect('user_status.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT is_active FROM users WHERE user_id=?', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+
+async def cancel_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    update_user_status(user_id, False)  
+    await update.message.reply_text(" لغو شد.")
+
+
+async def activate_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    update_user_status(user_id, True)  
+    await update.message.reply_text("شما دوباره به دریافت پست‌های توییتر فعال شدید.")

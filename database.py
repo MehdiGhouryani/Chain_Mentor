@@ -24,6 +24,7 @@ def setup_database():
             phone VARCHAR(20),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
+    c.execute('ALTER TABLE users ADD is_active BOOLEAN NOT NULL DEFAULT 1')
 
     c.execute('''
         CREATE TABLE IF NOT EXISTS task_progress (
@@ -153,7 +154,7 @@ def get_connection():
 
 
 
-async def get_all_users():
+def get_all_users():
     """دریافت لیست شناسه کاربران از دیتابیس."""
     conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
@@ -328,3 +329,17 @@ def get_wallets_from_db(wallet_address: str = None):
     
     conn.close()
     return users
+
+
+
+
+def update_user_status(user_id, is_active):
+    conn = sqlite3.connect('user_status.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO users (user_id, is_active)
+        VALUES (?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET is_active=?
+    ''', (user_id, is_active, is_active))
+    conn.commit()
+    conn.close()

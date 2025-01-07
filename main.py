@@ -18,7 +18,7 @@ from course import save_user_info
 from tools import *
 import wallet_tracker
 from config import ADMIN_CHAT_ID,BOT_USERNAME
-from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,
+from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,cancel_post,activate_post,
                       error_handler,handle_twitter_id,set_task_checked,is_task_checked,twitter_start_handler,save_twitter_id_handler,send_proof)
 
 from database import setup_database,is_admin
@@ -1070,8 +1070,11 @@ def main():
     app.add_handler(CommandHandler("send_message",send_message_to_all, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("delete_course", delete_course, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("AI",ai_command))
-    app.add_handler(CommandHandler("twitter", twitter_start_handler))
-    
+    app.add_handler(CommandHandler("twitter", twitter_start_handler, filters=filters.ChatType.PRIVATE))
+    app.add_handler(CommandHandler("cancel_post", cancel_post, filters=filters.ChatType.PRIVATE))
+    app.add_handler(CommandHandler("active_post", activate_post, filters=filters.ChatType.PRIVATE))
+
+
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(error_handler)
