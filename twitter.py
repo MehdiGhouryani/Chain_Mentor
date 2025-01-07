@@ -72,49 +72,52 @@ import sqlite3
 
 
 
-
-async def send_post(update: Update, context:ContextTypes.DEFAULT_TYPE):
+async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         query = update.callback_query
         await query.answer()
 
         user_id = update.effective_user.id
-        if user_state.get(user_id, {}).get('state') != 'ready_to_send':
+        
+        # بررسی وضعیت کاربر
+        user_info = user_state.get(user_id)
+        if not user_info or user_info.get('state') != 'ready_to_send':
             await query.edit_message_text("خطا: داده‌ای برای ارسال وجود ندارد.")
             return
 
-        description = user_state[user_id].get('description')
-        link = user_state[user_id].get('link')
+        description = user_info.get('description')
+        link = user_info.get('link')
 
         post_id = await save_link(link)
- 
-        print(f"postID is  :  {post_id} {type(post_id)}")
-
-        ids = await get_all_users()
-        for chat_id in ids:
+        print(f"postID is: {post_id} ({type(post_id)})")
+        ADMIN_CHAT_ID=['1717599240','182054074']
+        # ids = await get_all_users()
+        for chat_id in ADMIN_CHAT_ID:
             try:
                 keyboard = [
-                    [InlineKeyboardButton("لینک توییتر", url=link),
-                     InlineKeyboardButton("✅ چک کردن", callback_data=f"check_disabled:{post_id}")]
+                    [
+                        InlineKeyboardButton("لینک توییتر", url=link),
+                        InlineKeyboardButton("✅ چک کردن", callback_data=f"check_disabled:{post_id}")
+                    ]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
-            
-                chat = context.bot.get_chat(chat_id)
-                if chat.type =="private":
+
+                chat = await context.bot.get_chat(chat_id)  # استفاده از await برای دریافت چت
+                if chat.type == "private":
                     await context.bot.send_message(
                         chat_id=chat_id,
                         text=description,
                         reply_markup=reply_markup,
                     )
             except Exception as e:
-                print(f'ERROR IN SEND TWITTER : {e}')
+                print(f'ERROR IN SEND TWITTER: {e}')
+        
         user_state[user_id] = {}  # پاک کردن وضعیت کاربر پس از ارسال پست
         await query.edit_message_text("پست با موفقیت به همه کاربران ارسال شد.")
+        
     except Exception as e:
         print(f"Error in send_post: {e}")
         await query.edit_message_text("خطا در ارسال پست. لطفاً دوباره تلاش کنید.")
-
-
 
 
 
