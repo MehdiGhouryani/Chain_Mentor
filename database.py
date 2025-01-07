@@ -24,7 +24,7 @@ def setup_database():
             phone VARCHAR(20),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
-    c.execute('ALTER TABLE users ADD is_active BOOLEAN NOT NULL DEFAULT 1')
+    # c.execute('ALTER TABLE users ADD is_active BOOLEAN NOT NULL DEFAULT 1')
 
     c.execute('''
         CREATE TABLE IF NOT EXISTS task_progress (
