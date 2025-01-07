@@ -109,12 +109,12 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         text=description,
                         reply_markup=reply_markup,
                     )
+                await query.edit_message_text("پست با موفقیت به همه کاربران ارسال شد.")
+                user_state[user_id] = {}  # پاک کردن وضعیت کاربر پس از ارسال پست
             except Exception as e:
                 print(f'ERROR IN SEND TWITTER: {e}')
         
-        user_state[user_id] = {}  # پاک کردن وضعیت کاربر پس از ارسال پست
-        await query.edit_message_text("پست با موفقیت به همه کاربران ارسال شد.")
-        
+
     except Exception as e:
         print(f"Error in send_post: {e}")
         await query.edit_message_text("خطا در ارسال پست. لطفاً دوباره تلاش کنید.")
