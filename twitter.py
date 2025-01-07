@@ -304,6 +304,7 @@ async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_l
         await update.message.reply_text("""
 لینک شما برای بررسی ارسال شد.
         """)
+        context.user_data.pop("awaiting_proof", None)
 
         with get_db_connection() as conn:
             cursor = conn.execute(

@@ -901,6 +901,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.pop("reply_to",None)
         context.user_data.pop("awaiting_message",None)
         context.user_data.pop("messageToAll",None)
+        context.user_data.pop("awaiting_proof", None)
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
         user_state.pop(user_id,None)
