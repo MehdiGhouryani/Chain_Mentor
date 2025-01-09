@@ -17,6 +17,7 @@ import course
 from course import save_user_info
 from tools import *
 import wallet_tracker
+import TEST_API
 from config import ADMIN_CHAT_ID,BOT_USERNAME
 from twitter import (update_task_step,get_task_step,add_points,start_post,user_state,send_post,get_latest_link,cancel_post,activate_post,
                       error_handler,handle_twitter_id,set_task_checked,is_task_checked,twitter_start_handler,save_twitter_id_handler,send_proof)
@@ -111,7 +112,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if not rs.is_already_referred(inviter_id, user_id):
                     rs.add_points(inviter_id, 80)  # افزایش امتیاز کاربر دعوت‌کننده
                     rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
-                    await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
+                    await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 80 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
 
     Channel = '@memeland_persia'
 
@@ -166,39 +167,6 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Error checking membership: {e}")
         await query.answer("خطا در بررسی عضویت.")
-
-
-
-
-
-
-
-# # تابع شروع و 
-# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     user_first_name = update.effective_user.first_name
-#     chat_id = update.effective_chat.id  
-#     user_id = update.message.from_user.id
-#     username = update.effective_user.username
-#     print(f'USER : {username}    ID : {user_id}')
-#     await save_user(user_id, username, chat_id)
-
-#     if not rs.user_exists(user_id):
-#         rs.register_user(user_id) 
-
-#         args = context.args
-#         if args:
-#             inviter_id = args[0]  # آی‌دی کاربر دعوت‌کننده را از پارامتر start بگیریم
-#             if inviter_id.isdigit() and rs.user_exists(int(inviter_id)) and int(inviter_id) != user_id:
-#                 inviter_id = int(inviter_id)
-
-#                 # بررسی اینکه آیا دعوت تکراری نیست
-#                 if not rs.is_already_referred(inviter_id, user_id):
-#                     rs.add_points(inviter_id, 50)  # افزایش امتیاز کاربر دعوت‌کننده
-#                     rs.record_referral(inviter_id, user_id)  # ثبت دعوت در دیتابیس
-#                     await context.bot.send_message(chat_id=inviter_id, text="🎉 شما 50 امتیاز بابت دعوت کاربر جدید دریافت کردید!")
-
-#     welcome_text =f"سلام {user_first_name}! خوش آمدید به ربات ما."
-#     await update.message.reply_text(welcome_text, reply_markup=ReplyKeyboardMarkup(main_menu, resize_keyboard=True))
 
 
 
@@ -902,6 +870,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.pop("awaiting_message",None)
         context.user_data.pop("messageToAll",None)
         context.user_data.pop("awaiting_proof", None)
+        context.user_data.pop("checker", None)
         course_data.pop(user_id, None)
         current_step.pop(user_id, None)
         user_state.pop(user_id,None)
@@ -986,6 +955,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif context.user_data.get("add_wallet"):
             await wallet_tracker.add_wallet(update,context)
 
+        elif context.user_data.get("checker"):
+            await TEST_API.check_airdrop(update,context,text)
+            await none_step(update, context)
+
+
         elif context.user_data.get("remove_wallet"):
             await wallet_tracker.remove_wallet(update,context)
 
@@ -1046,6 +1020,15 @@ async def process_wallets():
 
 
 
+
+async def active_checker(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """منتظر دریافت آدرس ولت برای افزودن"""
+    chat_id = update.effective_chat.id
+    context.user_data['checker'] = True
+    await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
+
+
+
 def main():
     setup_database()
 
@@ -1071,10 +1054,10 @@ def main():
     app.add_handler(CommandHandler("send_message",send_message_to_all, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("delete_course", delete_course, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("AI",ai_command))
-    app.add_handler(CommandHandler("twitter", twitter_start_handler, filters=filters.ChatType.PRIVATE))
+    # app.add_handler(CommandHandler("twitter", twitter_start_handler, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("cancel_post", cancel_post, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("active_post", activate_post, filters=filters.ChatType.PRIVATE))
-
+    app.add_handler(CommandHandler("checker", active_checker, filters=filters.ChatType.PRIVATE))
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))
