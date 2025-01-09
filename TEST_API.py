@@ -14,7 +14,7 @@ query_id = "4537157"  # شناسه کوئری مربوط به ایردراپ ژ�
 url = f"https://api.dune.com/api/v1/query/{query_id}/results"
 
 
-def check_airdrop(update: Update, context, wallet_address: str):
+async def check_airdrop(update: Update, context, wallet_address: str):
     headers = {
         "X-DUNE-API-KEY": api_key
     }
@@ -56,7 +56,7 @@ def check_airdrop(update: Update, context, wallet_address: str):
                     )
 
                 # ارسال پیام به کاربر
-                update.message.reply_text(result_message)
+                await update.message.reply_text(result_message)
 
             else:
                 update.message.reply_text(f"No rows of data found for wallet address {wallet_address}.")
