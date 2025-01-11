@@ -3,14 +3,22 @@ from telegram.ext import ContextTypes
 from dune_client.client import DuneClient
 from dune_client.query import QueryBase
 from dune_client.types import QueryParameter
+import asyncio
+
+
 DUNE_API_KEY = "e2VQNiLMFBTUiKCjTpzBJr8kHqrCy9HE"
 QUERY_ID = 4537157  
 
 
 dune = DuneClient(DUNE_API_KEY)
 async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_address: str):
-
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='در حال بررسی . . . ')
+    text_one = '''
+در حال بررسی آدرس ولت شما...
+این فرایند ممکن است یک دقیقه طول بکشد.
+'''
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=text_one)
+    await asyncio.sleep(30)
+    
     query = QueryBase(
         name="Airdrop Eligibility Check",
         query_id=4537157,  
