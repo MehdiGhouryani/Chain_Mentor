@@ -11,7 +11,6 @@ QUERY_ID = 4537157
 
 dune = DuneClient(api_key=DUNE_API_KEY)
 async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_address: str):
-    # ایجاد کوئری با پارامتر آدرس ولت
     query = QueryBase(
         name="Airdrop Check",
         query_id=QUERY_ID,
@@ -21,10 +20,8 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
     )
 
     try:
-        # اجرای کوئری
         results = dune.run_query(query)
-
-        # بررسی نتیجه
+        print(results)
         if results.result and results.result.rows:
             # فرض می‌کنیم فقط یک ردیف برای ولت مورد نظر برمی‌گردد
             row = results.result.rows[0]
