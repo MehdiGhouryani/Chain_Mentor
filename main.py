@@ -923,12 +923,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         elif text == "افزودن دوره" and str(user_id) in ADMIN_CHAT_ID:
             await none_step(update, context)
-    
             await add_courses(update, context)
 
         elif text == "لیست دوره ها" and str(user_id) in ADMIN_CHAT_ID:
             await none_step(update, context)
-            
             await list_courses(update, context)
 
         elif context.user_data.get('package'):
@@ -957,7 +955,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         elif context.user_data.get("checker"):
             await TEST_API.check_airdrop(update,context,text)
-            await none_step(update, context)
+            context.user_data['checker'] = False
 
 
         elif context.user_data.get("remove_wallet"):

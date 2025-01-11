@@ -19,16 +19,14 @@ async def check_airdrop(update: Update, context, wallet_address: str):
         "X-DUNE-API-KEY": api_key
     }
 
-    # پارامترهایی که برای کوئری دونه لازم است
     params = {
         "Address": wallet_address
     }
 
-    # ارسال درخواست GET به API دونه
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code == 200:
-        # تبدیل پاسخ به فرمت JSON
+
         data = response.json()
 
         # بررسی داده‌های برگشتی
