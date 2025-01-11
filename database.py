@@ -125,10 +125,10 @@ def setup_database():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             ''')
-    c.execute('''
-    ALTER TABLE links
-    ADD COLUMN point_post INTEGER DEFAULT 100;
-''')
+#     c.execute('''
+#     ALTER TABLE links
+#     ADD COLUMN point_post INTEGER DEFAULT 100;
+# ''')
 
     c.execute("""
             CREATE TABLE IF NOT EXISTS payments_stars (
