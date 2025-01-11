@@ -320,7 +320,8 @@ async def send_proof(update: Update, context: ContextTypes.DEFAULT_TYPE, proof_l
     admin_id = [int(id) for id in ADMIN_CHAT_ID]
     try:
         await update.message.reply_text("""
-لینک شما برای بررسی ارسال شد.
+امتیاز این تسک به شما افزوده شد . 
+در صورت تایید ادمین این امتیاز ثبت نهایی میشود !!
         """)
         context.user_data.pop("awaiting_proof", None)
 

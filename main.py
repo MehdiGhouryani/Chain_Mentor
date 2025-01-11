@@ -883,7 +883,8 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['checker'] = False
         context.user_data['awaiting_message'] = False
         context.user_data['messageToAll'] = False
-  
+        context.user_data['awaiting_proof'] = False
+        
         context.user_data.pop('online', None)
         context.user_data.pop('package', None)
         context.user_data.pop('advanced', None)
