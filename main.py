@@ -917,7 +917,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     text = update.message.text
     user_id = update.message.from_user.id
     admin_id = id in ADMIN_CHAT_ID
-
+    print(f"CONTEXT USER DATA :  {context.user_data}")
     command_mapping = {
         "معرفی خدمات": show_welcome,
         "🎓 آموزش و کلاس‌های آنلاین": course.courses_menu,
@@ -995,6 +995,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await handle_twitter_id(update,context,text)
 
         elif context.user_data.get("start_post"):
+
             context.user_data['start_post'] = False
             user_state[user_id]['description'] = update.message.text
             context.user_data['waiting_for_link'] = True 
