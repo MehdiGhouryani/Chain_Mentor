@@ -1052,11 +1052,11 @@ async def process_wallets():
 
 
 async def active_checker(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """منتظر دریافت آدرس ولت برای افزودن"""
+    await none_step(update,context)
     chat_id = update.effective_chat.id
     context.user_data['checker'] = True
     await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
-
+    
 
 
 def main():
