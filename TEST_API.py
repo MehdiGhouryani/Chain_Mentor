@@ -7,7 +7,7 @@ DUNE_API_KEY = "e2VQNiLMFBTUiKCjTpzBJr8kHqrCy9HE"
 QUERY_ID = 4537157  
 
 
-dune = DuneClient(API_KEY)
+dune = DuneClient(DUNE_API_KEY)
 async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_address: str):
     # ایجاد کوئری با پارامتر آدرس ولت
     query = QueryBase(
