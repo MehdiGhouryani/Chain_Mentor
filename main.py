@@ -353,7 +353,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await none_step(update,context)
             user_id = int(query.data.split("_")[-1])
-            print(f"STARTWITH REPLY   USER_ID   : {user_id}")
+            print(f"START WITH REPLY   USER_ID   : {user_id}")
             context.user_data["reply_to"] = user_id
             await query.message.reply_text("لطفاً پیام خود را برای پاسخ به کاربر وارد کنید.")
 
@@ -987,8 +987,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif context.user_data.get("remove_wallet"):
             await wallet_tracker.remove_wallet(update,context)
 
-        elif "reply_to" in context.user_data:
-            await receive_admin_response_handler(update,context)
 
         elif user_id in current_step:
             await handle_add_course_step(update, user_id, text)
@@ -1021,6 +1019,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 "توضیحات و لینک ثبت شد. آیا می‌خواهید ارسال کنید؟",
                 reply_markup=reply_markup,
             )
+        elif context.user_data.get("reply_to"):
+            await receive_admin_response_handler(update,context)
 
 
     except Exception as e:

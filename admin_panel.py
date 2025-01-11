@@ -50,6 +50,9 @@ async def receive_admin_response_handler(update: Update, context: ContextTypes.D
     finally:
         context.user_data["reply_to"] = None
 
+
+
+
 async def list_courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     cursor.execute("SELECT course_id,course_name,description,price,course_type,registrants_count,created_at FROM courses")
     courses = cursor.fetchall()
