@@ -400,7 +400,17 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         user_id = query.from_user.id
         
-        link = get_latest_link()
+        latest_data = get_latest_link()
+
+        if latest_data:
+            link = latest_data["twitter_link"]
+            point_post = latest_data["point_post"]
+            print(f"Link: {link}, Point: {point_post}")
+        else:
+            print("No link found.")
+
+
+
         data_button = query.data.split(":")
         post_id = int(data_button[1])
 
@@ -409,6 +419,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 لینک توییت خودتون که تسک رو انجام دادید ارسال کنید.
 توجه داشته باشید که لینک به درستی ارسال بشه.
         """)
+            await add_points(user_id,point_post)
             await update_task_step(user_id, 2) 
             context.user_data["awaiting_proof"] = True
 
@@ -860,7 +871,10 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
 
 
-
+        context.user_data['ready_to_send'] = False 
+        context.user_data['points_post'] = False
+        context.user_data['waiting_for_link'] = False
+        context.user_data['start_post'] = False
         context.user_data['reply_to'] = False
         context.user_data['state'] = False
         context.user_data['advanced'] = False
@@ -981,15 +995,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         elif context.user_data.get("twitter_id"):
             await handle_twitter_id(update,context,text)
 
-                    # بررسی وضعیت کاربر و انتقال به مرحله بعد
-        elif user_state.get(user_id, {}).get('state') == 'waiting_for_description':
+        elif context.user_data.get("start_post"):
+            context.user_data['start_post'] = False
             user_state[user_id]['description'] = update.message.text
-            user_state[user_id]['state'] = 'waiting_for_link'
+            context.user_data['waiting_for_link'] = True 
             await update.message.reply_text("توضیحات ذخیره شد. لطفاً لینک توییتر را وارد کنید.")
-        elif user_state.get(user_id, {}).get('state') == 'waiting_for_link':
+
+           
+        elif context.user_data.get("waiting_for_link"):
+            context.user_data['waiting_for_link'] = False
             user_state[user_id]['link'] = update.message.text
-            user_state[user_id]['state'] = 'ready_to_send'
-            await update.message.reply_text("چند امتیاز به کا")
+            context.user_data['points_post'] = True 
+            await update.message.reply_text("چند امتیاز به کاربر اضافه بشه ؟")
+
+             
+        elif context.user_data.get("points_post"):
+            context.user_data['points_post'] = False
+            user_state[user_id]['point'] = update.message.text
+            context.user_data['ready_to_send'] = True 
 
             keyboard = [[InlineKeyboardButton("ارسال به کاربران", callback_data="send_post")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1081,75 +1104,9 @@ def main():
         time=execution_time,
         days=(0, 1, 2, 3, 4, 5, 6),  
     )
-    # try:
-    #     loop = asyncio.get_running_loop()
-    # except RuntimeError:
-    #     loop = asyncio.new_event_loop()
-    #     asyncio.set_event_loop(loop)
-
-    # loop.create_task(process_wallets())
 
     app.run_polling()
 
 if __name__ == "__main__":
     main()
 
-
-# async def telegram_bot():
-#     """اجرای ربات تلگرام و هندلرها."""
-#     setup_database()
-
-#     app = Application.builder().token(token).build()
-#     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
-
-#     # افزودن هندلرها
-#     app.add_handler(CommandHandler("start", start))
-#     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, handle_message))
-#     app.add_handler(CommandHandler("add_wallet", wallet_tracker.wait_add_wallet))
-#     app.add_handler(CommandHandler("remove_wallet", wallet_tracker.wait_remove_wallet))
-#     app.add_handler(CommandHandler("list_wallets", wallet_tracker.list_wallets))
-#     app.add_handler(CommandHandler("grant_vip", grant_vip_command))
-#     app.add_handler(CommandHandler("revoke_vip", revoke_vip_command))
-#     app.add_handler(CommandHandler("list_vip", list_vip))
-#     app.add_handler(CommandHandler("post", start_post))
-#     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
-#     app.add_handler(CallbackQueryHandler(callback_handler))
-#     app.add_error_handler(error_handler)
-#     app.add_handler(CommandHandler("delete_course", delete_course))
-#     app.add_handler(CommandHandler("AI", ai_command))
-
-#     job_queue = app.job_queue
-
-#     execution_time = datetime.time(hour=8, minute=0, second=0)
-
-
-#     job_queue.run_daily(
-#         scheduled_jobs,
-#         time=execution_time,
-#         days=(0, 1, 2, 3, 4, 5, 6),  
-#     )
-
-
-#     # اجرای ربات به صورت asynchronous
-#     await app.start()
-#     await app.updater.start_polling()
-#     logging.info("Telegram bot is running...")
-
-#     try:
-#         await asyncio.Event().wait()  # نگه داشتن برنامه
-#     finally:
-#         await app.updater.stop()
-#         await app.stop()
-
-
-# async def main():
-#     """مدیریت وظایف کیف پول و ربات تلگرام."""
-#     logging.basicConfig(level=logging.INFO)
-#     tasks = [
-#         asyncio.create_task(process_wallets()),  # وظیفه بررسی تراکنش‌ها
-#         asyncio.create_task(telegram_bot()),  # اجرای ربات تلگرام
-#     ]
-#     await asyncio.gather(*tasks)  # اجرای همزمان وظایف
-
-# if __name__ == "__main__":
-#     asyncio.run(main())

@@ -50,7 +50,7 @@ async def handle_twitter_id(update: Update, context: CallbackContext,text):
 user_state = {}
 
 
-async def start_post(update: Update, context):
+async def start_post(update: Update, context:ContextTypes.DEFAULT_TYPE):
     try:
         await none_step(update, context)
 
@@ -60,7 +60,10 @@ async def start_post(update: Update, context):
             return
 
 
-        user_state[user_id] = {'state': 'waiting_for_description'}
+        
+
+        context.user_data['start_post'] = True
+  
         await update.message.reply_text("لطفاً توضیحات پست را وارد کنید.")
     except Exception as e:
         print(f"Error in start_post: {e}")
@@ -76,21 +79,18 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         query = update.callback_query
         await query.answer()
-
+        context.user_data['ready_to_send'] = False 
         user_id = update.effective_user.id
-        
-        # بررسی وضعیت کاربر
         user_info = user_state.get(user_id)
-        if not user_info or user_info.get('state') != 'ready_to_send':
-            await query.edit_message_text("خطا: داده‌ای برای ارسال وجود ندارد.")
-            return
 
         description = user_info.get('description')
         link = user_info.get('link')
+        point = user_info.get('point')
+        point = int(point)
 
-        post_id = await save_link(link)
+        post_id = await save_link(link,point)
         print(f"postID is: {post_id} ({type(post_id)})")
-        # ADMIN_CHAT_ID=['1717599240','182054074']
+
         ids = get_all_users()
         for chat_id in ids:
             try:
@@ -102,7 +102,7 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
 
-                chat = await context.bot.get_chat(chat_id)  # استفاده از await برای دریافت چت
+                chat = await context.bot.get_chat(chat_id)  
                 if chat.type == "private":
                     await context.bot.send_message(
                         chat_id=chat_id,
@@ -135,16 +135,15 @@ def get_all_users_twitter():
 
 
 
-
 def get_latest_link():
     conn = sqlite3.connect('Database.db') 
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT twitter_link FROM links ORDER BY created_at DESC LIMIT 1;")
+        cursor.execute("SELECT twitter_link, point_post FROM links ORDER BY created_at DESC LIMIT 1;")
         result = cursor.fetchone()
         if result:
-            return result[0] 
+            return {"twitter_link": result[0], "point_post": result[1]}  # بازگرداندن به صورت دیکشنری
         else:
             return None  
     except Exception as e:
@@ -153,7 +152,6 @@ def get_latest_link():
     finally:
         cursor.close()
         conn.close()
-
 
 
 async def is_task_checked(user_id, post_id):
@@ -201,18 +199,26 @@ async def set_task_checked(context:ContextTypes.DEFAULT_TYPE,user_id, post_id, s
 
 
 
-
-
-async def save_link(link):
-    with get_db_connection() as conn:
-        conn.execute('''
-            INSERT INTO links (twitter_link) VALUES (?)
-        ''', (link,))
-        cursor = conn.execute('SELECT last_insert_rowid()')
+async def save_link(link, point):
+    conn = sqlite3.connect('Database.db')  # اتصال به دیتابیس
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            INSERT INTO links (twitter_link, point_post) 
+            VALUES (?, ?)
+        ''', (link, point))
+        cursor.execute('SELECT last_insert_rowid()')
         result = cursor.fetchone()
+        
         conn.commit()
-        return result[0]
-
+        return result[0] 
+    except Exception as e:
+        print(f"Error in save_link: {e}")
+        return None
+    finally:
+        cursor.close()
+        conn.close() 
 
 
 
