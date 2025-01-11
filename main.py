@@ -857,8 +857,19 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_id = update.callback_query.from_user.id
         else:
             raise ValueError("نوع آپدیت مشخص نیست. لطفاً بررسی کنید.")
+        
 
+
+
+        context.user_data['reply_to'] = False
+        context.user_data['state'] = False
+        context.user_data['advanced'] = False
+        context.user_data['package'] = False
+        context.user_data['online'] = False
         context.user_data['checker'] = False
+        context.user_data['awaiting_message'] = False
+        context.user_data['messageToAll'] = False
+  
         context.user_data.pop('online', None)
         context.user_data.pop('package', None)
         context.user_data.pop('advanced', None)
