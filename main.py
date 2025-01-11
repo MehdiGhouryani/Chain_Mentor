@@ -995,7 +995,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await handle_twitter_id(update,context,text)
 
         elif context.user_data.get("start_post"):
-
+            print("START_POST")
             context.user_data['start_post'] = False
             user_state[user_id]['description'] = update.message.text
             context.user_data['waiting_for_link'] = True 
@@ -1003,6 +1003,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
            
         elif context.user_data.get("waiting_for_link"):
+            print("WAIT FOR LINK ")
             context.user_data['waiting_for_link'] = False
             user_state[user_id]['link'] = update.message.text
             context.user_data['points_post'] = True 
