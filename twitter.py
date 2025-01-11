@@ -61,7 +61,7 @@ async def start_post(update: Update, context:ContextTypes.DEFAULT_TYPE):
 
 
         
-
+        user_state[user_id] = {'state': 'waiting_for_description'}
         context.user_data['start_post'] = True
   
         await update.message.reply_text("لطفاً توضیحات پست را وارد کنید.")
