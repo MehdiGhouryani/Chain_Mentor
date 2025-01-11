@@ -9,7 +9,7 @@ QUERY_ID = 4537157
 dune = DuneClient(api_key=DUNE_API_KEY)
 
 async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_address: str):
-
+    # ایجاد کوئری با پارامتر آدرس ولت
     query = QueryBase(
         name="Airdrop Check",
         query_id=QUERY_ID,
@@ -19,10 +19,12 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
     )
 
     try:
+        # اجرای کوئری
         results = dune.run_query(query)
 
+        # بررسی نتیجه
         if results.result and results.result.rows:
-            row = results.result.rows[0]  
+            row = results.result.rows[0]  # فرض بر این است که فقط یک ردیف داده برمی‌گردد
             response_text = (
                 f"🎉 *Airdrop Details for Wallet: {wallet_address}*\n\n"
                 f"🟢 *Eligible Wallets in Tier*: {row['Eligible Wallets in Tier']}\n"
@@ -39,12 +41,13 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
                 f"Please ensure the address is correct."
             )
 
+        # ارسال پاسخ به کاربر
         await context.bot.send_message(chat_id=update.effective_chat.id, text=response_text, parse_mode="Markdown")
 
     except Exception as e:
+        # مدیریت خطاها
         error_text = f"⚠️ An error occurred while checking the wallet:\n{str(e)}"
         await context.bot.send_message(chat_id=update.effective_chat.id, text=error_text)
-
 
 
 
