@@ -17,7 +17,7 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
 این فرایند ممکن است یک دقیقه طول بکشد.
 '''
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text_one)
-    await asyncio.sleep(30)
+    await asyncio.sleep(3)
     
     query = QueryBase(
         name="Airdrop Eligibility Check",
