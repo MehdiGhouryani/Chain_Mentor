@@ -858,7 +858,7 @@ async def none_step(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             raise ValueError("نوع آپدیت مشخص نیست. لطفاً بررسی کنید.")
 
-        # پاک کردن داده‌های مرتبط با کاربر
+        context.user_data['checker'] = False
         context.user_data.pop('online', None)
         context.user_data.pop('package', None)
         context.user_data.pop('advanced', None)
