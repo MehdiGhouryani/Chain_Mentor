@@ -6,8 +6,10 @@ from dune_client.query import QueryBase
 DUNE_API_KEY = "e2VQNiLMFBTUiKCjTpzBJr8kHqrCy9HE"
 QUERY_ID = 4537157  
 
-dune = DuneClient(api_key=DUNE_API_KEY)
 
+
+
+dune = DuneClient(api_key=DUNE_API_KEY)
 async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_address: str):
     # ایجاد کوئری با پارامتر آدرس ولت
     query = QueryBase(
@@ -24,16 +26,19 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
 
         # بررسی نتیجه
         if results.result and results.result.rows:
-            row = results.result.rows[0]  # فرض بر این است که فقط یک ردیف داده برمی‌گردد
+            # فرض می‌کنیم فقط یک ردیف برای ولت مورد نظر برمی‌گردد
+            row = results.result.rows[0]
+            
+            # استفاده صحیح از دسترسی به مقادیر دیکشنری
             response_text = (
                 f"🎉 *Airdrop Details for Wallet: {wallet_address}*\n\n"
-                f"🟢 *Eligible Wallets in Tier*: {row['Eligible Wallets in Tier']}\n"
-                f"🟢 *JUP Allocation*: {row['JUP Allocation']}\n"
-                f"🟢 *Tier Number*: {row['Tier Number']}\n"
-                f"🟢 *Total JUP in Tier*: {row['Total JUP in Tier']}\n"
-                f"🟢 *Total Transactions*: {row['Total Transactions (Nov 3, 2023 - Nov 2, 2024)']}\n"
-                f"🟢 *Total Volume USD*: {row['Total Volume USD (Nov 3, 2023 - Nov 2, 2024)']}\n"
-                f"🟢 *Volume Tier*: {row['Volume Tier']}"
+                f"🟢 *Eligible Wallets in Tier*: {row.get('Eligible Wallets in Tier', 'N/A')}\n"
+                f"🟢 *JUP Allocation*: {row.get('JUP Allocation', 'N/A')}\n"
+                f"🟢 *Tier Number*: {row.get('Tier Number', 'N/A')}\n"
+                f"🟢 *Total JUP in Tier*: {row.get('Total JUP in Tier', 'N/A')}\n"
+                f"🟢 *Total Transactions*: {row.get('Total Transactions (Nov 3, 2023 - Nov 2, 2024)', 'N/A')}\n"
+                f"🟢 *Total Volume USD*: {row.get('Total Volume USD (Nov 3, 2023 - Nov 2, 2024)', 'N/A')}\n"
+                f"🟢 *Volume Tier*: {row.get('Volume Tier', 'N/A')}"
             )
         else:
             response_text = (
@@ -48,8 +53,6 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
         # مدیریت خطاها
         error_text = f"⚠️ An error occurred while checking the wallet:\n{str(e)}"
         await context.bot.send_message(chat_id=update.effective_chat.id, text=error_text)
-
-
 
 
 
