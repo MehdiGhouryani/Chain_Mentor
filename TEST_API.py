@@ -2,31 +2,31 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dune_client.client import DuneClient
 from dune_client.query import QueryBase
-
+from dune_client.types import QueryParameter
 DUNE_API_KEY = "e2VQNiLMFBTUiKCjTpzBJr8kHqrCy9HE"
 QUERY_ID = 4537157  
 
 
-
-
-dune = DuneClient(api_key=DUNE_API_KEY)
+dune = DuneClient(API_KEY)
 async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wallet_address: str):
+    # ایجاد کوئری با پارامتر آدرس ولت
     query = QueryBase(
-        name="Airdrop Check",
-        query_id=QUERY_ID,
+        name="Airdrop Eligibility Check",
+        query_id=4537157,  # شناسه کوئری
         params=[
-            {"name": "Address", "value": wallet_address}
-        ]
+            QueryParameter.text_type(name="Address", value=wallet_address),
+        ],
     )
 
     try:
+        # اجرای کوئری و دریافت نتیجه
         results = dune.run_query(query)
-        print(results)
+
+        # بررسی اینکه آیا داده‌ای موجود است یا خیر
         if results.result and results.result.rows:
-            # فرض می‌کنیم فقط یک ردیف برای ولت مورد نظر برمی‌گردد
-            row = results.result.rows[0]
-            
-            # استفاده صحیح از دسترسی به مقادیر دیکشنری
+            row = results.result.rows[0]  # اولین ردیف نتیجه
+
+            # ساخت متن پاسخ بر اساس مقادیر موجود در داده‌ها
             response_text = (
                 f"🎉 *Airdrop Details for Wallet: {wallet_address}*\n\n"
                 f"🟢 *Eligible Wallets in Tier*: {row.get('Eligible Wallets in Tier', 'N/A')}\n"
@@ -50,7 +50,6 @@ async def check_airdrop(update: Update, context: ContextTypes.DEFAULT_TYPE, wall
         # مدیریت خطاها
         error_text = f"⚠️ An error occurred while checking the wallet:\n{str(e)}"
         await context.bot.send_message(chat_id=update.effective_chat.id, text=error_text)
-
 
 
 
