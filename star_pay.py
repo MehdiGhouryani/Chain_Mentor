@@ -197,23 +197,23 @@ async def send_renewal_notification(context):
                     chat_id=user_id,
                     text="یک روز مانده به اتمام اشتراک VIP شما. برای تمدید اشتراک، لطفاً از طریق پرداخت استارز اقدام کنید."
                 )
-                # ارسال لینک پرداخت
-                title = "Renew VIP Membership"
-                description = "Extend your VIP membership for another 30 days."
-                payload = "VIP-renewal"
-                currency = "XTR"
-                price = 1
-                prices = [LabeledPrice("VIP Renewal", price * 1)]
+                # # ارسال لینک پرداخت
+                # title = "Renew VIP Membership"
+                # description = "Extend your VIP membership for another 30 days."
+                # payload = "VIP-renewal"
+                # currency = "XTR"
+                # price = 1
+                # prices = [LabeledPrice("VIP Renewal", price * 1)]
 
-                await context.bot.send_invoice(
-                    chat_id=user_id,
-                    title=title,
-                    description=description,
-                    payload=payload,
-                    provider_token="",  # توکن پرداخت
-                    currency=currency,
-                    prices=prices
-                )
+                # await context.bot.send_invoice(
+                #     chat_id=user_id,
+                #     title=title,
+                #     description=description,
+                #     payload=payload,
+                #     provider_token="",  # توکن پرداخت
+                #     currency=currency,
+                #     prices=prices
+                # )
             except Exception as e:
                 print(f"Error sending renewal notification to {user_id}: {e}")
     except Exception as e:
