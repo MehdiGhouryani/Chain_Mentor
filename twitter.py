@@ -1,6 +1,6 @@
 from database import get_db_connection,get_all_users,username_members
 from config import ADMIN_CHAT_ID,none_step
-
+import asyncio
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackContext,ContextTypes
 
@@ -104,11 +104,14 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                 chat = await context.bot.get_chat(chat_id)  
                 if chat.type == "private":
-                    await context.bot.send_message(
+                    sent_message =await context.bot.send_message(
                         chat_id=chat_id,
                         text=description,
                         reply_markup=reply_markup,
                     )
+                    delete_after_seconds = 86400  
+                    asyncio.create_task(delete_message_after(sent_message.chat_id, sent_message.message_id, delete_after_seconds, context))
+
                 await query.edit_message_text("پست با موفقیت به همه کاربران ارسال شد.")
                 user_state[user_id] = {}
             except Exception as e:
@@ -122,6 +125,14 @@ async def send_post(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+# تابع کمکی برای حذف پیام
+async def delete_message_after(chat_id, message_id, delay, context):
+    await asyncio.sleep(delay)  
+    try:
+        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        print(f"Message {message_id} deleted successfully from chat {chat_id}")
+    except Exception as e:
+        print(f"Error deleting message {message_id} from chat {chat_id}: {e}")
 
 
 def get_all_users_twitter():
