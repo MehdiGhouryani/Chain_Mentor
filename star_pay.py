@@ -195,7 +195,7 @@ async def send_renewal_notification(context):
                 # ارسال پیام تمدید
                 await context.bot.send_message(
                     chat_id=user_id,
-                    text="یک روز مانده به اتمام اشتراک VIP شما. برای تمدید اشتراک، لطفاً از طریق پرداخت استارز اقدام کنید."
+                    text="یک روز مانده به اتمام اشتراک VIP شما. برای تمدید اشتراک اقدام کنید."
                 )
                 # # ارسال لینک پرداخت
                 # title = "Renew VIP Membership"
