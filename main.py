@@ -1058,10 +1058,10 @@ async def active_checker(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=chat_id, text="ادرس ولت خود را ارسال کنید :")
     
 
-
+app = None
 def main():
     setup_database()
-
+    global app
     app = Application.builder().token(token).build()
     app.bot_data['admins'] = [int(id) for id in ADMIN_CHAT_ID]
 
@@ -1087,7 +1087,7 @@ def main():
     # app.add_handler(CommandHandler("twitter", twitter_start_handler, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("cancel_post", cancel_post, filters=filters.ChatType.PRIVATE))
     app.add_handler(CommandHandler("active_post", activate_post, filters=filters.ChatType.PRIVATE))
-    app.add_handler(CommandHandler("checker", active_checker, filters=filters.ChatType.PRIVATE))
+    # app.add_handler(CommandHandler("checker", active_checker, filters=filters.ChatType.PRIVATE))
 
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(CallbackQueryHandler(callback_handler))

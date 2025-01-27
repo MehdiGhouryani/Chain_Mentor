@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 from telegram import Update,Bot
 from telegram.ext import ContextTypes
-import json
+
 
 QUICKNODE_WSS = 'wss://crimson-summer-lambo.solana-mainnet.quiknode.pro/cbf2ed09272440f3ae0c66090615118537e41bc9'
 DB_PATH = "Database.db"
